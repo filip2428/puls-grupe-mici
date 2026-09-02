@@ -2,6 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { scrieAudit } from "@/lib/audit";
@@ -9,6 +10,11 @@ import { ceruteAdmin, ceruteLider } from "@/lib/auth/sesiune";
 import { db } from "@/lib/db";
 import { echipeSlujire, membri, membriEchipe, programariSlujire } from "@/lib/db/schema";
 import { verificaAccesGrupa } from "@/lib/interogari/acces";
+import {
+  numeConfirmat,
+  pierderiEchipa,
+  stergeEchipaDefinitiv,
+} from "@/lib/interogari/stergere";
 import { esteDataValida } from "@/lib/util/date";
 
 export type StareSlujire = { eroare?: string; reusit?: boolean };
@@ -104,12 +110,35 @@ export async function schimbaActivaEchipa(echipaId: number, activa: boolean) {
   revalidatePath(`/slujiri/${echipaId}`);
 }
 
-/** Șterge o echipă (rămân adolescenții, dispare doar echipa). */
-export async function stergeEchipa(echipaId: number) {
+/**
+ * Șterge un loc de slujire, cu programările lui din calendar.
+ * Adolescenții rămân neatinși - doar nu mai slujesc acolo.
+ */
+export async function stergeEchipa(
+  echipaId: number,
+  _stare: StareSlujire,
+  formData: FormData,
+): Promise<StareSlujire> {
   const admin = await ceruteAdmin();
-  await db.delete(echipeSlujire).where(eq(echipeSlujire.id, echipaId));
-  await scrieAudit(admin.id, "echipa:stearsa", { echipaId });
-  revalidatePath("/slujiri");
+
+  const pierderi = await pierderiEchipa(echipaId);
+  if (!pierderi) return { eroare: "Slujirea nu mai există." };
+
+  const scris = String(formData.get("confirmare") ?? "");
+  if (!numeConfirmat(scris, pierderi.nume)) {
+    return { eroare: `Scrie exact „${pierderi.nume}" ca să confirmi ștergerea.` };
+  }
+
+  await stergeEchipaDefinitiv(echipaId);
+  await scrieAudit(admin.id, "echipa:stearsa", {
+    echipaId,
+    nume: pierderi.nume,
+    adolescenti: pierderi.adolescenti,
+    programari: pierderi.programari,
+  });
+
+  revalidatePath("/", "layout");
+  redirect("/slujiri");
 }
 
 /**

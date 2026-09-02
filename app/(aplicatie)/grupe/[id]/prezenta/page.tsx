@@ -7,6 +7,7 @@ import { verificaAccesGrupa } from "@/lib/interogari/acces";
 import { grupa as iaGrupa } from "@/lib/interogari/grupe";
 import { foaiaDePrezenta } from "@/lib/interogari/prezenta";
 import { dataAzi, dataLunga, esteDataValida } from "@/lib/util/date";
+import { stergeIntalnirea } from "./actions";
 
 export default async function PaginaPrezenta({
   params,
@@ -50,19 +51,43 @@ export default async function PaginaPrezenta({
           după.
         </div>
       ) : (
-        <FoaiePrezenta
-          grupaId={grupaId}
-          data={data}
-          membri={foaie.membri.map((m) => ({ id: m.id, nume: m.nume }))}
-          musafiriInitiali={foaie.musafiri.map((m) => ({
-            id: m.id,
-            nume: m.nume,
-          }))}
-          stariInitiale={foaie.stari}
-          subiectInitial={foaie.subiect}
-          notaInitiala={foaie.nota}
-          existaDeja={foaie.intalnireId !== null}
-        />
+        <>
+          <FoaiePrezenta
+            grupaId={grupaId}
+            data={data}
+            membri={foaie.membri.map((m) => ({ id: m.id, nume: m.nume }))}
+            musafiriInitiali={foaie.musafiri.map((m) => ({
+              id: m.id,
+              nume: m.nume,
+            }))}
+            stariInitiale={foaie.stari}
+            subiectInitial={foaie.subiect}
+            notaInitiala={foaie.nota}
+            existaDeja={foaie.intalnireId !== null}
+          />
+
+          {foaie.intalnireId !== null && (
+            <details className="mb-28 rounded-xl border border-red-200 bg-red-50/50 p-3">
+              <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-red-800">
+                Șterge prezența de la această dată
+              </summary>
+              <form
+                action={stergeIntalnirea.bind(null, grupaId, data)}
+                className="pt-2"
+              >
+                <p className="mb-3 text-xs text-red-800/90">
+                  Dispar toate bifele de pe {dataLunga(data)}, plus subiectul și
+                  nota zilei. Adolescenții și musafirii rămân neatinși - poți
+                  reface prezența oricând. Bun dacă ai completat-o din greșeală
+                  pe altă dată.
+                </p>
+                <button type="submit" className="buton bg-red-700 text-white">
+                  Șterge prezența zilei
+                </button>
+              </form>
+            </details>
+          )}
+        </>
       )}
     </div>
   );

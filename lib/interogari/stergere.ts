@@ -1,12 +1,13 @@
 import "server-only";
 
-import { count, eq } from "drizzle-orm";
+import { count, eq, inArray } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
   audit,
   delegari,
   echipeSlujire,
+  grupe,
   intalniri,
   lideri,
   lideriGrupe,
@@ -151,6 +152,190 @@ export async function stergeMembruDefinitiv(membruId: number) {
     await tx.delete(noteMembru).where(eq(noteMembru.membruId, membruId));
     await tx.delete(membriEchipe).where(eq(membriEchipe.membruId, membruId));
     await tx.delete(membri).where(eq(membri.id, membruId));
+  });
+}
+
+export type PierderiGrupa = {
+  nume: string;
+  adolescenti: number;
+  intalniri: number;
+  prezente: number;
+  note: number;
+  lideri: number;
+  programari: number;
+};
+
+/** Ce se pierde dacă ștergem o grupă. E cea mai grea ștergere din aplicație. */
+export async function pierderiGrupa(
+  grupaId: number,
+): Promise<PierderiGrupa | null> {
+  const [g] = await db.select().from(grupe).where(eq(grupe.id, grupaId));
+  if (!g) return null;
+
+  const aiGrupei = await db
+    .select({ id: membri.id })
+    .from(membri)
+    .where(eq(membri.grupaId, grupaId));
+  const idMembri = aiGrupei.map((m) => m.id);
+
+  const aleGrupei = await db
+    .select({ id: intalniri.id })
+    .from(intalniri)
+    .where(eq(intalniri.grupaId, grupaId));
+  const idIntalniri = aleGrupei.map((i) => i.id);
+
+  const [[p], [n], [l], [pr]] = await Promise.all([
+    idIntalniri.length
+      ? db
+          .select({ c: count() })
+          .from(prezente)
+          .where(inArray(prezente.intalnireId, idIntalniri))
+      : Promise.resolve([{ c: 0 }]),
+    idMembri.length
+      ? db
+          .select({ c: count() })
+          .from(noteMembru)
+          .where(inArray(noteMembru.membruId, idMembri))
+      : Promise.resolve([{ c: 0 }]),
+    db
+      .select({ c: count() })
+      .from(lideriGrupe)
+      .where(eq(lideriGrupe.grupaId, grupaId)),
+    db
+      .select({ c: count() })
+      .from(programariSlujire)
+      .where(eq(programariSlujire.grupaId, grupaId)),
+  ]);
+
+  return {
+    nume: g.nume,
+    adolescenti: idMembri.length,
+    intalniri: idIntalniri.length,
+    prezente: Number(p?.c ?? 0),
+    note: Number(n?.c ?? 0),
+    lideri: Number(l?.c ?? 0),
+    programari: Number(pr?.c ?? 0),
+  };
+}
+
+/**
+ * Șterge definitiv o grupă cu tot ce ține de ea: adolescenții, prezențele,
+ * notele, înlocuirile și programările ei. Liderii rămân - doar nu mai sunt
+ * repartizați aici.
+ */
+export async function stergeGrupaDefinitiv(grupaId: number) {
+  const aiGrupei = await db
+    .select({ id: membri.id })
+    .from(membri)
+    .where(eq(membri.grupaId, grupaId));
+  const aleGrupei = await db
+    .select({ id: intalniri.id })
+    .from(intalniri)
+    .where(eq(intalniri.grupaId, grupaId));
+
+  const idMembri = aiGrupei.map((m) => m.id);
+  const idIntalniri = aleGrupei.map((i) => i.id);
+
+  await db.transaction(async (tx) => {
+    if (idIntalniri.length > 0) {
+      await tx.delete(prezente).where(inArray(prezente.intalnireId, idIntalniri));
+    }
+    if (idMembri.length > 0) {
+      await tx.delete(prezente).where(inArray(prezente.membruId, idMembri));
+      await tx.delete(noteMembru).where(inArray(noteMembru.membruId, idMembri));
+      await tx.delete(membriEchipe).where(inArray(membriEchipe.membruId, idMembri));
+    }
+    await tx.delete(intalniri).where(eq(intalniri.grupaId, grupaId));
+    await tx.delete(membri).where(eq(membri.grupaId, grupaId));
+    await tx.delete(lideriGrupe).where(eq(lideriGrupe.grupaId, grupaId));
+    await tx.delete(delegari).where(eq(delegari.grupaId, grupaId));
+    await tx
+      .delete(programariSlujire)
+      .where(eq(programariSlujire.grupaId, grupaId));
+    await tx.delete(grupe).where(eq(grupe.id, grupaId));
+  });
+}
+
+export type PierderiIntalnire = {
+  data: string;
+  grupaId: number;
+  prezente: number;
+  areNote: boolean;
+};
+
+/** Ce se pierde dacă ștergem prezența unei zile. */
+export async function pierderiIntalnire(
+  intalnireId: number,
+): Promise<PierderiIntalnire | null> {
+  const [i] = await db
+    .select()
+    .from(intalniri)
+    .where(eq(intalniri.id, intalnireId));
+  if (!i) return null;
+
+  const [p] = await db
+    .select({ c: count() })
+    .from(prezente)
+    .where(eq(prezente.intalnireId, intalnireId));
+
+  return {
+    data: i.data,
+    grupaId: i.grupaId,
+    prezente: Number(p?.c ?? 0),
+    areNote: Boolean(i.subiect || i.nota),
+  };
+}
+
+/** Șterge prezența unei zile, cu tot ce s-a bifat atunci. */
+export async function stergeIntalnireDefinitiv(intalnireId: number) {
+  await db.transaction(async (tx) => {
+    await tx.delete(prezente).where(eq(prezente.intalnireId, intalnireId));
+    await tx.delete(intalniri).where(eq(intalniri.id, intalnireId));
+  });
+}
+
+export type PierderiEchipa = {
+  nume: string;
+  adolescenti: number;
+  programari: number;
+};
+
+/** Ce se pierde dacă ștergem un loc de slujire. */
+export async function pierderiEchipa(
+  echipaId: number,
+): Promise<PierderiEchipa | null> {
+  const [e] = await db
+    .select()
+    .from(echipeSlujire)
+    .where(eq(echipeSlujire.id, echipaId));
+  if (!e) return null;
+
+  const [[m], [p]] = await Promise.all([
+    db
+      .select({ c: count() })
+      .from(membriEchipe)
+      .where(eq(membriEchipe.echipaId, echipaId)),
+    db
+      .select({ c: count() })
+      .from(programariSlujire)
+      .where(eq(programariSlujire.echipaId, echipaId)),
+  ]);
+
+  return {
+    nume: e.nume,
+    adolescenti: Number(m?.c ?? 0),
+    programari: Number(p?.c ?? 0),
+  };
+}
+
+/** Șterge un loc de slujire. Adolescenții rămân, doar nu mai slujesc acolo. */
+export async function stergeEchipaDefinitiv(echipaId: number) {
+  await db.transaction(async (tx) => {
+    await tx.delete(membriEchipe).where(eq(membriEchipe.echipaId, echipaId));
+    await tx
+      .delete(programariSlujire)
+      .where(eq(programariSlujire.echipaId, echipaId));
+    await tx.delete(echipeSlujire).where(eq(echipeSlujire.id, echipaId));
   });
 }
 

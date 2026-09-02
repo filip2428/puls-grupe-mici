@@ -1,17 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { anuleazaInlocuire } from "@/app/(aplicatie)/grupe/[id]/actions";
 import { FormularEditareGrupa } from "@/componente/AdminGrupe";
+import { ZonaStergere } from "@/componente/ZonaStergere";
 import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { inlocuiriGrupa, liderilGrupei } from "@/lib/interogari/acces";
 import { grupa as iaGrupa, membriGrupei } from "@/lib/interogari/grupe";
 import { listaLideri, toateGrupele } from "@/lib/interogari/lideri";
+import { pierderiGrupa } from "@/lib/interogari/stergere";
 import { dataScurta } from "@/lib/util/date";
 import {
   mutaMembruDinFormular,
   repartizeazaLiderDinFormular,
   schimbaActivaGrupa,
   scoateLider,
+  stergeGrupa,
 } from "../../actions";
 
 export default async function PaginaAdminGrupa({
@@ -26,13 +30,15 @@ export default async function PaginaAdminGrupa({
   const g = await iaGrupa(grupaId);
   if (!g) notFound();
 
-  const [lideriAiGrupei, membri, toti, grupe, inlocuiri] = await Promise.all([
-    liderilGrupei(grupaId),
-    membriGrupei(grupaId, { includeInactivi: true, status: "toti" }),
-    listaLideri(),
-    toateGrupele(),
-    inlocuiriGrupa(grupaId),
-  ]);
+  const [lideriAiGrupei, membri, toti, grupe, inlocuiri, pierderi] =
+    await Promise.all([
+      liderilGrupei(grupaId),
+      membriGrupei(grupaId, { includeInactivi: true, status: "toti" }),
+      listaLideri(),
+      toateGrupele(),
+      inlocuiriGrupa(grupaId),
+      pierderiGrupa(grupaId),
+    ]);
 
   const idAiGrupei = new Set(lideriAiGrupei.map((l) => l.id));
   const disponibili = toti.filter((l) => l.activ && !idAiGrupei.has(l.id));
@@ -128,8 +134,15 @@ export default async function PaginaAdminGrupa({
             </h3>
             <ul className="text-sm">
               {inlocuiri.map((d) => (
-                <li key={d.id}>
-                  {d.liderNume} · {dataScurta(d.deLa)} – {dataScurta(d.panaLa)}
+                <li key={d.id} className="flex items-center gap-3 py-1">
+                  <span className="min-w-0 flex-1">
+                    {d.liderNume} · {dataScurta(d.deLa)} – {dataScurta(d.panaLa)}
+                  </span>
+                  <form action={anuleazaInlocuire.bind(null, grupaId, d.id)}>
+                    <button type="submit" className="text-xs text-red-700 underline">
+                      șterge
+                    </button>
+                  </form>
                 </li>
               ))}
             </ul>
@@ -185,6 +198,49 @@ export default async function PaginaAdminGrupa({
           )}
         </ul>
       </section>
+
+      {pierderi && (
+        <ZonaStergere
+          actiune={stergeGrupa.bind(null, grupaId)}
+          nume={g.nume}
+          titlu="Șterge grupa definitiv"
+          avertisment={avertismentGrupa(pierderi)}
+          textButon="Șterge grupa"
+        />
+      )}
     </div>
   );
+}
+
+/** Ce dispare odată cu grupa, spus pe șleau înainte de confirmare. */
+function avertismentGrupa(p: {
+  adolescenti: number;
+  intalniri: number;
+  prezente: number;
+  note: number;
+  programari: number;
+}): string {
+  const bucati = [
+    p.adolescenti > 0
+      ? `${p.adolescenti === 1 ? "adolescentul din ea" : `cei ${p.adolescenti} adolescenți din ea`}`
+      : "",
+    p.intalniri > 0
+      ? `${p.intalniri === 1 ? "o întâlnire" : `${p.intalniri} întâlniri`} cu ${p.prezente} ${p.prezente === 1 ? "prezență" : "prezențe"}`
+      : "",
+    p.note > 0 ? (p.note === 1 ? "o notă" : `${p.note} note`) : "",
+    p.programari > 0
+      ? `${p.programari === 1 ? "o programare" : `${p.programari} programări`} din calendarul slujirilor`
+      : "",
+  ].filter(Boolean);
+
+  const lista =
+    bucati.length === 0
+      ? "Grupa e goală, deci nu se pierde nimic altceva."
+      : `Dispar cu totul ${
+          bucati.length === 1
+            ? bucati[0]
+            : `${bucati.slice(0, -1).join(", ")} și ${bucati.at(-1)}`
+        }.`;
+
+  return `${lista} Liderii rămân în aplicație, doar nu mai sunt repartizați aici. Dacă vrei să păstrezi oamenii, mută-i întâi în altă grupă; dacă grupa doar nu se mai ține, „Arhivează" e alegerea potrivită.`;
 }

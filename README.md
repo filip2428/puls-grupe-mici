@@ -124,16 +124,37 @@ confirmi se scrie în baza de date.
 
 ## Ștergerea definitivă
 
-De obicei nu vrei să ștergi: pentru cine nu mai vine există „Marchează ca
-inactiv", iar pentru un lider care nu mai slujește o vreme, „Dezactivează".
-Acolo nu se pierde nimic.
+**Tot ce se poate crea în aplicație se poate și șterge.** Nu doar arhiva:
 
-Când chiar trebuie șters, butonul e sub datele persoanei. Înainte îți arată
-exact ce dispare („Dispar cu totul 9 prezențe și o echipă de slujire") și îți
-cere să scrii numele ca să confirmi. Nu se mai poate aduce înapoi.
+| Ce ștergi | De unde | Cum se confirmă |
+| --- | --- | --- |
+| o **grupă** (cu adolescenții și istoricul ei) | Administrare → Grupe → grupa | scrii numele grupei |
+| un **lider** | Administrare → Lideri | scrii numele lui |
+| un **adolescent** (cu prezențe și note) | fișa lui, jos | scrii numele lui |
+| un **loc de slujire** (cu programările lui) | Slujiri → slujirea | scrii numele ei |
+| **prezența unei zile** | pagina de prezență a zilei | un buton, sub un capac |
+| o **programare** din calendar | Slujiri | un buton |
+| o **înlocuire** | pagina grupei | un buton |
+| o **notă** despre un adolescent | fișa lui | un buton |
+| cineva **dintr-o slujire** | fișa lui sau pagina slujirii | un buton |
+| un lider **dintr-o grupă** | Administrare → Grupe | un buton |
+| **notificările** tale | Setări | un buton |
+| **jurnalul** | Administrare → Jurnal | scrii cuvântul *golește* |
 
-La un lider șters, prezențele pe care le-a completat și notele scrise de el
-**rămân** - doar că nu mai au un nume lângă ele.
+Ștergerile grele (grupă, lider, adolescent, loc de slujire) stau sub un capac
+roșu, îți arată întâi exact ce dispare - *„Dispar cu totul 2 adolescenți, o
+întâlnire cu 2 prezențe și o notă"* - și abia apoi acceptă butonul, după ce
+scrii numele. Nu se mai poate aduce nimic înapoi.
+
+Ce **nu** se pierde: la un lider șters rămân prezențele completate de el și
+notele scrise de el, doar fără nume lângă ele. La o grupă ștearsă rămân
+liderii, doar nu mai sunt repartizați acolo. La un loc de slujire șters rămân
+adolescenții, doar nu mai slujesc acolo.
+
+De cele mai multe ori tot nu asta vrei: pentru cine nu mai vine e „Marchează ca
+inactiv", pentru un lider care ia o pauză e „Dezactivează", iar pentru o grupă
+care nu se mai ține e „Arhivează". Acolo nu se pierde nimic și se poate reveni
+oricând.
 
 ---
 

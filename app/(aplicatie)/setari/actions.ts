@@ -1,12 +1,12 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { scrieAudit } from "@/lib/audit";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { db } from "@/lib/db";
-import { lideri } from "@/lib/db/schema";
+import { lideri, notificari } from "@/lib/db/schema";
 import { emailValid } from "@/lib/email";
 import { marcheazaToateCitite } from "@/lib/notificari";
 
@@ -49,5 +49,23 @@ export async function citesteTot() {
   const lider = await ceruteLider();
   await marcheazaToateCitite(lider.id);
   revalidatePath("/setari");
-  revalidatePath("/notificari");
+}
+
+/** Șterge o notificare. Fiecare lider umblă doar la ale lui. */
+export async function stergeNotificare(notificareId: number) {
+  const lider = await ceruteLider();
+  await db
+    .delete(notificari)
+    .where(
+      and(eq(notificari.id, notificareId), eq(notificari.liderId, lider.id)),
+    );
+  revalidatePath("/setari");
+}
+
+/** Golește lista de notificări. */
+export async function stergeToateNotificarile() {
+  const lider = await ceruteLider();
+  await db.delete(notificari).where(eq(notificari.liderId, lider.id));
+  await scrieAudit(lider.id, "notificari:sterse", {});
+  revalidatePath("/setari");
 }

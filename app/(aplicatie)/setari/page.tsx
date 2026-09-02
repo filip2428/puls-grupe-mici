@@ -6,7 +6,11 @@ import { ceruteLider } from "@/lib/auth/sesiune";
 import { emailConfigurat } from "@/lib/email";
 import { cateNecitite, notificarileMele } from "@/lib/notificari";
 import { momentLizibil } from "@/lib/util/date";
-import { citesteTot } from "./actions";
+import {
+  citesteTot,
+  stergeNotificare,
+  stergeToateNotificarile,
+} from "./actions";
 
 export const metadata = { title: "Setări · Puls" };
 
@@ -61,13 +65,25 @@ export default async function PaginaSetari() {
               </span>
             )}
           </h2>
-          {necitite > 0 && (
-            <form action={citesteTot}>
-              <button type="submit" className="buton buton-secundar buton-mic">
-                Le-am văzut
-              </button>
-            </form>
-          )}
+          <div className="flex gap-2">
+            {necitite > 0 && (
+              <form action={citesteTot}>
+                <button type="submit" className="buton buton-secundar buton-mic">
+                  Le-am văzut
+                </button>
+              </form>
+            )}
+            {notificari.length > 0 && (
+              <form action={stergeToateNotificarile}>
+                <button
+                  type="submit"
+                  className="buton buton-secundar buton-mic text-red-700"
+                >
+                  Șterge tot
+                </button>
+              </form>
+            )}
+          </div>
         </div>
 
         {notificari.length === 0 ? (
@@ -117,6 +133,17 @@ export default async function PaginaSetari() {
                   ) : (
                     continut
                   )}
+                  <form
+                    action={stergeNotificare.bind(null, n.id)}
+                    className="mt-1 pl-8"
+                  >
+                    <button
+                      type="submit"
+                      className="text-xs text-cenusiu underline"
+                    >
+                      șterge
+                    </button>
+                  </form>
                 </li>
               );
             })}

@@ -1,14 +1,20 @@
 "use server";
 
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
-import { membri } from "@/lib/db/schema";
+import { intalniri, membri } from "@/lib/db/schema";
 import { verificaAccesGrupa } from "@/lib/interogari/acces";
 import { salveazaPrezenta } from "@/lib/interogari/prezenta";
+import {
+  pierderiIntalnire,
+  stergeIntalnireDefinitiv,
+} from "@/lib/interogari/stergere";
 import { dataAzi, esteDataValida } from "@/lib/util/date";
 
 export type StarePrezentaFormular = {
@@ -85,6 +91,34 @@ export async function adaugaMusafir(
 
   revalidatePath(`/grupe/${grupaId}`);
   return { musafir: creat };
+}
+
+/**
+ * Șterge prezența unei zile întregi - de obicei pentru că a fost completată
+ * din greșeală pe altă dată. Dispar toate bifele, subiectul și nota zilei;
+ * adolescenții și musafirii rămân neatinși.
+ */
+export async function stergeIntalnirea(grupaId: number, data: string) {
+  const lider = await ceruteLider();
+  const acces = await verificaAccesGrupa(lider, grupaId);
+  if (!acces.permis) return;
+
+  const [intalnire] = await db
+    .select({ id: intalniri.id })
+    .from(intalniri)
+    .where(and(eq(intalniri.grupaId, grupaId), eq(intalniri.data, data)));
+  if (!intalnire) return;
+
+  const pierderi = await pierderiIntalnire(intalnire.id);
+  await stergeIntalnireDefinitiv(intalnire.id);
+  await scrieAudit(lider.id, "prezenta:stearsa", {
+    grupaId,
+    data,
+    prezente: pierderi?.prezente ?? 0,
+  });
+
+  revalidatePath("/", "layout");
+  redirect(`/grupe/${grupaId}`);
 }
 
 /** Salvează foaia de prezență a unei grupe pentru o zi. */

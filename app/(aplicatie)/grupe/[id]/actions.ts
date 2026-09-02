@@ -132,17 +132,23 @@ export async function creeazaInlocuire(
   return { reusit: true };
 }
 
-/** Anulează o înlocuire. */
+/**
+ * Șterge o înlocuire.
+ *
+ * Rândul dispare de tot - o înlocuire anulată n-are ce să mai spună nimănui,
+ * iar urma rămâne în jurnal. Prezențele completate în perioada respectivă nu
+ * se ating: ele știu deja că au fost făcute prin înlocuire.
+ */
 export async function anuleazaInlocuire(grupaId: number, delegareId: number) {
   const lider = await ceruteLider();
   const acces = await verificaAccesGrupa(lider, grupaId);
   if (!acces.permis || (acces.prinInlocuire && !acces.esteAdmin)) return;
 
   await db
-    .update(delegari)
-    .set({ anulata: true })
+    .delete(delegari)
     .where(and(eq(delegari.id, delegareId), eq(delegari.grupaId, grupaId)));
 
-  await scrieAudit(lider.id, "inlocuire:anulata", { grupaId, delegareId });
+  await scrieAudit(lider.id, "inlocuire:stearsa", { grupaId, delegareId });
   revalidatePath(`/grupe/${grupaId}`);
+  revalidatePath(`/admin/grupe/${grupaId}`);
 }

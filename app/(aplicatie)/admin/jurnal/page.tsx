@@ -1,8 +1,10 @@
 import Link from "next/link";
 
+import { ZonaStergere } from "@/componente/ZonaStergere";
 import { ultimeleAuditari } from "@/lib/audit";
 import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { momentLizibil } from "@/lib/util/date";
+import { golesteJurnalul } from "../actions";
 
 export const metadata = { title: "Jurnal · Puls" };
 
@@ -21,6 +23,29 @@ const TEXTE: Record<string, string> = {
   "nota:stearsa": "a șters o notă",
   "inlocuire:creata": "a trecut o înlocuire",
   "inlocuire:anulata": "a anulat o înlocuire",
+  "inlocuire:stearsa": "a șters o înlocuire",
+  "prezenta:stearsa": "a șters prezența unei zile",
+  "membru:sters": "a șters definitiv un adolescent",
+  "membru:trecut-la-musafiri": "a trecut un adolescent înapoi la musafiri",
+  "musafir:adaugat": "a adăugat un musafir",
+  "musafir:primit-in-grupa": "a primit un musafir în grupă",
+  "adolescenti:importati": "a importat adolescenți dintr-un Excel",
+  "lider:sters": "a șters definitiv un lider",
+  "grupa:stearsa": "a șters definitiv o grupă",
+  "echipa:creata": "a creat un loc de slujire",
+  "echipa:modificata": "a modificat un loc de slujire",
+  "echipa:arhivata": "a arhivat un loc de slujire",
+  "echipa:reactivata": "a reactivat un loc de slujire",
+  "echipa:stearsa": "a șters un loc de slujire",
+  "echipa:adolescent-adaugat": "a trecut un adolescent la o slujire",
+  "echipa:adolescent-scos": "a scos un adolescent dintr-o slujire",
+  "programare:creata": "a programat o slujire",
+  "programare:modificata": "a modificat o programare",
+  "programare:stearsa": "a scos o programare din calendar",
+  "notificari:rulate": "a rulat notificările",
+  "notificari:sterse": "și-a șters notificările",
+  "setari:salvate": "și-a schimbat setările",
+  "jurnal:golit": "a golit jurnalul",
   "lider:creat": "a creat un lider",
   "lider:cod-nou": "a generat un cod nou",
   "lider:activat": "a activat un lider",
@@ -71,6 +96,16 @@ export default async function PaginaJurnal() {
           )}
         </ul>
       </section>
+
+      {intrari.length > 0 && (
+        <ZonaStergere
+          actiune={golesteJurnalul}
+          nume="golește"
+          titlu="Golește jurnalul"
+          avertisment="Jurnalul e singura urmă a cine ce a schimbat, inclusiv a ștergerilor. Golit, nu se mai poate reface. Rămâne scris doar că l-ai golit tu, acum."
+          textButon="Golește jurnalul"
+        />
+      )}
     </div>
   );
 }

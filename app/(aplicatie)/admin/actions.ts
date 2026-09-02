@@ -1,13 +1,14 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
-import { grupe, lideri, lideriGrupe, membri } from "@/lib/db/schema";
+import { audit, grupe, lideri, lideriGrupe, membri } from "@/lib/db/schema";
 import { emailConfigurat } from "@/lib/email";
 import {
   genereazaNotificari,
@@ -16,7 +17,9 @@ import {
 import { creeazaLiderCuCod, regenereazaCodLider } from "@/lib/interogari/lideri";
 import {
   numeConfirmat,
+  pierderiGrupa,
   pierderiLider,
+  stergeGrupaDefinitiv,
   stergeLiderDefinitiv,
 } from "@/lib/interogari/stergere";
 
@@ -308,6 +311,66 @@ export async function schimbaActivaGrupa(grupaId: number, activa: boolean) {
   });
   revalidatePath("/admin/grupe");
   revalidatePath(`/admin/grupe/${grupaId}`);
+}
+
+/**
+ * Șterge definitiv o grupă.
+ *
+ * E cea mai grea ștergere din aplicație: pleacă și adolescenții din ea, cu tot
+ * istoricul lor. Dacă vrei să păstrezi oamenii, mută-i întâi în altă grupă -
+ * iar dacă grupa doar nu se mai ține, „Arhivează" e alegerea potrivită.
+ * Liderii rămân în aplicație, doar nu mai sunt repartizați aici.
+ */
+export async function stergeGrupa(
+  grupaId: number,
+  _stare: StareAdmin,
+  formData: FormData,
+): Promise<StareAdmin> {
+  const admin = await ceruteAdmin();
+
+  const pierderi = await pierderiGrupa(grupaId);
+  if (!pierderi) return { eroare: "Grupa nu mai există." };
+
+  const scris = String(formData.get("confirmare") ?? "");
+  if (!numeConfirmat(scris, pierderi.nume)) {
+    return { eroare: `Scrie exact „${pierderi.nume}" ca să confirmi ștergerea.` };
+  }
+
+  await stergeGrupaDefinitiv(grupaId);
+  await scrieAudit(admin.id, "grupa:stearsa", {
+    grupaId,
+    nume: pierderi.nume,
+    adolescenti: pierderi.adolescenti,
+    intalniri: pierderi.intalniri,
+    prezente: pierderi.prezente,
+  });
+
+  revalidatePath("/", "layout");
+  redirect("/admin/grupe");
+}
+
+/**
+ * Golește jurnalul.
+ *
+ * Jurnalul e singura urmă a cine ce a schimbat, inclusiv a ștergerilor, deci
+ * nu e ceva de făcut din obișnuință. Golirea însăși rămâne scrisă în el.
+ */
+export async function golesteJurnalul(
+  _stare: StareAdmin,
+  formData: FormData,
+): Promise<StareAdmin> {
+  const admin = await ceruteAdmin();
+
+  if (!numeConfirmat(String(formData.get("confirmare") ?? ""), "golește")) {
+    return { eroare: "Scrie cuvântul golește, exact așa, ca să confirmi." };
+  }
+
+  const [rand] = await db.select({ c: count() }).from(audit);
+  await db.delete(audit);
+  await scrieAudit(admin.id, "jurnal:golit", { intrari: Number(rand?.c ?? 0) });
+
+  revalidatePath("/admin/jurnal");
+  return { reusit: true };
 }
 
 /** Mută un adolescent în altă grupă (istoricul rămâne la el). */

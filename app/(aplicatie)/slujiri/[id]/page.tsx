@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { FormularEchipaEditare } from "@/componente/AdminSlujiri";
 import { RandProgramare } from "@/componente/RandProgramare";
+import { ZonaStergere } from "@/componente/ZonaStergere";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { listaLideri } from "@/lib/interogari/lideri";
 import {
@@ -10,6 +11,7 @@ import {
   echipa as iaEchipa,
   programariViitoare,
 } from "@/lib/interogari/slujiri";
+import { pierderiEchipa } from "@/lib/interogari/stergere";
 import { dataAzi } from "@/lib/util/date";
 import {
   adaugaInEchipa,
@@ -32,10 +34,11 @@ export default async function PaginaEchipa({
   const esteAdmin = lider.rol === "admin";
   const esteResponsabil = date.echipa.responsabilId === lider.id;
 
-  const [disponibili, toateProgramarile, toti] = await Promise.all([
+  const [disponibili, toateProgramarile, toti, pierderi] = await Promise.all([
     adolescentiInAfaraEchipei(echipaId),
     programariViitoare(50),
     esteAdmin ? listaLideri() : Promise.resolve([]),
+    esteAdmin ? pierderiEchipa(echipaId) : Promise.resolve(null),
   ]);
 
   const programari = toateProgramarile.filter((p) => p.echipaId === echipaId);
@@ -188,32 +191,58 @@ export default async function PaginaEchipa({
                 }}
               />
 
-              <div className="mt-4 flex flex-wrap gap-2 border-t border-[#eef1f7] pt-4">
-                <form
-                  action={schimbaActivaEchipa.bind(
-                    null,
-                    echipaId,
-                    !date.echipa.activa,
-                  )}
-                >
-                  <button type="submit" className="buton buton-secundar">
-                    {date.echipa.activa ? "Arhivează" : "Reactivează"}
-                  </button>
-                </form>
-                <form action={stergeEchipa.bind(null, echipaId)}>
-                  <button type="submit" className="buton buton-secundar text-red-700">
-                    Șterge
-                  </button>
-                </form>
-              </div>
-              <p className="mt-2 text-xs text-cenusiu">
-                Ștergerea nu atinge niciun adolescent - dispare doar locul de
-                slujire și programările lui.
-              </p>
+              <form
+                action={schimbaActivaEchipa.bind(
+                  null,
+                  echipaId,
+                  !date.echipa.activa,
+                )}
+                className="mt-4 border-t border-[#eef1f7] pt-4"
+              >
+                <button type="submit" className="buton buton-secundar">
+                  {date.echipa.activa ? "Arhivează" : "Reactivează"}
+                </button>
+                <p className="mt-2 text-xs text-cenusiu">
+                  Arhivată, nu mai apare în liste, dar rămâne cine a slujit
+                  acolo.
+                </p>
+              </form>
             </div>
           </details>
         </section>
       )}
+
+      {esteAdmin && pierderi && (
+        <ZonaStergere
+          actiune={stergeEchipa.bind(null, echipaId)}
+          nume={date.echipa.nume}
+          titlu="Șterge slujirea definitiv"
+          avertisment={avertismentEchipa(pierderi)}
+          textButon="Șterge slujirea"
+        />
+      )}
     </div>
   );
+}
+
+/** Ce dispare odată cu locul de slujire. */
+function avertismentEchipa(p: {
+  adolescenti: number;
+  programari: number;
+}): string {
+  const bucati = [
+    p.adolescenti > 0
+      ? `${p.adolescenti === 1 ? "un adolescent nu va mai sluji aici" : `cei ${p.adolescenti} adolescenți nu vor mai sluji aici`}`
+      : "",
+    p.programari > 0
+      ? `${p.programari === 1 ? "o programare iese" : `${p.programari} programări ies`} din calendar`
+      : "",
+  ].filter(Boolean);
+
+  const lista =
+    bucati.length === 0
+      ? "Nu slujește nimeni aici și nu e nimic în calendar."
+      : `${bucati.join(" și ")}.`;
+
+  return `${lista} Niciun adolescent nu se șterge - dispare doar locul de slujire. Dacă vrei doar să nu mai apară în liste, folosește „Arhivează".`;
 }

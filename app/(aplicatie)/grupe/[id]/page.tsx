@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { primesteInGrupa } from "@/app/(aplicatie)/membri/[id]/actions";
+import { anuleazaInlocuire } from "./actions";
 import { FormularInlocuire } from "@/componente/FormularInlocuire";
 import { FormularMembruNou } from "@/componente/FormularMembruNou";
 import { RandProgramare } from "@/componente/RandProgramare";
@@ -322,13 +323,25 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
             </h3>
             <ul className="flex flex-col gap-1 text-sm">
               {inlocuiri.map((d) => (
-                <li key={d.id}>
-                  <span className="font-medium">{d.liderNume}</span>
-                  <span className="text-cenusiu">
-                    {" "}
-                    · {dataScurta(d.deLa)} – {dataScurta(d.panaLa)}
-                    {d.motiv ? ` · ${d.motiv}` : ""}
+                <li key={d.id} className="flex items-center gap-3">
+                  <span className="min-w-0 flex-1">
+                    <span className="font-medium">{d.liderNume}</span>
+                    <span className="text-cenusiu">
+                      {" "}
+                      · {dataScurta(d.deLa)} – {dataScurta(d.panaLa)}
+                      {d.motiv ? ` · ${d.motiv}` : ""}
+                    </span>
                   </span>
+                  {poateOrganiza && (
+                    <form action={anuleazaInlocuire.bind(null, grupaId, d.id)}>
+                      <button
+                        type="submit"
+                        className="text-xs text-red-700 underline"
+                      >
+                        șterge
+                      </button>
+                    </form>
+                  )}
                 </li>
               ))}
             </ul>
