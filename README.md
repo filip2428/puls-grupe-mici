@@ -300,21 +300,30 @@ abonate până atunci nu mai primesc nimic și liderii trebuie să apese din nou
 3. **Vercel.** Importă proiectul din Git, pune variabilele de mai sus și pornește
    prima construire. Verificarea zilnică se configurează singură din
    `vercel.json` (în fiecare zi la 8:00, ora României).
-4. **Tabelele în producție.** De pe calculatorul tău:
+4. **Tabelele în producție.** De pe calculatorul tău, în PowerShell (Windows):
+
+   ```powershell
+   $env:DATABASE_URL="libsql://..."; $env:DATABASE_AUTH_TOKEN="..."; npm run db:migrate
+   ```
+
+   Pe macOS sau Linux:
 
    ```bash
    DATABASE_URL="libsql://..." DATABASE_AUTH_TOKEN="..." npm run db:migrate
    ```
 
-5. **Primul administrator**, la fel:
+5. **Primul administrator**, la fel (PowerShell):
 
-   ```bash
-   DATABASE_URL="libsql://..." DATABASE_AUTH_TOKEN="..." npm run lider:nou -- --nume "Numele tău" --rol admin
+   ```powershell
+   $env:DATABASE_URL="libsql://..."; $env:DATABASE_AUTH_TOKEN="..."; npm run lider:nou -- --nume "Numele tău" --rol admin
    ```
 
 6. **Verifică.** Intră cu codul primit, deschide *Administrare → Trimite
    notificările acum* și citește ce raportează: îți spune ce a plecat pe telefon,
    ce pe email și ce mai lipsește din configurare.
+
+Variabilele puse cu `$env:` țin doar cât ține fereastra aceea de PowerShell.
+Dacă o închizi, le pui din nou.
 
 De fiecare dată când mai adaugi ceva în `lib/db/schema.ts`, rulează întâi
 `npm run db:generate`, iar după ce ai pus codul pe Vercel rulează
