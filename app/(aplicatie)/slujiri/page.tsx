@@ -62,7 +62,7 @@ export default async function PaginaSlujiri() {
           <ul className="flex flex-col divide-y divide-[#eef1f7]">
             {urmatoarele.map((p) => (
               <li key={p.id} className="py-3">
-                <RandProgramare programare={p} azi={azi} />
+                <RandProgramare programare={p} azi={azi} poateFacePrezenta />
                 {esteAdmin && (
                   <form
                     action={stergeProgramare.bind(null, p.id)}

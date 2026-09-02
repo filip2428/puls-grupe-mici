@@ -17,6 +17,7 @@ import {
   noteMembru,
   notificari,
   prezente,
+  prezenteSlujire,
   programariSlujire,
 } from "@/lib/db/schema";
 
@@ -151,6 +152,9 @@ export async function pierderiMembru(
 export async function stergeMembruDefinitiv(membruId: number) {
   await db.transaction(async (tx) => {
     await tx.delete(prezente).where(eq(prezente.membruId, membruId));
+    await tx
+      .delete(prezenteSlujire)
+      .where(eq(prezenteSlujire.membruId, membruId));
     await tx.delete(noteMembru).where(eq(noteMembru.membruId, membruId));
     await tx.delete(membriEchipe).where(eq(membriEchipe.membruId, membruId));
     await tx.delete(membri).where(eq(membri.id, membruId));
@@ -235,15 +239,29 @@ export async function stergeGrupaDefinitiv(grupaId: number) {
     .from(intalniri)
     .where(eq(intalniri.grupaId, grupaId));
 
+  const aleSlujirii = await db
+    .select({ id: programariSlujire.id })
+    .from(programariSlujire)
+    .where(eq(programariSlujire.grupaId, grupaId));
+
   const idMembri = aiGrupei.map((m) => m.id);
   const idIntalniri = aleGrupei.map((i) => i.id);
+  const idProgramari = aleSlujirii.map((p) => p.id);
 
   await db.transaction(async (tx) => {
     if (idIntalniri.length > 0) {
       await tx.delete(prezente).where(inArray(prezente.intalnireId, idIntalniri));
     }
+    if (idProgramari.length > 0) {
+      await tx
+        .delete(prezenteSlujire)
+        .where(inArray(prezenteSlujire.programareId, idProgramari));
+    }
     if (idMembri.length > 0) {
       await tx.delete(prezente).where(inArray(prezente.membruId, idMembri));
+      await tx
+        .delete(prezenteSlujire)
+        .where(inArray(prezenteSlujire.membruId, idMembri));
       await tx.delete(noteMembru).where(inArray(noteMembru.membruId, idMembri));
       await tx.delete(membriEchipe).where(inArray(membriEchipe.membruId, idMembri));
     }
@@ -332,8 +350,19 @@ export async function pierderiEchipa(
 
 /** Șterge un loc de slujire. Pulsiștii rămân, doar nu mai slujesc acolo. */
 export async function stergeEchipaDefinitiv(echipaId: number) {
+  const aleEchipei = await db
+    .select({ id: programariSlujire.id })
+    .from(programariSlujire)
+    .where(eq(programariSlujire.echipaId, echipaId));
+  const idProgramari = aleEchipei.map((p) => p.id);
+
   await db.transaction(async (tx) => {
     await tx.delete(membriEchipe).where(eq(membriEchipe.echipaId, echipaId));
+    if (idProgramari.length > 0) {
+      await tx
+        .delete(prezenteSlujire)
+        .where(inArray(prezenteSlujire.programareId, idProgramari));
+    }
     await tx
       .delete(programariSlujire)
       .where(eq(programariSlujire.echipaId, echipaId));

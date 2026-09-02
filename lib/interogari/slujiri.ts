@@ -1,6 +1,18 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, inArray, lt, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  inArray,
+  isNull,
+  lt,
+  lte,
+  or,
+  sql,
+} from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -12,7 +24,7 @@ import {
   membriEchipe,
   programariSlujire,
 } from "@/lib/db/schema";
-import { dataAzi } from "@/lib/util/date";
+import { adaugaZile, dataAzi } from "@/lib/util/date";
 
 /**
  * Slujirile.
@@ -139,6 +151,8 @@ export type ProgramareAfisata = {
   grupaNume: string | null;
   echipaId: number | null;
   echipaNume: string | null;
+  /** Null cât timp nu s-a făcut prezența la slujirea asta. */
+  prezentaMarcataLa: Date | null;
 };
 
 const campuriProgramare = {
@@ -152,6 +166,7 @@ const campuriProgramare = {
   grupaNume: grupe.nume,
   echipaId: programariSlujire.echipaId,
   echipaNume: echipeSlujire.nume,
+  prezentaMarcataLa: programariSlujire.prezentaMarcataLa,
 };
 
 /** Programările care urmează (implicit de azi înainte). */
@@ -229,6 +244,12 @@ export async function programariPentruLider(optiuni: {
 export async function programariGrupei(
   grupaId: number,
   limita = 5,
+  /**
+   * Câte zile în urmă intră și ele în listă. Slujirile trecute rămân la vedere
+   * o vreme, altfel o prezență completată dispare de pe pagina grupei și
+   * liderul n-are pe unde să se întoarcă la ea dacă vrea s-o îndrepte.
+   */
+  zileInUrma = 21,
 ): Promise<ProgramareAfisata[]> {
   const echipaIds = await echipeleGrupelor([grupaId]);
   const conditii = [eq(programariSlujire.grupaId, grupaId)];
@@ -241,9 +262,49 @@ export async function programariGrupei(
     .from(programariSlujire)
     .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
     .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
-    .where(and(gte(programariSlujire.data, dataAzi()), or(...conditii)))
+    .where(
+      and(
+        gte(programariSlujire.data, adaugaZile(dataAzi(), -zileInUrma)),
+        or(...conditii),
+      ),
+    )
     .orderBy(asc(programariSlujire.data))
     .limit(limita);
+}
+
+/**
+ * Slujirile grupei la care ar trebui făcută prezența: au avut loc deja (azi
+ * sau în urmă cu cel mult câteva săptămâni) și nu le-a completat nimeni.
+ *
+ * Ne oprim la 21 de zile dinadins. O slujire de acum două luni nu mai are
+ * cine să și-o amintească, iar o listă care crește la nesfârșit ajunge să fie
+ * ignorată - și atunci nu mai observi nici ce e proaspăt.
+ */
+export async function slujiriDeCompletat(
+  grupaId: number,
+  zileInUrma = 21,
+): Promise<ProgramareAfisata[]> {
+  const echipaIds = await echipeleGrupelor([grupaId]);
+  const conditii = [eq(programariSlujire.grupaId, grupaId)];
+  if (echipaIds.length > 0) {
+    conditii.push(inArray(programariSlujire.echipaId, echipaIds));
+  }
+
+  const azi = dataAzi();
+  return db
+    .select(campuriProgramare)
+    .from(programariSlujire)
+    .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
+    .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
+    .where(
+      and(
+        lte(programariSlujire.data, azi),
+        gte(programariSlujire.data, adaugaZile(azi, -zileInUrma)),
+        isNull(programariSlujire.prezentaMarcataLa),
+        or(...conditii),
+      ),
+    )
+    .orderBy(desc(programariSlujire.data));
 }
 
 /** Programările care urmează pentru un pulsist (prin echipele lui). */

@@ -8,7 +8,13 @@ import { z } from "zod";
 import { scrieAudit } from "@/lib/audit";
 import { ceruteAdmin, ceruteLider } from "@/lib/auth/sesiune";
 import { db } from "@/lib/db";
-import { echipeSlujire, membri, membriEchipe, programariSlujire } from "@/lib/db/schema";
+import {
+  echipeSlujire,
+  membri,
+  membriEchipe,
+  prezenteSlujire,
+  programariSlujire,
+} from "@/lib/db/schema";
 import { verificaAccesGrupa } from "@/lib/interogari/acces";
 import {
   numeConfirmat,
@@ -320,6 +326,10 @@ export async function salveazaProgramare(
 /** Scoate o slujire din calendar. */
 export async function stergeProgramare(programareId: number) {
   const admin = await ceruteAdmin();
+  // Întâi bifele de prezență, altfel rămân agățate de o slujire care nu mai e.
+  await db
+    .delete(prezenteSlujire)
+    .where(eq(prezenteSlujire.programareId, programareId));
   await db
     .delete(programariSlujire)
     .where(eq(programariSlujire.id, programareId));

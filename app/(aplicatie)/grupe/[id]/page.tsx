@@ -18,7 +18,7 @@ import {
   intalniriGrupei,
   membriGrupei,
 } from "@/lib/interogari/grupe";
-import { programariGrupei } from "@/lib/interogari/slujiri";
+import { programariGrupei, slujiriDeCompletat } from "@/lib/interogari/slujiri";
 import { alerteAbsenteGrupa } from "@/lib/interogari/statistici";
 import {
   ZILE_SAPTAMANA,
@@ -55,6 +55,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
     inlocuiri,
     potentiali,
     slujiri,
+    slujiriNecompletate,
   ] = await Promise.all([
     membriGrupei(grupaId),
     membriGrupei(grupaId, { status: "musafir" }),
@@ -64,7 +65,11 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
     inlocuiriGrupa(grupaId),
     liderilPotentiali(grupaId),
     programariGrupei(grupaId, 4),
+    slujiriDeCompletat(grupaId),
   ]);
+
+  const necompletate = new Set(slujiriNecompletate.map((p) => p.id));
+  const slujiriDeAratat = slujiri.filter((p) => !necompletate.has(p.id));
 
   const poateOrganiza = !acces.prinInlocuire || acces.esteAdmin;
 
@@ -121,19 +126,40 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
         </form>
       </section>
 
-      {/* Slujirile care urmează */}
-      {slujiri.length > 0 && (
+      {/* Slujiri la care nu s-a făcut încă prezența */}
+      {slujiriNecompletate.length > 0 && (
+        <section className="rounded-2xl border border-lime bg-lime/20 p-4">
+          <h2 className="mb-1 text-sm font-bold">
+            {slujiriNecompletate.length === 1
+              ? "O slujire așteaptă prezența"
+              : `${slujiriNecompletate.length} slujiri așteaptă prezența`}
+          </h2>
+          <p className="mb-3 text-xs text-cenusiu">
+            Cine a slujit efectiv. E separată de prezența de la grupa mică.
+          </p>
+          <ul className="flex flex-col divide-y divide-lime/40">
+            {slujiriNecompletate.map((p) => (
+              <li key={p.id} className="py-3">
+                <RandProgramare programare={p} azi={azi} poateFacePrezenta />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Restul slujirilor: ce a fost de curând și ce urmează. */}
+      {slujiriDeAratat.length > 0 && (
         <section className="card p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h2 className="text-sm font-bold">Slujiri care urmează</h2>
+            <h2 className="text-sm font-bold">Slujiri</h2>
             <Link href="/slujiri" className="text-xs text-albastru underline">
               Toate
             </Link>
           </div>
           <ul className="flex flex-col divide-y divide-[#eef1f7]">
-            {slujiri.map((p) => (
+            {slujiriDeAratat.map((p) => (
               <li key={p.id} className="py-3">
-                <RandProgramare programare={p} azi={azi} />
+                <RandProgramare programare={p} azi={azi} poateFacePrezenta />
               </li>
             ))}
           </ul>

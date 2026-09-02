@@ -324,11 +324,56 @@ export const programariSlujire = sqliteTable(
       onDelete: "set null",
     }),
     creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+
+    /*
+      Prezenta la slujire. Programarea e si evenimentul, deci nu mai avem
+      nevoie de un tabel de „intalniri" separat: cine a completat si cand
+      stau chiar aici. `prezentaMarcataLa` null inseamna „nu s-a facut inca".
+    */
+    prezentaMarcataDeId: integer("prezenta_marcata_de_id").references(
+      () => lideri.id,
+      { onDelete: "set null" },
+    ),
+    prezentaMarcataLa: integer("prezenta_marcata_la", { mode: "timestamp" }),
+    prezentaNota: text("prezenta_nota"),
   },
   (t) => [
     index("programari_data_idx").on(t.data),
     index("programari_grupa_idx").on(t.grupaId),
     index("programari_echipa_idx").on(t.echipaId),
+  ],
+);
+
+/**
+ * Cine a fost prezent la o slujire.
+ *
+ * E cu totul altceva decât prezența de la grupa mică: acolo se numără cine a
+ * venit la întâlnirea săptămânală, aici cine a venit efectiv să slujească.
+ * Un pulsist poate lipsi de la grupă și totuși să slujească, sau invers, iar
+ * cele două nu trebuie amestecate în statistici.
+ *
+ * Legarea se face direct de programare (data + titlul + cine slujește), nu de
+ * o „întâlnire" separată.
+ */
+export const prezenteSlujire = sqliteTable(
+  "prezente_slujire",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    programareId: integer("programare_id")
+      .notNull()
+      .references(() => programariSlujire.id, { onDelete: "cascade" }),
+    membruId: integer("membru_id")
+      .notNull()
+      .references(() => membri.id, { onDelete: "cascade" }),
+    /** prezent | absent | motivat (a anunțat că nu poate) */
+    stare: text("stare", { enum: ["prezent", "absent", "motivat"] }).notNull(),
+  },
+  (t) => [
+    uniqueIndex("prezente_slujire_programare_membru_uq").on(
+      t.programareId,
+      t.membruId,
+    ),
+    index("prezente_slujire_membru_idx").on(t.membruId),
   ],
 );
 
@@ -412,6 +457,7 @@ export type Delegare = typeof delegari.$inferSelect;
 export type StarePrezenta = Prezenta["stare"];
 export type EchipaSlujire = typeof echipeSlujire.$inferSelect;
 export type ProgramareSlujire = typeof programariSlujire.$inferSelect;
+export type PrezentaSlujire = typeof prezenteSlujire.$inferSelect;
 export type Notificare = typeof notificari.$inferSelect;
 export type AbonamentPush = typeof abonamentePush.$inferSelect;
 export type TipNotificare = Notificare["tip"];

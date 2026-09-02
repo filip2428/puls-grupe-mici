@@ -8,27 +8,11 @@ import {
   salveazaFoaia,
   type StarePrezentaFormular,
 } from "@/app/(aplicatie)/grupe/[id]/prezenta/actions";
+import { RandPrezenta } from "@/componente/RandPrezenta";
 import type { StarePrezenta } from "@/lib/db/schema";
 
 type PersoanaScurta = { id: number; nume: string };
 
-const OPTIUNI: { valoare: StarePrezenta; eticheta: string; clase: string }[] = [
-  {
-    valoare: "prezent",
-    eticheta: "Prezent",
-    clase: "bg-albastru text-white border-albastru",
-  },
-  {
-    valoare: "motivat",
-    eticheta: "Anunțat",
-    clase: "bg-lime text-carbune border-lime",
-  },
-  {
-    valoare: "absent",
-    eticheta: "Absent",
-    clase: "bg-carbune text-white border-carbune",
-  },
-];
 
 /**
  * Foaia de prezență: pentru fiecare pulsist alegi Prezent / Anunțat / Absent.
@@ -150,7 +134,7 @@ export function FoaiePrezenta({
               key={m.id}
               nume={m.nume}
               aleasa={stari[m.id]}
-              musafir
+              punctat
               onAlege={(v) => seteaza(m.id, v)}
             />
           ))}
@@ -223,48 +207,6 @@ export function FoaiePrezenta({
         </div>
       </div>
     </form>
-  );
-}
-
-/** Un rând din foaie: numele și cele trei butoane. */
-function RandPrezenta({
-  nume,
-  aleasa,
-  musafir,
-  onAlege,
-}: {
-  nume: string;
-  aleasa: StarePrezenta | undefined;
-  musafir?: boolean;
-  onAlege: (valoare: StarePrezenta) => void;
-}) {
-  return (
-    <li className={`card p-3 ${musafir ? "border-dashed" : ""}`}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="truncate text-base font-medium">{nume}</span>
-        {aleasa === undefined && !musafir && (
-          <span className="shrink-0 text-xs text-red-600">nemarcat</span>
-        )}
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {OPTIUNI.map((o) => {
-          const activa = aleasa === o.valoare;
-          return (
-            <button
-              key={o.valoare}
-              type="button"
-              onClick={() => onAlege(o.valoare)}
-              aria-pressed={activa}
-              className={`min-h-11 rounded-lg border px-2 text-sm font-semibold transition ${
-                activa ? o.clase : "border-[#e3e7f2] bg-fundal text-cenusiu"
-              }`}
-            >
-              {o.eticheta}
-            </button>
-          );
-        })}
-      </div>
-    </li>
   );
 }
 
