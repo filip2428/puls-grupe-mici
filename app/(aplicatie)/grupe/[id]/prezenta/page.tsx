@@ -77,7 +77,7 @@ export default async function PaginaPrezenta({
               >
                 <p className="mb-3 text-xs text-red-800/90">
                   Dispar toate bifele de pe {dataLunga(data)}, plus subiectul și
-                  nota zilei. Adolescenții și musafirii rămân neatinși - poți
+                  nota zilei. Pulsiștii și musafirii rămân neatinși - poți
                   reface prezența oricând. Bun dacă ai completat-o din greșeală
                   pe altă dată.
                 </p>

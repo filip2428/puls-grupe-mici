@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-import { ImportAdolescenti } from "@/componente/ImportAdolescenti";
+import { ImportPulsisti } from "@/componente/ImportPulsisti";
 import { ceruteAdmin } from "@/lib/auth/sesiune";
-import { COLOANE } from "@/lib/import-adolescenti";
+import { COLOANE } from "@/lib/import-pulsisti";
 import { toateGrupele } from "@/lib/interogari/lideri";
 
-export const metadata = { title: "Import adolescenți · Puls" };
+export const metadata = { title: "Import pulsiști · Puls" };
 
 export default async function PaginaImport() {
   await ceruteAdmin();
@@ -61,7 +61,7 @@ export default async function PaginaImport() {
       {active.length === 0 ? (
         <section className="card border-red-100 bg-red-50/50 p-4 text-sm text-red-800">
           Nu ai nicio grupă activă. Creează întâi grupele, apoi importă
-          adolescenții - în fișier fiecare rând trebuie să spună din ce grupă
+          pulsiștii - în fișier fiecare rând trebuie să spună din ce grupă
           face parte.
         </section>
       ) : (
@@ -71,7 +71,7 @@ export default async function PaginaImport() {
             <p className="mb-3 text-xs text-cenusiu">
               Îți arăt întâi ce am înțeles. Nu se scrie nimic până nu confirmi.
             </p>
-            <ImportAdolescenti />
+            <ImportPulsisti />
           </section>
 
           <section className="card p-4">

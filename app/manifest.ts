@@ -12,7 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Puls · Grupe mici",
     short_name: "Grupe mici",
-    description: "Prezența la grupele mici din lucrarea cu adolescenții Puls.",
+    description: "Prezența la grupele mici din lucrarea cu tineri Puls.",
     lang: "ro",
     start_url: "/grupe",
     scope: "/",
@@ -33,7 +33,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: "Grupele mele", url: "/grupe" },
-      { name: "Adolescenți", url: "/adolescenti" },
+      { name: "Pulsiști", url: "/pulsisti" },
       { name: "Slujiri", url: "/slujiri" },
     ],
   };

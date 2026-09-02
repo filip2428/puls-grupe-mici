@@ -16,7 +16,7 @@ export default async function PaginaAdmin() {
   ]);
 
   const active = rezumate.filter((r) => r.activa);
-  const totalAdolescenti = active.reduce((s, r) => s + r.membriActivi, 0);
+  const totalPulsisti = active.reduce((s, r) => s + r.membriActivi, 0);
   const totalAlerte = active.reduce((s, r) => s + r.alerte, 0);
   const medii = active.filter((r) => r.mediePrezenta !== null);
   const medieGenerala = medii.length
@@ -36,7 +36,7 @@ export default async function PaginaAdmin() {
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Caseta valoare={String(active.length)} eticheta="grupe active" />
-        <Caseta valoare={String(totalAdolescenti)} eticheta="adolescenți" />
+        <Caseta valoare={String(totalPulsisti)} eticheta="pulsiști" />
         <Caseta
           valoare={medieGenerala !== null ? `${medieGenerala}%` : "-"}
           eticheta="prezență medie"
@@ -49,7 +49,7 @@ export default async function PaginaAdmin() {
       </div>
 
       <nav className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Buton href="/adolescenti" text="Adolescenți" />
+        <Buton href="/pulsisti" text="Pulsiști" />
         <Buton href="/admin/lideri" text="Lideri" />
         <Buton href="/admin/grupe" text="Grupe" />
         <Buton href="/slujiri" text="Slujiri" />
@@ -72,7 +72,7 @@ export default async function PaginaAdmin() {
         <section className="card p-4">
           <h2 className="mb-1 text-sm font-bold">Prezența pe săptămâni</h2>
           <p className="mb-4 text-xs text-cenusiu">
-            Câți adolescenți au fost prezenți în toată lucrarea, pe săptămâni.
+            Câți pulsiști au fost prezenți în toată lucrarea, pe săptămâni.
           </p>
           <ul className="flex items-end gap-2">
             {evolutie.map((e) => (
@@ -110,7 +110,7 @@ export default async function PaginaAdmin() {
                     )}
                   </span>
                   <span className="text-xs text-cenusiu">
-                    {r.membriActivi} adolescenți
+                    {r.membriActivi} pulsiști
                     {r.ultimaIntalnire
                       ? ` · ultima întâlnire ${dataScurta(r.ultimaIntalnire)}`
                       : " · fără întâlniri"}

@@ -21,7 +21,7 @@ import {
 } from "@/lib/db/schema";
 
 /**
- * Ștergerea definitivă a unui lider sau a unui adolescent.
+ * Ștergerea definitivă a unui lider sau a unui pulsist.
  *
  * E ireversibilă, așa că înainte de a șterge arătăm exact ce se pierde, iar
  * confirmarea se face scriind numele. Pentru cine doar nu mai vine există
@@ -119,7 +119,7 @@ export type PierderiMembru = {
   echipe: number;
 };
 
-/** Ce se pierde dacă ștergem un adolescent. */
+/** Ce se pierde dacă ștergem un pulsist. */
 export async function pierderiMembru(
   membruId: number,
 ): Promise<PierderiMembru | null> {
@@ -147,7 +147,7 @@ export async function pierderiMembru(
   };
 }
 
-/** Șterge definitiv un adolescent, cu tot istoricul lui. */
+/** Șterge definitiv un pulsist, cu tot istoricul lui. */
 export async function stergeMembruDefinitiv(membruId: number) {
   await db.transaction(async (tx) => {
     await tx.delete(prezente).where(eq(prezente.membruId, membruId));
@@ -159,7 +159,7 @@ export async function stergeMembruDefinitiv(membruId: number) {
 
 export type PierderiGrupa = {
   nume: string;
-  adolescenti: number;
+  pulsisti: number;
   intalniri: number;
   prezente: number;
   note: number;
@@ -211,7 +211,7 @@ export async function pierderiGrupa(
 
   return {
     nume: g.nume,
-    adolescenti: idMembri.length,
+    pulsisti: idMembri.length,
     intalniri: idIntalniri.length,
     prezente: Number(p?.c ?? 0),
     note: Number(n?.c ?? 0),
@@ -221,7 +221,7 @@ export async function pierderiGrupa(
 }
 
 /**
- * Șterge definitiv o grupă cu tot ce ține de ea: adolescenții, prezențele,
+ * Șterge definitiv o grupă cu tot ce ține de ea: pulsiștii, prezențele,
  * notele, înlocuirile și programările ei. Liderii rămân - doar nu mai sunt
  * repartizați aici.
  */
@@ -298,7 +298,7 @@ export async function stergeIntalnireDefinitiv(intalnireId: number) {
 
 export type PierderiEchipa = {
   nume: string;
-  adolescenti: number;
+  pulsisti: number;
   programari: number;
 };
 
@@ -325,12 +325,12 @@ export async function pierderiEchipa(
 
   return {
     nume: e.nume,
-    adolescenti: Number(m?.c ?? 0),
+    pulsisti: Number(m?.c ?? 0),
     programari: Number(p?.c ?? 0),
   };
 }
 
-/** Șterge un loc de slujire. Adolescenții rămân, doar nu mai slujesc acolo. */
+/** Șterge un loc de slujire. Pulsiștii rămân, doar nu mai slujesc acolo. */
 export async function stergeEchipaDefinitiv(echipaId: number) {
   await db.transaction(async (tx) => {
     await tx.delete(membriEchipe).where(eq(membriEchipe.echipaId, echipaId));

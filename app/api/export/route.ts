@@ -5,7 +5,7 @@ import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { grupeAccesibile, verificaAccesGrupa } from "@/lib/interogari/acces";
 import {
-  randuriAdolescenti,
+  randuriPulsisti,
   randuriIntalniri,
   randuriPrezente,
 } from "@/lib/interogari/export";
@@ -49,9 +49,9 @@ export async function GET(cerere: Request) {
     panaLa: esteDataValida(panaLaBrut) ? panaLaBrut : undefined,
   };
 
-  const [prezente, adolescenti, intalniri] = await Promise.all([
+  const [prezente, pulsisti, intalniri] = await Promise.all([
     randuriPrezente(filtru),
-    randuriAdolescenti(filtru),
+    randuriPulsisti(filtru),
     randuriIntalniri(filtru),
   ]);
 
@@ -65,7 +65,7 @@ export async function GET(cerere: Request) {
     [
       { header: "Grupa", key: "grupa", width: 22 },
       { header: "Data", key: "data", width: 12 },
-      { header: "Adolescent", key: "adolescent", width: 24 },
+      { header: "Pulsist", key: "pulsist", width: 24 },
       { header: "Statut", key: "statut", width: 10 },
       { header: "Stare", key: "stare", width: 12 },
       { header: "Subiect", key: "subiect", width: 24 },
@@ -76,7 +76,7 @@ export async function GET(cerere: Request) {
 
   adaugaFoaie(
     registru,
-    "Adolescenți",
+    "Pulsiști",
     [
       { header: "Grupa", key: "grupa", width: 22 },
       { header: "Nume", key: "nume", width: 24 },
@@ -95,7 +95,7 @@ export async function GET(cerere: Request) {
       { header: "Absențe", key: "absente", width: 10 },
       { header: "% prezență", key: "procent", width: 12 },
     ],
-    adolescenti,
+    pulsisti,
   );
 
   adaugaFoaie(

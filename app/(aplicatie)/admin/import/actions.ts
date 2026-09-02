@@ -11,10 +11,10 @@ import { grupe, membri } from "@/lib/db/schema";
 import {
   analizeazaFisier,
   type RezultatAnaliza,
-} from "@/lib/import-adolescenti";
+} from "@/lib/import-pulsisti";
 import { dataAzi, esteDataValida } from "@/lib/util/date";
 
-/** Mărimea maximă acceptată - un fișier de adolescenți nu are cum să fie mai mare. */
+/** Mărimea maximă acceptată - un fișier de pulsiști nu are cum să fie mai mare. */
 const MARIME_MAXIMA = 2 * 1024 * 1024;
 
 export type StareAnaliza = RezultatAnaliza & { gata?: boolean };
@@ -127,12 +127,12 @@ export async function importa(
     })),
   );
 
-  await scrieAudit(admin.id, "adolescenti:importati", {
+  await scrieAudit(admin.id, "pulsisti:importati", {
     cati: deScris.length,
     grupe: [...idValide],
   });
 
-  revalidatePath("/adolescenti");
+  revalidatePath("/pulsisti");
   for (const id of idValide) revalidatePath(`/grupe/${id}`);
 
   return { adaugati: deScris.length };

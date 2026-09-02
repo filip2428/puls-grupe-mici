@@ -79,7 +79,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
           {g.ziIntalnire !== null && ZILE_SAPTAMANA[g.ziIntalnire]}
           {g.oraIntalnire ? `, ora ${g.oraIntalnire}` : ""}
           {g.locatie ? ` · ${g.locatie}` : ""}
-          {` · ${membri.length} adolescenți`}
+          {` · ${membri.length} pulsiști`}
         </p>
         {acces.prinInlocuire && (
           <p className="mt-2 rounded-xl bg-lime/25 px-3 py-2 text-sm">
@@ -178,9 +178,9 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
         </section>
       )}
 
-      {/* Adolescenții */}
+      {/* Pulsiștii */}
       <section className="card p-4">
-        <h2 className="mb-3 text-sm font-bold">Adolescenți ({membri.length})</h2>
+        <h2 className="mb-3 text-sm font-bold">Pulsiști ({membri.length})</h2>
         {membri.length === 0 ? (
           <p className="text-sm text-cenusiu">Grupa nu are încă membri.</p>
         ) : (
@@ -208,7 +208,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
 
         <details className="mt-3 border-t border-[#eef1f7] pt-3">
           <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
-            + Adaugă un adolescent
+            + Adaugă un pulsist
           </summary>
           <div className="pt-2">
             <FormularMembruNou grupaId={grupaId} />

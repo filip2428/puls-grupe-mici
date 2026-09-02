@@ -42,7 +42,7 @@ export default async function PaginaAdminGrupe() {
                     )}
                   </span>
                   <span className="text-xs text-cenusiu">
-                    {r.membriActivi} adolescenți
+                    {r.membriActivi} pulsiști
                     {r.ultimaIntalnire
                       ? ` · ultima întâlnire ${dataScurta(r.ultimaIntalnire)}`
                       : " · fără întâlniri"}

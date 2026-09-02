@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { ceruteAdmin } from "@/lib/auth/sesiune";
-import { fisierModel } from "@/lib/import-adolescenti";
+import { fisierModel } from "@/lib/import-pulsisti";
 import { toateGrupele } from "@/lib/interogari/lideri";
 
-/** Fișierul-model pentru importul adolescenților. */
+/** Fișierul-model pentru importul pulsiștilor. */
 export async function GET() {
   await ceruteAdmin();
 
@@ -18,7 +18,7 @@ export async function GET() {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "Content-Disposition":
-        'attachment; filename="model-import-adolescenti.xlsx"',
+        'attachment; filename="model-import-pulsisti.xlsx"',
       "Cache-Control": "no-store",
     },
   });

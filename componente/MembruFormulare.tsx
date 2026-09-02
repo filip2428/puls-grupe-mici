@@ -9,7 +9,7 @@ import {
 } from "@/app/(aplicatie)/membri/[id]/actions";
 import { CLASE, etichetaClasa } from "@/lib/util/etichete";
 
-/** Caseta în care liderul scrie o notă despre adolescent. */
+/** Caseta în care liderul scrie o notă despre pulsist. */
 export function FormularNota({ membruId }: { membruId: number }) {
   const [stare, actiune, seTrimite] = useActionState<StareFormular, FormData>(
     adaugaNota.bind(null, membruId),
@@ -54,7 +54,7 @@ export type DateMembru = {
   parinte2Telefon: string | null;
 };
 
-/** Formularul de editare a datelor unui adolescent, inclusiv părinții. */
+/** Formularul de editare a datelor unui pulsist, inclusiv părinții. */
 export function FormularEditareMembru({
   membruId,
   initial,

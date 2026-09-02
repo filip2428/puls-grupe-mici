@@ -66,7 +66,7 @@ export default async function PaginaGrupe() {
                       {g.locatie ? ` · ${g.locatie}` : ""}
                     </p>
                     <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cenusiu">
-                      <span>{r?.membriActivi ?? 0} adolescenți</span>
+                      <span>{r?.membriActivi ?? 0} pulsiști</span>
                       {r?.ultimaIntalnire && (
                         <span>
                           ultima întâlnire: {dataScurta(r.ultimaIntalnire)}
@@ -82,7 +82,7 @@ export default async function PaginaGrupe() {
                   {!!r?.alerte && (
                     <span
                       className="shrink-0 rounded-full bg-red-50 px-2 py-1 text-xs font-semibold text-red-700"
-                      title="Adolescenți care au lipsit de mai multe ori la rând"
+                      title="Pulsiști care au lipsit de mai multe ori la rând"
                     >
                       {r.alerte} de căutat
                     </span>

@@ -44,8 +44,8 @@ export default async function PaginaSlujiri() {
         <h1 className="text-xl font-bold">Slujiri</h1>
         <p className="text-sm text-cenusiu">
           {esteAdmin
-            ? "Calendarul slujirilor și locurile în care sunt implicați adolescenții."
-            : "Când slujește grupa ta și unde slujesc adolescenții tăi."}
+            ? "Calendarul slujirilor și locurile în care sunt implicați pulsiștii."
+            : "Când slujește grupa ta și unde slujesc pulsiștii tăi."}
         </p>
       </div>
 
@@ -109,7 +109,7 @@ export default async function PaginaSlujiri() {
                       )}
                     </span>
                     <span className="block truncate text-xs text-cenusiu">
-                      {e.cati} {e.cati === 1 ? "adolescent" : "adolescenți"}
+                      {e.cati} {e.cati === 1 ? "pulsist" : "pulsiști"}
                       {e.responsabilNume ? ` · ${e.responsabilNume}` : ""}
                       {e.descriere ? ` · ${e.descriere}` : ""}
                     </span>

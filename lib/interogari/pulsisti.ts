@@ -6,8 +6,8 @@ import { db } from "@/lib/db";
 import { grupe, intalniri, membri, prezente } from "@/lib/db/schema";
 import { varsta } from "@/lib/util/date";
 
-/** Filtrele listei de adolescenți (vin din adresa paginii). */
-export type FiltruAdolescenti = {
+/** Filtrele listei de pulsiști (vin din adresa paginii). */
+export type FiltruPulsisti = {
   /** Căutare după nume sau telefon. */
   q?: string;
   grupaId?: number;
@@ -22,7 +22,7 @@ export type FiltruAdolescenti = {
   grupePermise?: number[];
 };
 
-export type AdolescentDinLista = {
+export type PulsistDinLista = {
   id: number;
   nume: string;
   telefon: string | null;
@@ -46,12 +46,12 @@ export type AdolescentDinLista = {
 };
 
 /**
- * Lista adolescenților, cu filtre.
+ * Lista pulsiștilor, cu filtre.
  * Adminul vede pe toți; un lider primește `grupePermise` cu grupele lui.
  */
-export async function cautaAdolescenti(
-  filtru: FiltruAdolescenti,
-): Promise<AdolescentDinLista[]> {
+export async function cautaPulsisti(
+  filtru: FiltruPulsisti,
+): Promise<PulsistDinLista[]> {
   const conditii: SQL[] = [];
 
   if (filtru.grupePermise) {
@@ -149,7 +149,7 @@ export async function cautaAdolescenti(
 /** Citește filtrele din adresa paginii (?q=...&grupa=3&clasa=9...). */
 export function filtruDinParametri(
   parametri: URLSearchParams | Record<string, string | string[] | undefined>,
-): FiltruAdolescenti {
+): FiltruPulsisti {
   const ia = (cheie: string): string | undefined => {
     if (parametri instanceof URLSearchParams) {
       return parametri.get(cheie) ?? undefined;

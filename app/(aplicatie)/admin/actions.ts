@@ -141,7 +141,7 @@ export async function stergeLider(
     intalniriCompletate: pierderi.intalniriCompletate,
   });
 
-  // La fel ca la adolescenți: atinge prea multe pagini ca să le numărăm.
+  // La fel ca la pulsiști: atinge prea multe pagini ca să le numărăm.
   revalidatePath("/", "layout");
   return { reusit: true, numePersoana: pierderi.nume };
 }
@@ -329,7 +329,7 @@ export async function schimbaActivaGrupa(grupaId: number, activa: boolean) {
 /**
  * Șterge definitiv o grupă.
  *
- * E cea mai grea ștergere din aplicație: pleacă și adolescenții din ea, cu tot
+ * E cea mai grea ștergere din aplicație: pleacă și pulsiștii din ea, cu tot
  * istoricul lor. Dacă vrei să păstrezi oamenii, mută-i întâi în altă grupă -
  * iar dacă grupa doar nu se mai ține, „Arhivează" e alegerea potrivită.
  * Liderii rămân în aplicație, doar nu mai sunt repartizați aici.
@@ -353,7 +353,7 @@ export async function stergeGrupa(
   await scrieAudit(admin.id, "grupa:stearsa", {
     grupaId,
     nume: pierderi.nume,
-    adolescenti: pierderi.adolescenti,
+    pulsisti: pierderi.pulsisti,
     intalniri: pierderi.intalniri,
     prezente: pierderi.prezente,
   });
@@ -386,7 +386,7 @@ export async function golesteJurnalul(
   return { reusit: true };
 }
 
-/** Mută un adolescent în altă grupă (istoricul rămâne la el). */
+/** Mută un pulsist în altă grupă (istoricul rămâne la el). */
 export async function mutaMembru(membruId: number, grupaNouaId: number) {
   const admin = await ceruteAdmin();
   const [m] = await db.select().from(membri).where(eq(membri.id, membruId));

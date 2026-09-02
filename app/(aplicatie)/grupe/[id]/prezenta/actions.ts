@@ -96,7 +96,7 @@ export async function adaugaMusafir(
 /**
  * Șterge prezența unei zile întregi - de obicei pentru că a fost completată
  * din greșeală pe altă dată. Dispar toate bifele, subiectul și nota zilei;
- * adolescenții și musafirii rămân neatinși.
+ * pulsiștii și musafirii rămân neatinși.
  */
 export async function stergeIntalnirea(grupaId: number, data: string) {
   const lider = await ceruteLider();

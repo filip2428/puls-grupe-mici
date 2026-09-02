@@ -1,7 +1,7 @@
 /**
  * `npm run date:demo`
  *
- * Umple baza de date locală cu date de test (lideri, grupe, adolescenți și
+ * Umple baza de date locală cu date de test (lideri, grupe, pulsiști și
  * prezențe pe ultimele săptămâni), ca să poți vedea cum arată aplicația plină.
  *
  * NU rula scriptul ăsta pe baza de date reală.
@@ -234,7 +234,7 @@ async function main() {
   }
   console.log(`(${disparut.nume} are acum 3 absențe la rând, ca să vezi alertele)`);
 
-  // Echipe de slujire, cu câțiva adolescenți din grupe diferite în fiecare.
+  // Echipe de slujire, cu câțiva pulsiști din grupe diferite în fiecare.
   const ECHIPE = [
     {
       nume: "Harvest Kids",

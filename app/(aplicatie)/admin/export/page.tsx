@@ -17,7 +17,7 @@ export default async function PaginaExport() {
         </Link>
         <h1 className="mt-2 text-xl font-bold">Export în Excel</h1>
         <p className="text-sm text-cenusiu">
-          Fișierul are trei foi: prezențele una câte una, adolescenții cu
+          Fișierul are trei foi: prezențele una câte una, pulsiștii cu
           totalurile lor și întâlnirile.
         </p>
       </div>
@@ -61,19 +61,19 @@ export default async function PaginaExport() {
       </section>
 
       <section className="card p-4">
-        <h2 className="text-sm font-bold">Tabelul cu toți adolescenții</h2>
+        <h2 className="text-sm font-bold">Tabelul cu toți pulsiștii</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Nume, grupă, statut (membru sau musafir), clasă, vârstă, telefoane și
           datele părinților, plus totalurile de prezență.
         </p>
         <div className="flex flex-wrap gap-2">
           <a
-            href="/api/export/adolescenti"
+            href="/api/export/pulsisti"
             className="buton buton-principal"
           >
             Descarcă lista completă
           </a>
-          <Link href="/adolescenti" className="buton buton-secundar">
+          <Link href="/pulsisti" className="buton buton-secundar">
             Filtrează întâi
           </Link>
         </div>

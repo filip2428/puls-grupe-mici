@@ -24,7 +24,7 @@ const TIPURI = [
   {
     camp: "notifSlujiri",
     titlu: "Slujirile grupei",
-    explicatie: "Când grupa ta sau adolescenții tăi sunt programați la o slujire.",
+    explicatie: "Când grupa ta sau pulsiștii tăi sunt programați la o slujire.",
   },
   {
     camp: "notifPrezenta",

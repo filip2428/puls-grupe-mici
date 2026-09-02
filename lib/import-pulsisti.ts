@@ -5,7 +5,7 @@ import ExcelJS from "exceljs";
 import { esteDataValida } from "@/lib/util/date";
 
 /**
- * Importul adolescenților dintr-un fișier Excel.
+ * Importul pulsiștilor dintr-un fișier Excel.
  *
  * Fișierul are o formă fixă (vezi `COLOANE`), pe care o poți lua gata făcută
  * de la butonul „Descarcă modelul". Ordinea coloanelor nu contează - ne uităm
@@ -158,7 +158,7 @@ export type GrupaCunoscuta = { id: number; nume: string };
 
 /**
  * Citește fișierul și verifică fiecare rând, fără să scrie nimic.
- * `existente` = numele adolescenților deja din baza de date, ca `grupaId|nume`.
+ * `existente` = numele pulsiștilor deja din baza de date, ca `grupaId|nume`.
  */
 export async function analizeazaFisier(
   continut: ArrayBuffer,
@@ -303,7 +303,7 @@ export async function fisierModel(grupe: GrupaCunoscuta[]): Promise<Buffer> {
   const registru = new ExcelJS.Workbook();
   registru.creator = "Puls · grupe mici";
 
-  const foaie = registru.addWorksheet("Adolescenți");
+  const foaie = registru.addWorksheet("Pulsiști");
   foaie.columns = COLOANE.map((c) => ({
     header: c.titlu,
     key: c.cheie,
@@ -337,7 +337,7 @@ export async function fisierModel(grupe: GrupaCunoscuta[]): Promise<Buffer> {
     sex: "băiat sau fată (merge și B / F).",
     clasa: "Un număr de la 5 la 13, sau a IX-a. 13 înseamnă după liceu.",
     dataNasterii: "2011-04-23 sau 23.04.2011.",
-    telefon: "Telefonul adolescentului.",
+    telefon: "Telefonul pulsistului.",
     parinte1Nume: "Cum îl salvezi în agendă, ex. mama, Maria.",
     parinte1Telefon: "Telefonul primului părinte.",
     parinte2Nume: "Al doilea părinte, dacă îl ai.",

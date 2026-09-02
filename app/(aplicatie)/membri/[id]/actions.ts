@@ -19,7 +19,7 @@ import { dataAzi, esteDataValida } from "@/lib/util/date";
 
 export type StareFormular = { eroare?: string; reusit?: boolean };
 
-/** Verifică dreptul de a lucra cu un anumit adolescent. */
+/** Verifică dreptul de a lucra cu un anumit pulsist. */
 async function accesLaMembru(membruId: number) {
   const lider = await ceruteLider();
   const [m] = await db
@@ -32,14 +32,14 @@ async function accesLaMembru(membruId: number) {
   return { lider, membru: m };
 }
 
-/** Adaugă o notă despre un adolescent. */
+/** Adaugă o notă despre un pulsist. */
 export async function adaugaNota(
   membruId: number,
   _stare: StareFormular,
   formData: FormData,
 ): Promise<StareFormular> {
   const acces = await accesLaMembru(membruId);
-  if (!acces) return { eroare: "Nu ai acces la adolescentul ăsta." };
+  if (!acces) return { eroare: "Nu ai acces la pulsistul ăsta." };
 
   const text = String(formData.get("text") ?? "").trim();
   if (text.length < 2) return { eroare: "Scrie ceva mai întâi." };
@@ -105,14 +105,14 @@ const schemaMembru = z.object({
   parinte2Telefon: textOptional(30),
 });
 
-/** Salvează datele unui adolescent. */
+/** Salvează datele unui pulsist. */
 export async function salveazaMembru(
   membruId: number,
   _stare: StareFormular,
   formData: FormData,
 ): Promise<StareFormular> {
   const acces = await accesLaMembru(membruId);
-  if (!acces) return { eroare: "Nu ai acces la adolescentul ăsta." };
+  if (!acces) return { eroare: "Nu ai acces la pulsistul ăsta." };
 
   const rezultat = schemaMembru.safeParse({
     nume: formData.get("nume"),
@@ -137,7 +137,7 @@ export async function salveazaMembru(
 }
 
 /**
- * Marchează un adolescent ca inactiv (nu mai vine) sau îl reactivează.
+ * Marchează un pulsist ca inactiv (nu mai vine) sau îl reactivează.
  * Istoricul lui rămâne intact - doar nu mai apare pe foaia de prezență.
  */
 export async function schimbaActiv(membruId: number, activ: boolean) {
@@ -175,7 +175,7 @@ export async function primesteInGrupa(membruId: number) {
 }
 
 /**
- * Șterge definitiv un adolescent, cu tot ce ține de el: prezențe, note,
+ * Șterge definitiv un pulsist, cu tot ce ține de el: prezențe, note,
  * echipele de slujire. E ireversibil, deci cerem numele scris de mână.
  *
  * Dacă doar nu mai vine, varianta bună e „Marchează ca inactiv" - acolo
@@ -187,10 +187,10 @@ export async function stergeMembru(
   formData: FormData,
 ): Promise<StareFormular> {
   const acces = await accesLaMembru(membruId);
-  if (!acces) return { eroare: "Nu ai acces la adolescentul ăsta." };
+  if (!acces) return { eroare: "Nu ai acces la pulsistul ăsta." };
 
   const pierderi = await pierderiMembru(membruId);
-  if (!pierderi) return { eroare: "Adolescentul nu mai există." };
+  if (!pierderi) return { eroare: "Pulsistul nu mai există." };
 
   const scris = String(formData.get("confirmare") ?? "");
   if (!numeConfirmat(scris, pierderi.nume)) {

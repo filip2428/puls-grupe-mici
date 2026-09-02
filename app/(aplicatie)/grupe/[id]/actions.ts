@@ -38,7 +38,7 @@ const schemaMembru = z.object({
     .refine((v) => v === null || (v >= 1 && v <= 13), "Clasa nu e validă."),
 });
 
-/** Adaugă un adolescent în grupă (liderul grupei sau adminul). */
+/** Adaugă un pulsist în grupă (liderul grupei sau adminul). */
 export async function adaugaMembru(
   grupaId: number,
   _stare: StareFormular,

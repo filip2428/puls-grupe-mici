@@ -15,7 +15,7 @@ import { etichetaClasaScurta } from "@/lib/util/etichete";
  *  1. alegi fișierul și îți arătăm ce am înțeles din el;
  *  2. dacă e bine, confirmi și abia atunci se scrie în baza de date.
  */
-export function ImportAdolescenti() {
+export function ImportPulsisti() {
   const [analiza, verifica, seVerifica] = useActionState<StareAnaliza, FormData>(
     analizeaza,
     { deImportat: [], existenti: [], probleme: [] },
@@ -29,8 +29,8 @@ export function ImportAdolescenti() {
     return (
       <div className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800">
         Gata: {rezultat.adaugati}{" "}
-        {rezultat.adaugati === 1 ? "adolescent adăugat" : "adolescenți adăugați"}.
-        Îi găsești în lista de adolescenți și pe paginile grupelor.
+        {rezultat.adaugati === 1 ? "pulsist adăugat" : "pulsiști adăugați"}.
+        Îi găsești în lista de pulsiști și pe paginile grupelor.
       </div>
     );
   }
@@ -174,8 +174,8 @@ export function ImportAdolescenti() {
                   ? "Import..."
                   : `Importă ${analiza.deImportat.length} ${
                       analiza.deImportat.length === 1
-                        ? "adolescent"
-                        : "adolescenți"
+                        ? "pulsist"
+                        : "pulsiști"
                     }`}
               </button>
             </form>

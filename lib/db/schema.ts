@@ -4,7 +4,7 @@
  * Idei de bază:
  *  - un LIDER poate avea mai multe GRUPE, iar o GRUPĂ poate avea mai mulți lideri
  *    (tabelul de legătură `lideriGrupe`);
- *  - un MEMBRU (adolescent) aparține unei singure grupe;
+ *  - un MEMBRU (pulsist) aparține unei singure grupe;
  *  - o ÎNTÂLNIRE e o dată calendaristică dintr-o grupă; PREZENȚELE sunt câte una
  *    per membru per întâlnire;
  *  - DELEGĂRILE permit ca un lider să facă prezența la altă grupă o perioadă
@@ -93,7 +93,7 @@ export const lideriGrupe = sqliteTable(
 );
 
 /**
- * Adolescenții.
+ * Pulsiștii.
  *
  * `status` face diferența dintre cineva care e cu adevărat parte din grupă și
  * cineva care doar a fost în vizită:
@@ -190,7 +190,7 @@ export const prezente = sqliteTable(
   ],
 );
 
-/** Note despre un adolescent (rugăciune, situații, follow-up). */
+/** Note despre un pulsist (rugăciune, situații, follow-up). */
 export const noteMembru = sqliteTable(
   "note_membru",
   {
@@ -266,7 +266,7 @@ export const incercariLogin = sqliteTable(
 
 /**
  * Echipele de slujire (Laudă, Media, Protocol, Copii...).
- * Aici sunt adolescenții implicați pe termen lung într-o slujire.
+ * Aici sunt pulsiștii implicați pe termen lung într-o slujire.
  */
 export const echipeSlujire = sqliteTable("echipe_slujire", {
   id: integer("id").primaryKey({ autoIncrement: true }),

@@ -21,7 +21,7 @@ export function NavigareJos({
 
   const linkuri = [
     { href: "/grupe", text: "Grupe", icon: <IconGrupe /> },
-    { href: "/adolescenti", text: "Adolescenți", icon: <IconOameni /> },
+    { href: "/pulsisti", text: "Pulsiști", icon: <IconOameni /> },
     { href: "/slujiri", text: "Slujiri", icon: <IconSlujiri /> },
     ...(esteAdmin
       ? [{ href: "/admin", text: "Admin", icon: <IconAdmin /> }]

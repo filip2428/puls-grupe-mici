@@ -8,7 +8,7 @@ import {
 } from "@/app/(aplicatie)/grupe/[id]/actions";
 import { CLASE, etichetaClasa } from "@/lib/util/etichete";
 
-/** Formularul prin care liderul adaugă un adolescent nou în grupă. */
+/** Formularul prin care liderul adaugă un pulsist nou în grupă. */
 export function FormularMembruNou({ grupaId }: { grupaId: number }) {
   const actiuneLegata = adaugaMembru.bind(null, grupaId);
   const [stare, actiune, seTrimite] = useActionState<StareFormular, FormData>(
@@ -84,7 +84,7 @@ export function FormularMembruNou({ grupaId }: { grupaId: number }) {
 
       {stare.eroare && <p className="text-sm text-red-700">{stare.eroare}</p>}
       {stare.reusit && (
-        <p className="text-sm text-green-700">Adolescentul a fost adăugat.</p>
+        <p className="text-sm text-green-700">Pulsistul a fost adăugat.</p>
       )}
 
       <button
@@ -96,7 +96,7 @@ export function FormularMembruNou({ grupaId }: { grupaId: number }) {
       </button>
 
       <p className="text-xs text-cenusiu">
-        Datele părinților se completează pe pagina adolescentului.
+        Datele părinților se completează pe pagina pulsistului.
       </p>
     </form>
   );

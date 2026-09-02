@@ -27,6 +27,21 @@ const nextConfig: NextConfig = {
     staleTimes: { dynamic: 60, static: 300 },
   },
 
+  /*
+    Adresele vechi, de pe vremea când le spuneam „adolescenți". Cine are
+    pagina salvată pe telefon sau un link vechi ajunge tot unde trebuie.
+  */
+  async redirects() {
+    return [
+      { source: "/adolescenti", destination: "/pulsisti", permanent: true },
+      {
+        source: "/api/export/adolescenti",
+        destination: "/api/export/pulsisti",
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

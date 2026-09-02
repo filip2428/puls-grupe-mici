@@ -15,7 +15,7 @@ export type FiltruExport = {
 export type RandPrezenta = {
   grupa: string;
   data: string;
-  adolescent: string;
+  pulsist: string;
   statut: string;
   stare: string;
   subiect: string | null;
@@ -44,7 +44,7 @@ export async function randuriPrezente(
     .select({
       grupa: grupe.nume,
       data: intalniri.data,
-      adolescent: membri.nume,
+      pulsist: membri.nume,
       statut: membri.status,
       stare: prezente.stare,
       subiect: intalniri.subiect,
@@ -66,7 +66,7 @@ export async function randuriPrezente(
   }));
 }
 
-export type RandAdolescent = {
+export type RandPulsist = {
   grupa: string;
   nume: string;
   statut: string;
@@ -85,10 +85,10 @@ export type RandAdolescent = {
   procent: number | null;
 };
 
-/** Câte o linie pentru fiecare adolescent, cu totalurile lui. */
-export async function randuriAdolescenti(
+/** Câte o linie pentru fiecare pulsist, cu totalurile lui. */
+export async function randuriPulsisti(
   filtru: FiltruExport,
-): Promise<RandAdolescent[]> {
+): Promise<RandPulsist[]> {
   const conditiiMembri = filtru.grupaIds?.length
     ? inArray(membri.grupaId, filtru.grupaIds)
     : undefined;

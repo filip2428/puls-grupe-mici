@@ -21,14 +21,14 @@ export async function grupa(grupaId: number) {
 }
 
 export type OptiuniMembri = {
-  /** Include și adolescenții marcați ca inactivi. */
+  /** Include și pulsiștii marcați ca inactivi. */
   includeInactivi?: boolean;
   /** "membru" (implicit), "musafir" sau "toti". */
   status?: "membru" | "musafir" | "toti";
 };
 
 /**
- * Adolescenții unei grupe. Implicit doar membrii activi -
+ * Pulsiștii unei grupe. Implicit doar membrii activi -
  * musafirii se cer explicit, ca să nu ajungă din greșeală în statistici.
  */
 export async function membriGrupei(

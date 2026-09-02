@@ -34,7 +34,7 @@ export type EchipaCuNumere = {
   cati: number;
 };
 
-/** Toate echipele de slujire, cu câți adolescenți sunt în fiecare. */
+/** Toate echipele de slujire, cu câți pulsiști sunt în fiecare. */
 export async function listaEchipe(doarActive = false): Promise<EchipaCuNumere[]> {
   const lista = await db
     .select({
@@ -72,7 +72,7 @@ export async function listaEchipe(doarActive = false): Promise<EchipaCuNumere[]>
     );
 }
 
-/** O echipă și adolescenții din ea. */
+/** O echipă și pulsiștii din ea. */
 export async function echipa(echipaId: number) {
   const [e] = await db
     .select({
@@ -113,7 +113,7 @@ export async function echipa(echipaId: number) {
   };
 }
 
-/** În ce echipe de slujire e implicat un adolescent. */
+/** În ce echipe de slujire e implicat un pulsist. */
 export async function echipeleMembrului(membruId: number) {
   return db
     .select({
@@ -181,7 +181,7 @@ export async function programariTrecute(limita = 20): Promise<ProgramareAfisata[
     .limit(limita);
 }
 
-/** Echipele în care e implicat cel puțin un adolescent din grupele date. */
+/** Echipele în care e implicat cel puțin un pulsist din grupele date. */
 export async function echipeleGrupelor(grupaIds: number[]): Promise<number[]> {
   if (grupaIds.length === 0) return [];
   const randuri = await db
@@ -194,7 +194,7 @@ export async function echipeleGrupelor(grupaIds: number[]): Promise<number[]> {
 
 /**
  * Ce urmează pentru un lider anume: programările grupelor lui, plus cele ale
- * echipelor în care are adolescenți. Adminul le vede pe toate.
+ * echipelor în care are pulsiști. Adminul le vede pe toate.
  */
 export async function programariPentruLider(optiuni: {
   esteAdmin: boolean;
@@ -246,7 +246,7 @@ export async function programariGrupei(
     .limit(limita);
 }
 
-/** Programările care urmează pentru un adolescent (prin echipele lui). */
+/** Programările care urmează pentru un pulsist (prin echipele lui). */
 export async function programariMembrului(
   membruId: number,
   limita = 5,
@@ -273,7 +273,7 @@ export async function programariMembrului(
 }
 
 /**
- * Locurile de slujire în care adolescentul încă nu e implicat.
+ * Locurile de slujire în care pulsistul încă nu e implicat.
  * Astea umplu lista de pe fișa lui („unde slujește").
  */
 export async function slujiriDisponibilePentru(membruId: number) {
@@ -292,8 +292,8 @@ export async function slujiriDisponibilePentru(membruId: number) {
   return active.filter((e) => !exclus.has(e.id));
 }
 
-/** Adolescenții care încă nu sunt în echipa dată (pentru lista de adăugare). */
-export async function adolescentiInAfaraEchipei(echipaId: number) {
+/** Pulsiștii care încă nu sunt în echipa dată (pentru lista de adăugare). */
+export async function pulsistiInAfaraEchipei(echipaId: number) {
   const inEchipa = await db
     .select({ id: membriEchipe.membruId })
     .from(membriEchipe)
@@ -316,7 +316,7 @@ export async function adolescentiInAfaraEchipei(echipaId: number) {
 
 /**
  * Liderii care trebuie anunțați de o programare: liderii grupei programate,
- * liderii grupelor din care fac parte adolescenții echipei, plus responsabilul.
+ * liderii grupelor din care fac parte pulsiștii echipei, plus responsabilul.
  */
 export async function liderilDeAnuntat(programareId: number): Promise<number[]> {
   const [p] = await db

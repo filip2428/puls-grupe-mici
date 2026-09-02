@@ -151,9 +151,9 @@ export default async function PaginaAdminGrupa({
       </section>
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">Adolescenți ({membri.length})</h2>
+        <h2 className="mb-1 text-sm font-bold">Pulsiști ({membri.length})</h2>
         <p className="mb-3 text-xs text-cenusiu">
-          Poți muta un adolescent în altă grupă - istoricul lui rămâne neatins.
+          Poți muta un pulsist în altă grupă - istoricul lui rămâne neatins.
         </p>
         <ul className="flex flex-col divide-y divide-[#eef1f7]">
           {membri.map((m) => (
@@ -214,15 +214,15 @@ export default async function PaginaAdminGrupa({
 
 /** Ce dispare odată cu grupa, spus pe șleau înainte de confirmare. */
 function avertismentGrupa(p: {
-  adolescenti: number;
+  pulsisti: number;
   intalniri: number;
   prezente: number;
   note: number;
   programari: number;
 }): string {
   const bucati = [
-    p.adolescenti > 0
-      ? `${p.adolescenti === 1 ? "adolescentul din ea" : `cei ${p.adolescenti} adolescenți din ea`}`
+    p.pulsisti > 0
+      ? `${p.pulsisti === 1 ? "pulsistul din ea" : `cei ${p.pulsisti} pulsiști din ea`}`
       : "",
     p.intalniri > 0
       ? `${p.intalniri === 1 ? "o întâlnire" : `${p.intalniri} întâlniri`} cu ${p.prezente} ${p.prezente === 1 ? "prezență" : "prezențe"}`

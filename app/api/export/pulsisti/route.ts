@@ -5,15 +5,15 @@ import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import {
-  cautaAdolescenti,
+  cautaPulsisti,
   filtruDinParametri,
-} from "@/lib/interogari/adolescenti";
+} from "@/lib/interogari/pulsisti";
 import { dataAzi } from "@/lib/util/date";
 import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 
 /**
- * Tabelul cu adolescenți, în Excel, cu aceleași filtre ca pe pagina
- * /adolescenti (grupă, statut, sex, clasă, vârstă, căutare).
+ * Tabelul cu pulsiști, în Excel, cu aceleași filtre ca pe pagina
+ * /pulsisti (grupă, statut, sex, clasă, vârstă, căutare).
  */
 export async function GET(cerere: Request) {
   const lider = await ceruteLider();
@@ -25,13 +25,13 @@ export async function GET(cerere: Request) {
     filtru.grupePermise = aleMele.map((g) => g.id);
   }
 
-  const lista = await cautaAdolescenti(filtru);
+  const lista = await cautaPulsisti(filtru);
 
   const registru = new ExcelJS.Workbook();
   registru.creator = "Puls · Grupe mici";
   registru.created = new Date();
 
-  const foaie = registru.addWorksheet("Adolescenți");
+  const foaie = registru.addWorksheet("Pulsiști");
   foaie.columns = [
     { header: "Nume", key: "nume", width: 26 },
     { header: "Grupa", key: "grupa", width: 20 },
@@ -84,7 +84,7 @@ export async function GET(cerere: Request) {
   }
 
   const continut = await registru.xlsx.writeBuffer();
-  await scrieAudit(lider.id, "export:adolescenti", {
+  await scrieAudit(lider.id, "export:pulsisti", {
     randuri: lista.length,
     filtru: parametri.toString() || "fara filtre",
   });
@@ -93,7 +93,7 @@ export async function GET(cerere: Request) {
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="puls-adolescenti-${dataAzi()}.xlsx"`,
+      "Content-Disposition": `attachment; filename="puls-pulsisti-${dataAzi()}.xlsx"`,
       "Cache-Control": "no-store",
     },
   });

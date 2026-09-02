@@ -112,7 +112,7 @@ export async function schimbaActivaEchipa(echipaId: number, activa: boolean) {
 
 /**
  * Șterge un loc de slujire, cu programările lui din calendar.
- * Adolescenții rămân neatinși - doar nu mai slujesc acolo.
+ * Pulsiștii rămân neatinși - doar nu mai slujesc acolo.
  */
 export async function stergeEchipa(
   echipaId: number,
@@ -133,7 +133,7 @@ export async function stergeEchipa(
   await scrieAudit(admin.id, "echipa:stearsa", {
     echipaId,
     nume: pierderi.nume,
-    adolescenti: pierderi.adolescenti,
+    pulsisti: pierderi.pulsisti,
     programari: pierderi.programari,
   });
 
@@ -143,7 +143,7 @@ export async function stergeEchipa(
 
 /**
  * Cine poate umbla la componența unei echipe: adminul, responsabilul ei,
- * sau liderul grupei din care face parte adolescentul.
+ * sau liderul grupei din care face parte pulsistul.
  */
 async function poateSchimbaEchipa(echipaId: number, membruId: number) {
   const lider = await ceruteLider();
@@ -166,7 +166,7 @@ async function poateSchimbaEchipa(echipaId: number, membruId: number) {
   return acces.permis ? lider : null;
 }
 
-/** Adaugă un adolescent într-o echipă de slujire. */
+/** Adaugă un pulsist într-o echipă de slujire. */
 export async function adaugaInEchipa(echipaId: number, formData: FormData) {
   const membruId = Number(formData.get("membruId"));
   if (!Number.isInteger(membruId)) return;
@@ -179,13 +179,13 @@ export async function adaugaInEchipa(echipaId: number, formData: FormData) {
     .insert(membriEchipe)
     .values({ echipaId, membruId, rol: rol || null })
     .onConflictDoNothing();
-  await scrieAudit(lider.id, "echipa:adolescent-adaugat", { echipaId, membruId });
+  await scrieAudit(lider.id, "echipa:pulsist-adaugat", { echipaId, membruId });
 
   revalidatePath(`/slujiri/${echipaId}`);
   revalidatePath(`/membri/${membruId}`);
 }
 
-/** Scoate un adolescent dintr-o echipă. */
+/** Scoate un pulsist dintr-o echipă. */
 export async function scoateDinEchipa(echipaId: number, membruId: number) {
   const lider = await poateSchimbaEchipa(echipaId, membruId);
   if (!lider) return;
@@ -195,14 +195,14 @@ export async function scoateDinEchipa(echipaId: number, membruId: number) {
     .where(
       and(eq(membriEchipe.echipaId, echipaId), eq(membriEchipe.membruId, membruId)),
     );
-  await scrieAudit(lider.id, "echipa:adolescent-scos", { echipaId, membruId });
+  await scrieAudit(lider.id, "echipa:pulsist-scos", { echipaId, membruId });
 
   revalidatePath(`/slujiri/${echipaId}`);
   revalidatePath(`/membri/${membruId}`);
 }
 
 /**
- * Aceleași două operații, dar pornite de pe fișa adolescentului: acolo alegi
+ * Aceleași două operații, dar pornite de pe fișa pulsistului: acolo alegi
  * din listă unde slujește, nu pe cine adaugi într-o slujire.
  */
 export async function adaugaSlujireaMembrului(
@@ -220,7 +220,7 @@ export async function adaugaSlujireaMembrului(
     .insert(membriEchipe)
     .values({ echipaId, membruId, rol: rol || null })
     .onConflictDoNothing();
-  await scrieAudit(lider.id, "echipa:adolescent-adaugat", { echipaId, membruId });
+  await scrieAudit(lider.id, "echipa:pulsist-adaugat", { echipaId, membruId });
 
   revalidatePath(`/slujiri/${echipaId}`);
   revalidatePath(`/membri/${membruId}`);

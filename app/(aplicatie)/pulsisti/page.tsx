@@ -3,17 +3,17 @@ import Link from "next/link";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import {
-  cautaAdolescenti,
+  cautaPulsisti,
   filtruDinParametri,
-  type FiltruAdolescenti,
-} from "@/lib/interogari/adolescenti";
+  type FiltruPulsisti,
+} from "@/lib/interogari/pulsisti";
 import { CLASE, etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 
-export const metadata = { title: "Adolescenți · Puls" };
+export const metadata = { title: "Pulsiști · Puls" };
 
-export default async function PaginaAdolescenti({
+export default async function PaginaPulsisti({
   searchParams,
-}: PageProps<"/adolescenti">) {
+}: PageProps<"/pulsisti">) {
   const lider = await ceruteLider();
   const parametri = await searchParams;
   const filtru = filtruDinParametri(parametri);
@@ -23,11 +23,11 @@ export default async function PaginaAdolescenti({
     filtru.grupePermise = grupe.map((g) => g.id);
   }
 
-  const lista = await cautaAdolescenti(filtru);
+  const lista = await cautaPulsisti(filtru);
   const membriNr = lista.filter((a) => a.status === "membru").length;
   const musafiriNr = lista.length - membriNr;
 
-  const adresaExport = `/api/export/adolescenti?${sirDeParametri(filtru)}`;
+  const adresaExport = `/api/export/pulsisti?${sirDeParametri(filtru)}`;
   const areFiltre =
     !!filtru.q ||
     !!filtru.grupaId ||
@@ -41,16 +41,16 @@ export default async function PaginaAdolescenti({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-bold">Adolescenți</h1>
+        <h1 className="text-xl font-bold">Pulsiști</h1>
         <p className="text-sm text-cenusiu">
           {lider.rol === "admin"
             ? "Toți pulsiștii, cu filtre și export."
-            : "Adolescenții din grupele tale."}
+            : "Pulsiștii din grupele tale."}
         </p>
       </div>
 
       {/* Căutare și filtre */}
-      <form action="/adolescenti" className="card flex flex-col gap-3 p-4">
+      <form action="/pulsisti" className="card flex flex-col gap-3 p-4">
         <div className="flex gap-2">
           <input
             name="q"
@@ -191,7 +191,7 @@ export default async function PaginaAdolescenti({
                 Aplică filtrele
               </button>
               {areFiltre && (
-                <Link href="/adolescenti" className="buton buton-secundar">
+                <Link href="/pulsisti" className="buton buton-secundar">
                   Șterge filtrele
                 </Link>
               )}
@@ -203,7 +203,7 @@ export default async function PaginaAdolescenti({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-cenusiu">
           <span className="font-semibold text-carbune">{lista.length}</span>{" "}
-          {lista.length === 1 ? "adolescent" : "adolescenți"}
+          {lista.length === 1 ? "pulsist" : "pulsiști"}
           {musafiriNr > 0 && ` · ${membriNr} membri, ${musafiriNr} musafiri`}
         </p>
         <a href={adresaExport} className="buton buton-secundar buton-mic">
@@ -275,7 +275,7 @@ export default async function PaginaAdolescenti({
 
       {lista.length === 0 && (
         <div className="card p-6 text-center text-sm text-cenusiu">
-          Niciun adolescent nu se potrivește cu filtrele alese.
+          Niciun pulsist nu se potrivește cu filtrele alese.
         </div>
       )}
     </div>
@@ -283,7 +283,7 @@ export default async function PaginaAdolescenti({
 }
 
 /** Transformă filtrele înapoi în adresă, pentru linkul de export. */
-function sirDeParametri(filtru: FiltruAdolescenti): string {
+function sirDeParametri(filtru: FiltruPulsisti): string {
   const p = new URLSearchParams();
   if (filtru.q) p.set("q", filtru.q);
   if (filtru.grupaId) p.set("grupa", String(filtru.grupaId));

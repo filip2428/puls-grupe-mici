@@ -18,7 +18,7 @@ export type FoaieDePrezenta = {
   subiect: string | null;
   nota: string | null;
   numarInvitati: number;
-  /** Adolescenții care fac parte din grupă. */
+  /** Pulsiștii care fac parte din grupă. */
   membri: Membru[];
   /** Musafirii care au trecut pe la grupă în ultima vreme. */
   musafiri: Membru[];

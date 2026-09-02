@@ -7,7 +7,7 @@ import { ZonaStergere } from "@/componente/ZonaStergere";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { listaLideri } from "@/lib/interogari/lideri";
 import {
-  adolescentiInAfaraEchipei,
+  pulsistiInAfaraEchipei,
   echipa as iaEchipa,
   programariViitoare,
 } from "@/lib/interogari/slujiri";
@@ -35,7 +35,7 @@ export default async function PaginaEchipa({
   const esteResponsabil = date.echipa.responsabilId === lider.id;
 
   const [disponibili, toateProgramarile, toti, pierderi] = await Promise.all([
-    adolescentiInAfaraEchipei(echipaId),
+    pulsistiInAfaraEchipei(echipaId),
     programariViitoare(50),
     esteAdmin ? listaLideri() : Promise.resolve([]),
     esteAdmin ? pierderiEchipa(echipaId) : Promise.resolve(null),
@@ -93,7 +93,7 @@ export default async function PaginaEchipa({
         {date.membri.length === 0 ? (
           <p className="text-sm text-cenusiu">
             Nu slujește nimeni aici încă. Adaugă mai jos, sau de pe fișa
-            adolescentului.
+            pulsistului.
           </p>
         ) : (
           <ul className="flex flex-col divide-y divide-[#eef1f7]">
@@ -134,7 +134,7 @@ export default async function PaginaEchipa({
                 Cine
               </label>
               <select id="membruId" name="membruId" className="camp" required>
-                <option value="">Alege un adolescent</option>
+                <option value="">Alege un pulsist</option>
                 {disponibili.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.nume} ({m.grupaNume})
@@ -160,14 +160,14 @@ export default async function PaginaEchipa({
           </form>
           {disponibili.length === 0 && (
             <p className="pt-2 text-xs text-cenusiu">
-              Toți adolescenții activi slujesc deja aici.
+              Toți pulsiștii activi slujesc deja aici.
             </p>
           )}
         </details>
 
         {!esteAdmin && !esteResponsabil && (
           <p className="mt-3 text-xs text-cenusiu">
-            Poți adăuga sau scoate doar adolescenți din grupele tale.
+            Poți adăuga sau scoate doar pulsiști din grupele tale.
           </p>
         )}
       </section>
@@ -227,12 +227,12 @@ export default async function PaginaEchipa({
 
 /** Ce dispare odată cu locul de slujire. */
 function avertismentEchipa(p: {
-  adolescenti: number;
+  pulsisti: number;
   programari: number;
 }): string {
   const bucati = [
-    p.adolescenti > 0
-      ? `${p.adolescenti === 1 ? "un adolescent nu va mai sluji aici" : `cei ${p.adolescenti} adolescenți nu vor mai sluji aici`}`
+    p.pulsisti > 0
+      ? `${p.pulsisti === 1 ? "un pulsist nu va mai sluji aici" : `cei ${p.pulsisti} pulsiști nu vor mai sluji aici`}`
       : "",
     p.programari > 0
       ? `${p.programari === 1 ? "o programare iese" : `${p.programari} programări ies`} din calendar`
@@ -244,5 +244,5 @@ function avertismentEchipa(p: {
       ? "Nu slujește nimeni aici și nu e nimic în calendar."
       : `${bucati.join(" și ")}.`;
 
-  return `${lista} Niciun adolescent nu se șterge - dispare doar locul de slujire. Dacă vrei doar să nu mai apară în liste, folosește „Arhivează".`;
+  return `${lista} Niciun pulsist nu se șterge - dispare doar locul de slujire. Dacă vrei doar să nu mai apară în liste, folosește „Arhivează".`;
 }

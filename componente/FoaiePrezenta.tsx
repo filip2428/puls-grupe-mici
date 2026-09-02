@@ -31,7 +31,7 @@ const OPTIUNI: { valoare: StarePrezenta; eticheta: string; clase: string }[] = [
 ];
 
 /**
- * Foaia de prezență: pentru fiecare adolescent alegi Prezent / Anunțat / Absent.
+ * Foaia de prezență: pentru fiecare pulsist alegi Prezent / Anunțat / Absent.
  * „Anunțat" înseamnă că a spus dinainte că lipsește.
  *
  * Musafirii stau într-o listă separată, sub grupă: ei nu fac parte din grupă
@@ -123,7 +123,7 @@ export function FoaiePrezenta({
 
       {membri.length === 0 && (
         <div className="card p-5 text-center text-sm text-cenusiu">
-          Grupa nu are adolescenți încă.{" "}
+          Grupa nu are pulsiști încă.{" "}
           <Link href={`/grupe/${grupaId}`} className="text-albastru underline">
             Adaugă-i din pagina grupei.
           </Link>

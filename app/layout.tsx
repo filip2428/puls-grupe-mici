@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Puls · Grupe mici",
-  description: "Prezența la grupele mici din lucrarea cu adolescenții Puls.",
+  description: "Prezența la grupele mici din lucrarea cu tineri Puls.",
   robots: { index: false, follow: false },
   manifest: "/manifest.webmanifest",
   appleWebApp: {

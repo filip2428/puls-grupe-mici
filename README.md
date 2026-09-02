@@ -1,6 +1,6 @@
 # Puls · Grupe mici
 
-Aplicație pentru prezența la grupele mici din lucrarea cu adolescenții **Puls**.
+Aplicație pentru prezența la grupele mici din lucrarea cu tineri **Puls**.
 Fiecare lider intră cu un cod, deschide grupa lui și bifează cine a fost prezent.
 Coordonatorii văd toată lucrarea într-un singur loc.
 
@@ -21,8 +21,8 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - scrie subiectul întâlnirii și o notă despre cum a fost;
 - vede cine a lipsit de mai multe ori la rând („de căutat") și îl poate suna direct;
 - are la îndemână datele părinților (nume și telefon, cu buton de sunat);
-- ține note despre fiecare adolescent (rugăciune, situații, follow-up);
-- adaugă adolescenți noi în grupă și îi marchează inactivi când nu mai vin;
+- ține note despre fiecare pulsist (rugăciune, situații, follow-up);
+- adaugă pulsiști noi în grupă și îi marchează inactivi când nu mai vin;
 - trece pe fișa fiecăruia **unde slujește** (Harvest Kids, cafenea, laudă...);
 - vede **când e programată grupa lui la o slujire**;
 - când nu poate ajunge, trece o **înlocuire**: alt lider primește acces la grupă în perioada aleasă;
@@ -30,18 +30,18 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 
 **Coordonatorul (administrator)**
 
-- vede **lista tuturor adolescenților**, cu filtre după grupă, statut (membru sau
+- vede **lista tuturor pulsiștilor**, cu filtre după grupă, statut (membru sau
   musafir), sex, clasă, vârstă și situație, plus căutare după nume, telefon sau
   numele unui părinte;
 - descarcă lista în Excel exact cu filtrele alese;
-- **importă adolescenți dintr-un Excel**, după un model descărcabil;
+- **importă pulsiști dintr-un Excel**, după un model descărcabil;
 - creează lideri și generează coduri de acces (inclusiv coduri noi, dacă se pierd);
 - creează grupe și repartizează oricâți lideri la o grupă;
 - creează **locurile de slujire** și programează cine slujește și când;
-- mută adolescenți dintr-o grupă în alta, fără să piardă istoricul;
-- **șterge definitiv** un lider sau un adolescent, când chiar e nevoie;
+- mută pulsiști dintr-o grupă în alta, fără să piardă istoricul;
+- **șterge definitiv** un lider sau un pulsist, când chiar e nevoie;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
-- descarcă totul în Excel (prezențe, adolescenți, întâlniri);
+- descarcă totul în Excel (prezențe, pulsiști, întâlniri);
 - vede jurnalul: cine, ce și când a modificat.
 
 ---
@@ -71,7 +71,7 @@ Sunt două lucruri diferite, legate între ele:
 le creează din pagina *Slujiri*. Fiecare are un nume, o descriere scurtă și,
 dacă vrei, un lider care coordonează.
 
-**Cine unde slujește** - se trece de pe fișa adolescentului, la *Unde slujește*:
+**Cine unde slujește** - se trece de pe fișa pulsistului, la *Unde slujește*:
 alegi din listă și, opțional, scrii ce face acolo („la povestire", „chitară").
 Merge și invers, din pagina slujirii. Așa știi oricând că Filip e la Harvest
 Kids, iar pagina slujirii îți arată toată echipa.
@@ -81,7 +81,7 @@ pune fie pe o grupă mică, fie pe un loc de slujire, fie pe amândouă. Liderul
 vede pe pagina grupei și pe *Slujiri*, iar cu câteva zile înainte primește și o
 notificare.
 
-Un lider poate trece un adolescent din grupa lui la o slujire; restul (creat,
+Un lider poate trece un pulsist din grupa lui la o slujire; restul (creat,
 modificat, programat) rămâne la coordonator.
 
 ---
@@ -92,8 +92,8 @@ Aplicația se uită o dată pe zi ce urmează și îi anunță pe liderii pe car
 privește. Fiecare notificare se vede în *Setări*, îi sună telefonul dacă și-a
 pornit notificările și îi pleacă și pe email dacă și-a pus adresa:
 
-- **zile de naștere** - cu trei zile înainte, pentru adolescenții din grupa lui;
-- **slujiri** - când grupa lui sau adolescenții lui sunt programați;
+- **zile de naștere** - cu trei zile înainte, pentru pulsiștii din grupa lui;
+- **slujiri** - când grupa lui sau pulsiștii lui sunt programați;
 - **prezența necompletată** - dacă a trecut ziua întâlnirii și lipsește;
 - **rezumatul de luni** - cum a fost săptămâna și cine ar trebui căutat.
 
@@ -160,28 +160,28 @@ confirmi se scrie în baza de date.
 
 | Ce ștergi | De unde | Cum se confirmă |
 | --- | --- | --- |
-| o **grupă** (cu adolescenții și istoricul ei) | Administrare → Grupe → grupa | scrii numele grupei |
+| o **grupă** (cu pulsiștii și istoricul ei) | Administrare → Grupe → grupa | scrii numele grupei |
 | un **lider** | Administrare → Lideri | scrii numele lui |
-| un **adolescent** (cu prezențe și note) | fișa lui, jos | scrii numele lui |
+| un **pulsist** (cu prezențe și note) | fișa lui, jos | scrii numele lui |
 | un **loc de slujire** (cu programările lui) | Slujiri → slujirea | scrii numele ei |
 | **prezența unei zile** | pagina de prezență a zilei | un buton, sub un capac |
 | o **programare** din calendar | Slujiri | un buton |
 | o **înlocuire** | pagina grupei | un buton |
-| o **notă** despre un adolescent | fișa lui | un buton |
+| o **notă** despre un pulsist | fișa lui | un buton |
 | cineva **dintr-o slujire** | fișa lui sau pagina slujirii | un buton |
 | un lider **dintr-o grupă** | Administrare → Grupe | un buton |
 | **notificările** tale | Setări | un buton |
 | **jurnalul** | Administrare → Jurnal | scrii cuvântul *golește* |
 
-Ștergerile grele (grupă, lider, adolescent, loc de slujire) stau sub un capac
-roșu, îți arată întâi exact ce dispare - *„Dispar cu totul 2 adolescenți, o
+Ștergerile grele (grupă, lider, pulsist, loc de slujire) stau sub un capac
+roșu, îți arată întâi exact ce dispare - *„Dispar cu totul 2 pulsiști, o
 întâlnire cu 2 prezențe și o notă"* - și abia apoi acceptă butonul, după ce
 scrii numele. Nu se mai poate aduce nimic înapoi.
 
 Ce **nu** se pierde: la un lider șters rămân prezențele completate de el și
 notele scrise de el, doar fără nume lângă ele. La o grupă ștearsă rămân
 liderii, doar nu mai sunt repartizați acolo. La un loc de slujire șters rămân
-adolescenții, doar nu mai slujesc acolo.
+pulsiștii, doar nu mai slujesc acolo.
 
 De cele mai multe ori tot nu asta vrei: pentru cine nu mai vine e „Marchează ca
 inactiv", pentru un lider care ia o pauză e „Dezactivează", iar pentru o grupă
@@ -208,7 +208,7 @@ Apoi deschide http://localhost:3000 și intră cu acel cod.
 
 ### Date de test
 
-Ca să vezi aplicația plină (4 grupe, 5 lideri, adolescenți, prezențe pe 8 săptămâni):
+Ca să vezi aplicația plină (4 grupe, 5 lideri, pulsiști, prezențe pe 8 săptămâni):
 
 ```bash
 npm run date:demo
@@ -376,12 +376,12 @@ app/
   intra/              pagina de intrare cu codul de acces
   (aplicatie)/
     grupe/            grupele mele, grupa, foaia de prezență
-    adolescenti/      lista cu filtre (adminul vede tot, liderul doar grupele lui)
-    membri/[id]/      fișa unui adolescent (istoric, părinți, note, unde slujește)
+    pulsisti/      lista cu filtre (adminul vede tot, liderul doar grupele lui)
+    membri/[id]/      fișa unui pulsist (istoric, părinți, note, unde slujește)
     slujiri/          locurile de slujire și calendarul programărilor
     setari/           email, notificări, ieșire din cont
     admin/            tablou de bord, lideri, grupe, import, jurnal, export
-  api/export/         fișierele Excel (prezențe și lista de adolescenți)
+  api/export/         fișierele Excel (prezențe și lista de pulsiști)
   api/import/model/   fișierul-model pentru import
   api/cron/           verificarea zilnică a notificărilor
 componente/           bucățile de interfață (formulare, foaia de prezență)
@@ -396,7 +396,7 @@ drizzle/              migrările bazei de date
 
 Regula pe care se ține securitatea: **fiecare pagină și fiecare acțiune verifică
 întâi cine ești** (`ceruteLider` / `ceruteAdmin`) și **apoi dacă ai voie la grupa
-respectivă** (`verificaAccesGrupa`). Datele adolescenților se citesc pe server;
+respectivă** (`verificaAccesGrupa`). Datele pulsiștilor se citesc pe server;
 în browser ajunge doar ce are voie să vadă liderul respectiv.
 
 ---
@@ -404,6 +404,6 @@ respectivă** (`verificaAccesGrupa`). Datele adolescenților se citesc pe server
 ## Ce se poate adăuga mai târziu
 
 - prezența la întâlnirea generală de vineri, pe lângă grupele mici;
-- filtru pe slujire în lista de adolescenți („arată-mi toți cei de la Harvest Kids");
+- filtru pe slujire în lista de pulsiști („arată-mi toți cei de la Harvest Kids");
 - prezență și la slujiri, nu doar la grupele mici;
 - pagină pentru părinți sau statistici pe lucrare, publice în interiorul bisericii.
