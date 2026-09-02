@@ -79,7 +79,13 @@ export async function alerteAbsenteGrupa(
     db
       .select()
       .from(membri)
-      .where(and(eq(membri.grupaId, grupaId), eq(membri.activ, true))),
+      .where(
+        and(
+          eq(membri.grupaId, grupaId),
+          eq(membri.activ, true),
+          eq(membri.status, "membru"),
+        ),
+      ),
   ]);
 
   const alerte: AlertaAbsenta[] = [];
@@ -144,7 +150,11 @@ export async function statisticiGrupa(
 ): Promise<StatisticiGrupa> {
   const [lista, toti] = await Promise.all([
     ultimeleIntalniri(grupaId, nrIntalniri),
-    db.select().from(membri).where(eq(membri.grupaId, grupaId)).orderBy(asc(membri.nume)),
+    db
+      .select()
+      .from(membri)
+      .where(and(eq(membri.grupaId, grupaId), eq(membri.status, "membru")))
+      .orderBy(asc(membri.nume)),
   ]);
 
   const cronologic = [...lista].reverse();
@@ -221,7 +231,13 @@ export async function rezumatGrupe(optiuni?: {
       db
         .select({ id: membri.id })
         .from(membri)
-        .where(and(eq(membri.grupaId, g.id), eq(membri.activ, true))),
+        .where(
+          and(
+            eq(membri.grupaId, g.id),
+            eq(membri.activ, true),
+            eq(membri.status, "membru"),
+          ),
+        ),
     ]);
 
     const ultima = stat.intalniri.at(-1);

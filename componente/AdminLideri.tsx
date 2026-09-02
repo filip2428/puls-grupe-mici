@@ -63,7 +63,7 @@ export function FormularLiderNou() {
       <button
         type="submit"
         disabled={seTrimite}
-        className="self-start rounded-lg bg-albastru px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        className="buton buton-principal self-start"
       >
         {seTrimite ? "Creez..." : "Creează liderul"}
       </button>
@@ -86,7 +86,7 @@ export function ButonCodNou({ liderId }: { liderId: number }) {
         <button
           type="submit"
           disabled={seTrimite}
-          className="rounded-lg border border-[#d7dced] px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+          className="buton buton-secundar buton-mic"
         >
           {seTrimite ? "Generez..." : "Cod nou"}
         </button>

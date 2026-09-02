@@ -5,6 +5,8 @@ import { z } from "zod";
 
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
+import { db } from "@/lib/db";
+import { membri } from "@/lib/db/schema";
 import { verificaAccesGrupa } from "@/lib/interogari/acces";
 import { salveazaPrezenta } from "@/lib/interogari/prezenta";
 import { dataAzi, esteDataValida } from "@/lib/util/date";
@@ -36,6 +38,54 @@ const schema = z.object({
     z.enum(["prezent", "absent", "motivat"]),
   ),
 });
+
+export type StareMusafir = {
+  eroare?: string;
+  /** Musafirul creat, ca să apară imediat pe foaie, fără reîncărcare. */
+  musafir?: { id: number; nume: string };
+};
+
+/**
+ * Adaugă un musafir (cineva venit în vizită) la o grupă.
+ *
+ * Musafirul NU devine membru al grupei: apare separat pe foaia de prezență,
+ * nu intră în statistici și nu declanșează alerte de absență. Când grupa
+ * hotărăște că e parte din ea, se apasă „Primește în grupă".
+ */
+export async function adaugaMusafir(
+  grupaId: number,
+  _stare: StareMusafir,
+  formData: FormData,
+): Promise<StareMusafir> {
+  const lider = await ceruteLider();
+  const acces = await verificaAccesGrupa(lider, grupaId);
+  if (!acces.permis) return { eroare: "Nu ai acces la grupa asta." };
+
+  const nume = String(formData.get("nume") ?? "").trim();
+  if (nume.length < 2) return { eroare: "Scrie numele musafirului." };
+  if (nume.length > 80) return { eroare: "Numele e prea lung." };
+
+  const telefonScris = String(formData.get("telefon") ?? "").trim();
+
+  const [creat] = await db
+    .insert(membri)
+    .values({
+      grupaId,
+      nume,
+      telefon: telefonScris ? telefonScris.slice(0, 30) : null,
+      status: "musafir",
+    })
+    .returning({ id: membri.id, nume: membri.nume });
+
+  await scrieAudit(lider.id, "musafir:adaugat", {
+    grupaId,
+    membruId: creat.id,
+    nume,
+  });
+
+  revalidatePath(`/grupe/${grupaId}`);
+  return { musafir: creat };
+}
 
 /** Salvează foaia de prezență a unei grupe pentru o zi. */
 export async function salveazaFoaia(

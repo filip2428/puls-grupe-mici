@@ -4,6 +4,7 @@ import { and, asc, eq, gte, inArray, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { grupe, intalniri, lideri, membri, prezente } from "@/lib/db/schema";
+import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 
 export type FiltruExport = {
   grupaIds?: number[];
@@ -15,6 +16,7 @@ export type RandPrezenta = {
   grupa: string;
   data: string;
   adolescent: string;
+  statut: string;
   stare: string;
   subiect: string | null;
   marcatDe: string | null;
@@ -43,6 +45,7 @@ export async function randuriPrezente(
       grupa: grupe.nume,
       data: intalniri.data,
       adolescent: membri.nume,
+      statut: membri.status,
       stare: prezente.stare,
       subiect: intalniri.subiect,
       marcatDe: lideri.nume,
@@ -56,14 +59,25 @@ export async function randuriPrezente(
     .where(conditii.length ? and(...conditii) : undefined)
     .orderBy(asc(grupe.nume), asc(intalniri.data), asc(membri.nume));
 
-  return randuri.map((r) => ({ ...r, stare: NUME_STARE[r.stare] ?? r.stare }));
+  return randuri.map((r) => ({
+    ...r,
+    statut: r.statut === "musafir" ? "musafir" : "membru",
+    stare: NUME_STARE[r.stare] ?? r.stare,
+  }));
 }
 
 export type RandAdolescent = {
   grupa: string;
   nume: string;
+  statut: string;
+  sex: string;
+  clasa: string;
   telefon: string | null;
   dataNasterii: string | null;
+  parinte1Nume: string | null;
+  parinte1Telefon: string | null;
+  parinte2Nume: string | null;
+  parinte2Telefon: string | null;
   activ: string;
   prezente: number;
   anuntate: number;
@@ -85,6 +99,13 @@ export async function randuriAdolescenti(
       nume: membri.nume,
       telefon: membri.telefon,
       dataNasterii: membri.dataNasterii,
+      sex: membri.sex,
+      clasa: membri.clasa,
+      status: membri.status,
+      parinte1Nume: membri.parinte1Nume,
+      parinte1Telefon: membri.parinte1Telefon,
+      parinte2Nume: membri.parinte2Nume,
+      parinte2Telefon: membri.parinte2Telefon,
       activ: membri.activ,
       grupa: grupe.nume,
     })
@@ -131,8 +152,15 @@ export async function randuriAdolescenti(
     return {
       grupa: m.grupa,
       nume: m.nume,
+      statut: m.status === "musafir" ? "musafir" : "membru",
+      sex: etichetaSex(m.sex),
+      clasa: etichetaClasa(m.clasa),
       telefon: m.telefon,
       dataNasterii: m.dataNasterii,
+      parinte1Nume: m.parinte1Nume,
+      parinte1Telefon: m.parinte1Telefon,
+      parinte2Nume: m.parinte2Nume,
+      parinte2Telefon: m.parinte2Telefon,
       activ: m.activ ? "da" : "nu",
       prezente: t.prezente,
       anuntate: t.anuntate,
@@ -149,7 +177,7 @@ export type RandIntalnire = {
   prezenti: number;
   anuntati: number;
   absenti: number;
-  invitati: number;
+  musafiri: number;
   marcatDe: string | null;
   prinInlocuire: string;
   nota: string | null;
@@ -173,7 +201,6 @@ export async function randuriIntalniri(
       data: intalniri.data,
       subiect: intalniri.subiect,
       nota: intalniri.nota,
-      invitati: intalniri.numarInvitati,
       marcatDe: lideri.nume,
       prinInlocuire: intalniri.prinInlocuire,
     })
@@ -186,8 +213,13 @@ export async function randuriIntalniri(
   if (lista.length === 0) return [];
 
   const stari = await db
-    .select({ intalnireId: prezente.intalnireId, stare: prezente.stare })
+    .select({
+      intalnireId: prezente.intalnireId,
+      stare: prezente.stare,
+      status: membri.status,
+    })
     .from(prezente)
+    .innerJoin(membri, eq(membri.id, prezente.membruId))
     .where(
       inArray(
         prezente.intalnireId,
@@ -197,14 +229,18 @@ export async function randuriIntalniri(
 
   const numere = new Map<
     number,
-    { prezenti: number; anuntati: number; absenti: number }
+    { prezenti: number; anuntati: number; absenti: number; musafiri: number }
   >();
   for (const i of lista) {
-    numere.set(i.id, { prezenti: 0, anuntati: 0, absenti: 0 });
+    numere.set(i.id, { prezenti: 0, anuntati: 0, absenti: 0, musafiri: 0 });
   }
   for (const s of stari) {
     const n = numere.get(s.intalnireId);
     if (!n) continue;
+    if (s.status === "musafir") {
+      if (s.stare === "prezent") n.musafiri++;
+      continue;
+    }
     if (s.stare === "prezent") n.prezenti++;
     else if (s.stare === "motivat") n.anuntati++;
     else n.absenti++;
@@ -215,7 +251,6 @@ export async function randuriIntalniri(
     data: i.data,
     subiect: i.subiect,
     ...numere.get(i.id)!,
-    invitati: i.invitati,
     marcatDe: i.marcatDe,
     prinInlocuire: i.prinInlocuire ? "da" : "",
     nota: i.nota,

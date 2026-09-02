@@ -10,7 +10,7 @@ import {
   type Membru,
   type StarePrezenta,
 } from "@/lib/db/schema";
-import { membriGrupei } from "./grupe";
+import { membriGrupei, musafiriRecenti } from "./grupe";
 
 export type FoaieDePrezenta = {
   intalnireId: number | null;
@@ -18,14 +18,17 @@ export type FoaieDePrezenta = {
   subiect: string | null;
   nota: string | null;
   numarInvitati: number;
+  /** Adolescenții care fac parte din grupă. */
   membri: Membru[];
+  /** Musafirii care au trecut pe la grupă în ultima vreme. */
+  musafiri: Membru[];
   /** membruId -> stare, doar pentru cei deja marcați. */
   stari: Record<number, StarePrezenta>;
 };
 
 /**
  * Pregătește foaia de prezență a unei grupe pentru o dată anume.
- * Dacă întâlnirea nu există încă, întoarce lista de membri fără stări.
+ * Dacă întâlnirea nu există încă, întoarce listele fără stări.
  */
 export async function foaiaDePrezenta(
   grupaId: number,
@@ -36,7 +39,10 @@ export async function foaiaDePrezenta(
     .from(intalniri)
     .where(and(eq(intalniri.grupaId, grupaId), eq(intalniri.data, data)));
 
-  const membri = await membriGrupei(grupaId);
+  const [membri, musafiri] = await Promise.all([
+    membriGrupei(grupaId),
+    musafiriRecenti(grupaId, data),
+  ]);
 
   const stari: Record<number, StarePrezenta> = {};
   if (intalnire) {
@@ -54,6 +60,7 @@ export async function foaiaDePrezenta(
     nota: intalnire?.nota ?? null,
     numarInvitati: intalnire?.numarInvitati ?? 0,
     membri,
+    musafiri,
     stari,
   };
 }

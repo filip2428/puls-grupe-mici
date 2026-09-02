@@ -77,7 +77,15 @@ export const lideriGrupe = sqliteTable(
   ],
 );
 
-/** Adolescenții din grupe. */
+/**
+ * Adolescenții.
+ *
+ * `status` face diferența dintre cineva care e cu adevărat parte din grupă și
+ * cineva care doar a fost în vizită:
+ *  - "musafir" = a venit (o dată sau de mai multe ori), dar nu e încă în grupă;
+ *  - "membru"  = a fost primit în grupă, după procedura internă.
+ * Musafirii nu intră în statistici și nu apar la „de căutat".
+ */
 export const membri = sqliteTable(
   "membri",
   {
@@ -89,11 +97,28 @@ export const membri = sqliteTable(
     telefon: text("telefon"),
     /** Format AAAA-LL-ZZ, opțional (pentru zile de naștere). */
     dataNasterii: text("data_nasterii"),
+    /** "baiat" | "fata" - folosit la filtrare. */
+    sex: text("sex", { enum: ["baiat", "fata"] }),
+    /** Clasa la școală: 5 ... 13 (13 = a XII-a terminată / student). */
+    clasa: integer("clasa"),
+    status: text("status", { enum: ["membru", "musafir"] })
+      .notNull()
+      .default("membru"),
+    /** Când a fost primit în grupă (AAAA-LL-ZZ). */
+    devenitMembruLa: text("devenit_membru_la"),
+    /** Datele părinților, pentru contact rapid. */
+    parinte1Nume: text("parinte1_nume"),
+    parinte1Telefon: text("parinte1_telefon"),
+    parinte2Nume: text("parinte2_nume"),
+    parinte2Telefon: text("parinte2_telefon"),
     /** Inactiv = nu mai vine; rămâne în istoric, dar nu apare la prezență. */
     activ: integer("activ", { mode: "boolean" }).notNull().default(true),
     creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
   },
-  (t) => [index("membri_grupa_idx").on(t.grupaId)],
+  (t) => [
+    index("membri_grupa_idx").on(t.grupaId),
+    index("membri_status_idx").on(t.status),
+  ],
 );
 
 /** O întâlnire a unei grupe, într-o anumită zi. */

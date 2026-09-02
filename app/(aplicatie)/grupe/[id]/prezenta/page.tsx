@@ -54,10 +54,13 @@ export default async function PaginaPrezenta({
           grupaId={grupaId}
           data={data}
           membri={foaie.membri.map((m) => ({ id: m.id, nume: m.nume }))}
+          musafiriInitiali={foaie.musafiri.map((m) => ({
+            id: m.id,
+            nume: m.nume,
+          }))}
           stariInitiale={foaie.stari}
           subiectInitial={foaie.subiect}
           notaInitiala={foaie.nota}
-          invitatiInitiali={foaie.numarInvitati}
           existaDeja={foaie.intalnireId !== null}
         />
       )}

@@ -57,7 +57,7 @@ export function FormularIntrare() {
       <button
         type="submit"
         disabled={seTrimite || cod.length < 11}
-        className="rounded-xl bg-albastru px-4 py-3 text-base font-semibold text-white transition disabled:opacity-40"
+        className="buton buton-principal py-3 text-base"
       >
         {seTrimite ? "Verific..." : "Intră"}
       </button>

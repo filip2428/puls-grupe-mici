@@ -93,11 +93,7 @@ export default async function PaginaGrupe() {
               <div className="border-t border-[#eef1f7] px-4 py-3">
                 <Link
                   href={`/grupe/${g.id}/prezenta?data=${azi}`}
-                  className={
-                    prezentaFacuta
-                      ? "inline-block rounded-lg border border-[#d7dced] px-3 py-2 text-sm font-medium text-carbune"
-                      : "inline-block rounded-lg bg-albastru px-3 py-2 text-sm font-semibold text-white"
-                  }
+                  className={`buton ${prezentaFacuta ? "buton-secundar" : "buton-principal"}`}
                 >
                   {prezentaFacuta ? "Modifică prezența de azi" : "Fă prezența de azi"}
                 </Link>

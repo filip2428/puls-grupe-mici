@@ -6,7 +6,7 @@
  *
  * NU rula scriptul ăsta pe baza de date reală.
  */
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import { genereazaCod, hashCod } from "../lib/auth/cod";
 import { db } from "../lib/db";
@@ -21,13 +21,36 @@ import {
 } from "../lib/db/schema";
 import { adaugaZile, dataAzi, ziSaptamanii } from "../lib/util/date";
 
-const NUME = [
-  "Andrei Munteanu", "Maria Ilie", "David Pop", "Rebeca Stan", "Timotei Roman",
-  "Estera Dinu", "Samuel Ivan", "Debora Marin", "Iosif Toma", "Ana Voicu",
-  "Beniamin Radu", "Priscila Neagu", "Daniel Cristea", "Lidia Barbu",
-  "Matei Suciu", "Sara Enache", "Luca Preda", "Rut Anghel", "Filip Dobre",
-  "Noemi Sava", "Petru Lazar", "Hana Croitoru", "Marcu Antonescu", "Tabita Vlad",
+type NumeDemo = { nume: string; sex: "baiat" | "fata" };
+
+const NUME: NumeDemo[] = [
+  { nume: "Andrei Munteanu", sex: "baiat" },
+  { nume: "Maria Ilie", sex: "fata" },
+  { nume: "David Pop", sex: "baiat" },
+  { nume: "Rebeca Stan", sex: "fata" },
+  { nume: "Timotei Roman", sex: "baiat" },
+  { nume: "Estera Dinu", sex: "fata" },
+  { nume: "Samuel Ivan", sex: "baiat" },
+  { nume: "Debora Marin", sex: "fata" },
+  { nume: "Iosif Toma", sex: "baiat" },
+  { nume: "Ana Voicu", sex: "fata" },
+  { nume: "Beniamin Radu", sex: "baiat" },
+  { nume: "Priscila Neagu", sex: "fata" },
+  { nume: "Daniel Cristea", sex: "baiat" },
+  { nume: "Lidia Barbu", sex: "fata" },
+  { nume: "Matei Suciu", sex: "baiat" },
+  { nume: "Sara Enache", sex: "fata" },
+  { nume: "Luca Preda", sex: "baiat" },
+  { nume: "Rut Anghel", sex: "fata" },
+  { nume: "Filip Dobre", sex: "baiat" },
+  { nume: "Noemi Sava", sex: "fata" },
+  { nume: "Petru Lazar", sex: "baiat" },
+  { nume: "Hana Croitoru", sex: "fata" },
+  { nume: "Marcu Antonescu", sex: "baiat" },
+  { nume: "Tabita Vlad", sex: "fata" },
 ];
+
+const NUME_PARINTI = ["Ioan", "Elena", "Vasile", "Ana", "Mihai", "Rodica"];
 
 const LIDERI = [
   "Adi Bogdan", "Ovidiu Marcu", "Caleb Walker", "Ioana Predescu", "Sergiu Tanase",
@@ -86,22 +109,56 @@ async function main() {
   const numeAmestecate = [...NUME].sort(() => Math.random() - 0.5);
   const membriPeGrupa = new Map<number, number[]>();
   let cursor = 0;
-  for (const grupaId of idGrupe) {
+  for (const [index, grupaId] of idGrupe.entries()) {
     const ids: number[] = [];
+    // Grupele 0 si 1 sunt de 14-16 ani, 2 si 3 de 17-19 ani.
+    const clasaDeBaza = index < 2 ? 9 : 11;
     for (let i = 0; i < 6; i++) {
-      const nume = numeAmestecate[cursor++ % numeAmestecate.length];
+      const persoana = numeAmestecate[cursor++ % numeAmestecate.length];
+      const clasa = clasaDeBaza + (i % 2);
+      const anNasterii = 2026 - (6 + clasa);
       const [creat] = await db
         .insert(membri)
         .values({
           grupaId,
-          nume,
+          nume: persoana.nume,
+          sex: persoana.sex,
+          clasa,
+          status: "membru",
           telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
-          dataNasterii: `${2007 + Math.floor(Math.random() * 5)}-0${1 + Math.floor(Math.random() * 9)}-1${Math.floor(Math.random() * 9)}`,
+          dataNasterii: `${anNasterii}-0${1 + Math.floor(Math.random() * 9)}-1${Math.floor(Math.random() * 9)}`,
+          parinte1Nume: `${alege(NUME_PARINTI)} ${persoana.nume.split(" ")[1]}`,
+          parinte1Telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
+          parinte2Nume:
+            Math.random() < 0.6
+              ? `${alege(NUME_PARINTI)} ${persoana.nume.split(" ")[1]}`
+              : null,
+          parinte2Telefon:
+            Math.random() < 0.6
+              ? `07${Math.floor(10000000 + Math.random() * 89999999)}`
+              : null,
         })
         .returning({ id: membri.id });
       ids.push(creat.id);
     }
     membriPeGrupa.set(grupaId, ids);
+  }
+
+  // Doi musafiri, ca sa se vada diferenta fata de membri.
+  const musafiri: number[] = [];
+  for (const [index, grupaId] of idGrupe.slice(0, 2).entries()) {
+    const [creat] = await db
+      .insert(membri)
+      .values({
+        grupaId,
+        nume: index === 0 ? "Vlad Ionescu" : "Alexandra Neamt",
+        sex: index === 0 ? "baiat" : "fata",
+        clasa: 10,
+        status: "musafir",
+        telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
+      })
+      .returning({ id: membri.id });
+    musafiri.push(creat.id);
   }
 
   // Prezențe pe ultimele 8 săptămâni
@@ -134,6 +191,25 @@ async function main() {
           zar < 0.72 ? "prezent" : zar < 0.85 ? "motivat" : "absent";
         await db.insert(prezente).values({ intalnireId: intalnire.id, membruId, stare });
       }
+    }
+  }
+
+  // Musafirii au fost prezenti la ultima intalnire a grupei lor.
+  for (const musafirId of musafiri) {
+    const [m] = await db
+      .select({ grupaId: membri.grupaId })
+      .from(membri)
+      .where(eq(membri.id, musafirId));
+    const [ultima] = await db
+      .select({ id: intalniri.id })
+      .from(intalniri)
+      .where(eq(intalniri.grupaId, m.grupaId))
+      .orderBy(desc(intalniri.data))
+      .limit(1);
+    if (ultima) {
+      await db
+        .insert(prezente)
+        .values({ intalnireId: ultima.id, membruId: musafirId, stare: "prezent" });
     }
   }
 

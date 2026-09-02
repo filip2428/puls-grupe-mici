@@ -70,19 +70,13 @@ export default async function PaginaLideri() {
                         l.rol === "admin" ? "lider" : "admin",
                       )}
                     >
-                      <button
-                        type="submit"
-                        className="rounded-lg border border-[#d7dced] px-3 py-1.5 text-xs font-medium"
-                      >
+                      <button type="submit" className="buton buton-secundar buton-mic">
                         {l.rol === "admin" ? "Fă-l lider" : "Fă-l admin"}
                       </button>
                     </form>
 
                     <form action={schimbaActivLider.bind(null, l.id, !l.activ)}>
-                      <button
-                        type="submit"
-                        className="rounded-lg border border-[#d7dced] px-3 py-1.5 text-xs font-medium"
-                      >
+                      <button type="submit" className="buton buton-secundar buton-mic">
                         {l.activ ? "Dezactivează" : "Activează"}
                       </button>
                     </form>

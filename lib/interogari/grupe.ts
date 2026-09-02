@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -12,6 +12,7 @@ import {
   prezente,
   type StarePrezenta,
 } from "@/lib/db/schema";
+import { adaugaZile } from "@/lib/util/date";
 
 /** Datele unei grupe (sau null dacă nu există). */
 export async function grupa(grupaId: number) {
@@ -19,23 +20,35 @@ export async function grupa(grupaId: number) {
   return g ?? null;
 }
 
-/** Membrii unei grupe. Implicit doar cei activi. */
-export async function membriGrupei(grupaId: number, includeInactivi = false) {
-  const conditii = includeInactivi
-    ? eq(membri.grupaId, grupaId)
-    : and(eq(membri.grupaId, grupaId), eq(membri.activ, true));
+export type OptiuniMembri = {
+  /** Include și adolescenții marcați ca inactivi. */
+  includeInactivi?: boolean;
+  /** "membru" (implicit), "musafir" sau "toti". */
+  status?: "membru" | "musafir" | "toti";
+};
 
-  return db
+/**
+ * Adolescenții unei grupe. Implicit doar membrii activi -
+ * musafirii se cer explicit, ca să nu ajungă din greșeală în statistici.
+ */
+export async function membriGrupei(
+  grupaId: number,
+  optiuni: OptiuniMembri = {},
+) {
+  const status = optiuni.status ?? "membru";
+  const conditii = [eq(membri.grupaId, grupaId)];
+  if (!optiuni.includeInactivi) conditii.push(eq(membri.activ, true));
+  if (status !== "toti") conditii.push(eq(membri.status, status));
+
+  const lista = await db
     .select()
     .from(membri)
-    .where(conditii)
-    .orderBy(asc(membri.activ), asc(membri.nume))
-    .then((lista) =>
-      lista.sort(
-        (a, b) =>
-          Number(b.activ) - Number(a.activ) || a.nume.localeCompare(b.nume, "ro"),
-      ),
-    );
+    .where(and(...conditii));
+
+  return lista.sort(
+    (a, b) =>
+      Number(b.activ) - Number(a.activ) || a.nume.localeCompare(b.nume, "ro"),
+  );
 }
 
 export type IntalnireCuNumere = {
@@ -43,12 +56,14 @@ export type IntalnireCuNumere = {
   data: string;
   subiect: string | null;
   nota: string | null;
-  numarInvitati: number;
   prinInlocuire: boolean;
   marcatDe: string | null;
+  /** Numerele de mai jos sunt doar ale membrilor grupei. */
   prezenti: number;
   motivati: number;
   absenti: number;
+  /** Musafirii prezenti la intalnirea respectiva. */
+  musafiri: number;
 };
 
 /** Ultimele întâlniri ale grupei, cu numărul de prezenți. */
@@ -62,7 +77,6 @@ export async function intalniriGrupei(
       data: intalniri.data,
       subiect: intalniri.subiect,
       nota: intalniri.nota,
-      numarInvitati: intalniri.numarInvitati,
       prinInlocuire: intalniri.prinInlocuire,
       marcatDe: lideri.nume,
     })
@@ -78,8 +92,10 @@ export async function intalniriGrupei(
     .select({
       intalnireId: prezente.intalnireId,
       stare: prezente.stare,
+      status: membri.status,
     })
     .from(prezente)
+    .innerJoin(membri, eq(membri.id, prezente.membruId))
     .where(
       inArray(
         prezente.intalnireId,
@@ -87,17 +103,65 @@ export async function intalniriGrupei(
       ),
     );
 
-  const numere = new Map<number, { prezenti: number; motivati: number; absenti: number }>();
-  for (const i of lista) numere.set(i.id, { prezenti: 0, motivati: 0, absenti: 0 });
+  const numere = new Map<
+    number,
+    { prezenti: number; motivati: number; absenti: number; musafiri: number }
+  >();
+  for (const i of lista) {
+    numere.set(i.id, { prezenti: 0, motivati: 0, absenti: 0, musafiri: 0 });
+  }
   for (const p of toateStarile) {
     const n = numere.get(p.intalnireId);
     if (!n) continue;
+    if (p.status === "musafir") {
+      if (p.stare === "prezent") n.musafiri++;
+      continue;
+    }
     if (p.stare === "prezent") n.prezenti++;
     else if (p.stare === "motivat") n.motivati++;
     else n.absenti++;
   }
 
   return lista.map((i) => ({ ...i, ...numere.get(i.id)! }));
+}
+
+/**
+ * Musafirii care au trecut pe la grupă în ultima vreme (implicit 90 de zile),
+ * plus cei marcați deja la întâlnirea din data cerută.
+ * Ei apar pe foaia de prezență într-o secțiune separată.
+ */
+export async function musafiriRecenti(
+  grupaId: number,
+  data: string,
+  zile = 90,
+) {
+  const toti = await membriGrupei(grupaId, { status: "musafir" });
+  if (toti.length === 0) return [];
+
+  const deLa = adaugaZile(data, -zile);
+  const veniri = await db
+    .select({ membruId: prezente.membruId })
+    .from(prezente)
+    .innerJoin(intalniri, eq(intalniri.id, prezente.intalnireId))
+    .where(
+      and(
+        eq(intalniri.grupaId, grupaId),
+        gte(intalniri.data, deLa),
+        lte(intalniri.data, data),
+        inArray(
+          prezente.membruId,
+          toti.map((m) => m.id),
+        ),
+      ),
+    );
+
+  const recenti = new Set(veniri.map((v) => v.membruId));
+  // Musafirii adăugați azi nu au încă nicio prezență salvată, dar trebuie să apară.
+  const azi = new Date();
+  const adaugatiRecent = (m: (typeof toti)[number]) =>
+    (azi.getTime() - m.creatLa.getTime()) / 86400000 < 1;
+
+  return toti.filter((m) => recenti.has(m.id) || adaugatiRecent(m));
 }
 
 /** Grupele (dintre cele date) care au deja prezența făcută la data cerută. */

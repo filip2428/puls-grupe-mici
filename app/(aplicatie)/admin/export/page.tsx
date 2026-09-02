@@ -54,13 +54,29 @@ export default async function PaginaExport() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="self-start rounded-lg bg-albastru px-4 py-2 text-sm font-semibold text-white"
-          >
+          <button type="submit" className="buton buton-principal self-start">
             Descarcă fișierul
           </button>
         </form>
+      </section>
+
+      <section className="card p-4">
+        <h2 className="text-sm font-bold">Tabelul cu toți adolescenții</h2>
+        <p className="mb-3 text-xs text-cenusiu">
+          Nume, grupă, statut (membru sau musafir), clasă, vârstă, telefoane și
+          datele părinților, plus totalurile de prezență.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/api/export/adolescenti"
+            className="buton buton-principal"
+          >
+            Descarcă lista completă
+          </a>
+          <Link href="/adolescenti" className="buton buton-secundar">
+            Filtrează întâi
+          </Link>
+        </div>
       </section>
     </div>
   );

@@ -27,6 +27,15 @@ const schemaMembru = z.object({
     .optional()
     .transform((v) => (v ? v : null))
     .refine((v) => v === null || esteDataValida(v), "Data nașterii nu e validă."),
+  sex: z
+    .string()
+    .optional()
+    .transform((v) => (v === "baiat" || v === "fata" ? v : null)),
+  clasa: z
+    .string()
+    .optional()
+    .transform((v) => (v ? Number(v) : null))
+    .refine((v) => v === null || (v >= 1 && v <= 13), "Clasa nu e validă."),
 });
 
 /** Adaugă un adolescent în grupă (liderul grupei sau adminul). */
@@ -43,6 +52,8 @@ export async function adaugaMembru(
     nume: formData.get("nume"),
     telefon: formData.get("telefon"),
     dataNasterii: formData.get("dataNasterii"),
+    sex: formData.get("sex"),
+    clasa: formData.get("clasa"),
   });
   if (!rezultat.success) {
     return { eroare: rezultat.error.issues[0]?.message ?? "Date invalide." };

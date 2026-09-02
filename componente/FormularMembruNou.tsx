@@ -6,6 +6,7 @@ import {
   adaugaMembru,
   type StareFormular,
 } from "@/app/(aplicatie)/grupe/[id]/actions";
+import { CLASE, etichetaClasa } from "@/lib/util/etichete";
 
 /** Formularul prin care liderul adaugă un adolescent nou în grupă. */
 export function FormularMembruNou({ grupaId }: { grupaId: number }) {
@@ -31,8 +32,34 @@ export function FormularMembruNou({ grupaId }: { grupaId: number }) {
 
       <div className="grid grid-cols-2 gap-3">
         <div>
+          <label className="eticheta" htmlFor="sex">
+            Sex
+          </label>
+          <select id="sex" name="sex" className="camp" defaultValue="">
+            <option value="">-</option>
+            <option value="baiat">băiat</option>
+            <option value="fata">fată</option>
+          </select>
+        </div>
+        <div>
+          <label className="eticheta" htmlFor="clasa">
+            Clasa
+          </label>
+          <select id="clasa" name="clasa" className="camp" defaultValue="">
+            <option value="">-</option>
+            {CLASE.map((c) => (
+              <option key={c} value={c}>
+                {etichetaClasa(c)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
           <label className="eticheta" htmlFor="telefon">
-            Telefon (opțional)
+            Telefon
           </label>
           <input
             id="telefon"
@@ -44,7 +71,7 @@ export function FormularMembruNou({ grupaId }: { grupaId: number }) {
         </div>
         <div>
           <label className="eticheta" htmlFor="dataNasterii">
-            Data nașterii (opțional)
+            Data nașterii
           </label>
           <input
             id="dataNasterii"
@@ -63,10 +90,14 @@ export function FormularMembruNou({ grupaId }: { grupaId: number }) {
       <button
         type="submit"
         disabled={seTrimite}
-        className="self-start rounded-lg bg-albastru px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        className="buton buton-principal self-start"
       >
         {seTrimite ? "Salvez..." : "Adaugă în grupă"}
       </button>
+
+      <p className="text-xs text-cenusiu">
+        Datele părinților se completează pe pagina adolescentului.
+      </p>
     </form>
   );
 }

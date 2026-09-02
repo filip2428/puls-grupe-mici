@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { primesteInGrupa } from "@/app/(aplicatie)/membri/[id]/actions";
 import { FormularInlocuire } from "@/componente/FormularInlocuire";
 import { FormularMembruNou } from "@/componente/FormularMembruNou";
 import { ceruteLider } from "@/lib/auth/sesiune";
@@ -10,9 +11,20 @@ import {
   liderilPotentiali,
   verificaAccesGrupa,
 } from "@/lib/interogari/acces";
-import { grupa as iaGrupa, intalniriGrupei, membriGrupei } from "@/lib/interogari/grupe";
+import {
+  grupa as iaGrupa,
+  intalniriGrupei,
+  membriGrupei,
+} from "@/lib/interogari/grupe";
 import { alerteAbsenteGrupa } from "@/lib/interogari/statistici";
-import { ZILE_SAPTAMANA, dataAzi, dataLunga, dataScurta, varsta } from "@/lib/util/date";
+import {
+  ZILE_SAPTAMANA,
+  dataAzi,
+  dataLunga,
+  dataScurta,
+  varsta,
+} from "@/lib/util/date";
+import { etichetaClasaScurta } from "@/lib/util/etichete";
 
 export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) {
   const { id } = await params;
@@ -27,9 +39,10 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
   if (!g) notFound();
 
   const azi = dataAzi();
-  const [membri, intalniri, alerte, lideri, inlocuiri, potentiali] =
+  const [membri, musafiri, intalniri, alerte, lideri, inlocuiri, potentiali] =
     await Promise.all([
       membriGrupei(grupaId),
+      membriGrupei(grupaId, { status: "musafir" }),
       intalniriGrupei(grupaId, 10),
       alerteAbsenteGrupa(grupaId),
       liderilGrupei(grupaId),
@@ -64,7 +77,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
       <section className="card p-4">
         <Link
           href={`/grupe/${grupaId}/prezenta?data=${azi}`}
-          className="block rounded-xl bg-albastru px-4 py-3 text-center text-base font-semibold text-white"
+          className="buton buton-principal w-full text-base"
         >
           Fă prezența de azi
         </Link>
@@ -86,10 +99,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
               className="camp"
             />
           </div>
-          <button
-            type="submit"
-            className="rounded-lg border border-[#d7dced] px-4 py-2.5 text-sm font-medium"
-          >
+          <button type="submit" className="buton buton-secundar">
             Deschide
           </button>
         </form>
@@ -108,7 +118,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
                 key={a.membruId}
                 className="flex items-center justify-between gap-3 rounded-lg bg-hartie px-3 py-2"
               >
-                <Link href={`/membri/${a.membruId}`} className="min-w-0">
+                <Link href={`/membri/${a.membruId}`} className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">
                     {a.nume}
                   </span>
@@ -122,7 +132,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
                 {a.telefon && (
                   <a
                     href={`tel:${a.telefon}`}
-                    className="shrink-0 rounded-lg border border-[#d7dced] px-3 py-1.5 text-xs font-medium"
+                    className="buton buton-secundar buton-mic shrink-0"
                   >
                     Sună
                   </a>
@@ -132,6 +142,82 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
           </ul>
         </section>
       )}
+
+      {/* Adolescenții */}
+      <section className="card p-4">
+        <h2 className="mb-3 text-sm font-bold">Adolescenți ({membri.length})</h2>
+        {membri.length === 0 ? (
+          <p className="text-sm text-cenusiu">Grupa nu are încă membri.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+            {membri.map((m) => {
+              const ani = varsta(m.dataNasterii);
+              return (
+                <li key={m.id}>
+                  <Link
+                    href={`/membri/${m.id}`}
+                    className="flex min-h-11 items-center justify-between gap-3 py-2.5"
+                  >
+                    <span className="truncate text-sm font-medium">{m.nume}</span>
+                    <span className="shrink-0 text-xs text-cenusiu">
+                      {[etichetaClasaScurta(m.clasa), ani !== null ? `${ani} ani` : ""]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        <details className="mt-3 border-t border-[#eef1f7] pt-3">
+          <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
+            + Adaugă un adolescent
+          </summary>
+          <div className="pt-2">
+            <FormularMembruNou grupaId={grupaId} />
+          </div>
+        </details>
+      </section>
+
+      {/* Musafirii */}
+      <section className="card p-4">
+        <h2 className="text-sm font-bold">Musafiri ({musafiri.length})</h2>
+        <p className="mb-3 text-xs text-cenusiu">
+          Cei care au venit în vizită. Nu intră în statistici până nu îi
+          primești în grupă.
+        </p>
+        {musafiri.length === 0 ? (
+          <p className="text-sm text-cenusiu">
+            Niciun musafir deocamdată. Îi adaugi direct de pe foaia de prezență,
+            când vin.
+          </p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+            {musafiri.map((m) => (
+              <li
+                key={m.id}
+                className="flex flex-wrap items-center gap-2 py-2.5"
+              >
+                <Link href={`/membri/${m.id}`} className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium">
+                    {m.nume}
+                  </span>
+                  <span className="text-xs text-cenusiu">
+                    musafir din {dataScurta(m.creatLa.toISOString().slice(0, 10))}
+                  </span>
+                </Link>
+                <form action={primesteInGrupa.bind(null, m.id)}>
+                  <button type="submit" className="buton buton-secundar buton-mic">
+                    Primește în grupă
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {/* Istoricul întâlnirilor */}
       <section className="card p-4">
@@ -154,7 +240,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
               <li key={i.id}>
                 <Link
                   href={`/grupe/${grupaId}/prezenta?data=${i.data}`}
-                  className="flex items-center gap-3 py-2.5"
+                  className="flex min-h-11 items-center gap-3 py-2.5"
                 >
                   <div className="min-w-0 flex-1">
                     <span className="block text-sm font-medium">
@@ -164,7 +250,9 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
                       {i.subiect ? `${i.subiect} · ` : ""}
                       completat de {i.marcatDe ?? "?"}
                       {i.prinInlocuire ? " (înlocuire)" : ""}
-                      {i.numarInvitati > 0 ? ` · ${i.numarInvitati} invitați` : ""}
+                      {i.musafiri > 0
+                        ? ` · ${i.musafiri} ${i.musafiri === 1 ? "musafir" : "musafiri"}`
+                        : ""}
                     </span>
                   </div>
                   <span className="shrink-0 text-sm">
@@ -178,42 +266,6 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
             ))}
           </ul>
         )}
-      </section>
-
-      {/* Adolescenții */}
-      <section className="card p-4">
-        <h2 className="mb-3 text-sm font-bold">Adolescenți</h2>
-        {membri.length === 0 ? (
-          <p className="text-sm text-cenusiu">Grupa nu are încă membri.</p>
-        ) : (
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
-            {membri.map((m) => {
-              const ani = varsta(m.dataNasterii);
-              return (
-                <li key={m.id}>
-                  <Link
-                    href={`/membri/${m.id}`}
-                    className="flex items-center justify-between gap-3 py-2.5"
-                  >
-                    <span className="truncate text-sm font-medium">{m.nume}</span>
-                    <span className="shrink-0 text-xs text-cenusiu">
-                      {ani !== null ? `${ani} ani` : ""}
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-
-        <details className="mt-3 border-t border-[#eef1f7] pt-3">
-          <summary className="cursor-pointer text-sm font-medium text-albastru">
-            + Adaugă un adolescent
-          </summary>
-          <div className="pt-3">
-            <FormularMembruNou grupaId={grupaId} />
-          </div>
-        </details>
       </section>
 
       {/* Liderii și înlocuirile */}
@@ -255,10 +307,10 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
 
         {poateOrganiza && (
           <details className="mt-4 border-t border-[#eef1f7] pt-3">
-            <summary className="cursor-pointer text-sm font-medium text-albastru">
+            <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
               Nu poți ajunge? Cere unui alt lider să țină locul
             </summary>
-            <div className="pt-3">
+            <div className="pt-2">
               <FormularInlocuire
                 grupaId={grupaId}
                 lideri={potentiali}

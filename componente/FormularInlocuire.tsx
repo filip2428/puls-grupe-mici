@@ -107,7 +107,7 @@ export function FormularInlocuire({
       <button
         type="submit"
         disabled={seTrimite}
-        className="self-start rounded-lg bg-albastru px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        className="buton buton-principal self-start"
       >
         {seTrimite ? "Salvez..." : "Trece înlocuirea"}
       </button>

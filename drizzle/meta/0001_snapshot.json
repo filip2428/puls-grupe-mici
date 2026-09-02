@@ -1,0 +1,929 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "9ef865f5-194c-4934-9a3d-c4d998971e7d",
+  "prevId": "4c407390-4bd3-4e85-a84d-92949b2010f3",
+  "tables": {
+    "audit": {
+      "name": "audit",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "lider_id": {
+          "name": "lider_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "actiune": {
+          "name": "actiune",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "detalii": {
+          "name": "detalii",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "creat_la": {
+          "name": "creat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "audit_creat_idx": {
+          "name": "audit_creat_idx",
+          "columns": [
+            "creat_la"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "audit_lider_id_lideri_id_fk": {
+          "name": "audit_lider_id_lideri_id_fk",
+          "tableFrom": "audit",
+          "tableTo": "lideri",
+          "columnsFrom": [
+            "lider_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "delegari": {
+      "name": "delegari",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "grupa_id": {
+          "name": "grupa_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lider_id": {
+          "name": "lider_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "de_la": {
+          "name": "de_la",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pana_la": {
+          "name": "pana_la",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "motiv": {
+          "name": "motiv",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "creat_de_id": {
+          "name": "creat_de_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "anulata": {
+          "name": "anulata",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "creat_la": {
+          "name": "creat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "delegari_lider_idx": {
+          "name": "delegari_lider_idx",
+          "columns": [
+            "lider_id"
+          ],
+          "isUnique": false
+        },
+        "delegari_grupa_idx": {
+          "name": "delegari_grupa_idx",
+          "columns": [
+            "grupa_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "delegari_grupa_id_grupe_id_fk": {
+          "name": "delegari_grupa_id_grupe_id_fk",
+          "tableFrom": "delegari",
+          "tableTo": "grupe",
+          "columnsFrom": [
+            "grupa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "delegari_lider_id_lideri_id_fk": {
+          "name": "delegari_lider_id_lideri_id_fk",
+          "tableFrom": "delegari",
+          "tableTo": "lideri",
+          "columnsFrom": [
+            "lider_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "delegari_creat_de_id_lideri_id_fk": {
+          "name": "delegari_creat_de_id_lideri_id_fk",
+          "tableFrom": "delegari",
+          "tableTo": "lideri",
+          "columnsFrom": [
+            "creat_de_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "grupe": {
+      "name": "grupe",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "nume": {
+          "name": "nume",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "zi_intalnire": {
+          "name": "zi_intalnire",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ora_intalnire": {
+          "name": "ora_intalnire",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "locatie": {
+          "name": "locatie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "activa": {
+          "name": "activa",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "creat_la": {
+          "name": "creat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "incercari_login": {
+      "name": "incercari_login",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "cheie": {
+          "name": "cheie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reusita": {
+          "name": "reusita",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "creat_la": {
+          "name": "creat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "incercari_cheie_idx": {
+          "name": "incercari_cheie_idx",
+          "columns": [
+            "cheie",
+            "creat_la"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "intalniri": {
+      "name": "intalniri",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "grupa_id": {
+          "name": "grupa_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "marcat_de_id": {
+          "name": "marcat_de_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "prin_inlocuire": {
+          "name": "prin_inlocuire",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
+        "subiect": {
+          "name": "subiect",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "nota": {
+          "name": "nota",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "numar_invitati": {
+          "name": "numar_invitati",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "creat_la": {
+          "name": "creat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "actualizat_la": {
+          "name": "actualizat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "intalniri_grupa_data_uq": {
+          "name": "intalniri_grupa_data_uq",
+          "columns": [
+            "grupa_id",
+            "data"
+          ],
+          "isUnique": true
+        },
+        "intalniri_data_idx": {
+          "name": "intalniri_data_idx",
+          "columns": [
+            "data"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "intalniri_grupa_id_grupe_id_fk": {
+          "name": "intalniri_grupa_id_grupe_id_fk",
+          "tableFrom": "intalniri",
+          "tableTo": "grupe",
+          "columnsFrom": [
+            "grupa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "intalniri_marcat_de_id_lideri_id_fk": {
+          "name": "intalniri_marcat_de_id_lideri_id_fk",
+          "tableFrom": "intalniri",
+          "tableTo": "lideri",
+          "columnsFrom": [
+            "marcat_de_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "lideri": {
+      "name": "lideri",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "nume": {
+          "name": "nume",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "telefon": {
+          "name": "telefon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rol": {
+          "name": "rol",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'lider'"
+        },
+        "cod_public": {
+          "name": "cod_public",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "cod_hash": {
+          "name": "cod_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "versiune_sesiuni": {
+          "name": "versiune_sesiuni",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "activ": {
+          "name": "activ",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "ultima_autentificare": {
+          "name": "ultima_autentificare",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "creat_la": {
+          "name": "creat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "lideri_cod_public_uq": {
+          "name": "lideri_cod_public_uq",
+          "columns": [
+            "cod_public"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "lideri_grupe": {
+      "name": "lideri_grupe",
+      "columns": {
+        "lider_id": {
+          "name": "lider_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "grupa_id": {
+          "name": "grupa_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "creat_la": {
+          "name": "creat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "lideri_grupe_grupa_idx": {
+          "name": "lideri_grupe_grupa_idx",
+          "columns": [
+            "grupa_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "lideri_grupe_lider_id_lideri_id_fk": {
+          "name": "lideri_grupe_lider_id_lideri_id_fk",
+          "tableFrom": "lideri_grupe",
+          "tableTo": "lideri",
+          "columnsFrom": [
+            "lider_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "lideri_grupe_grupa_id_grupe_id_fk": {
+          "name": "lideri_grupe_grupa_id_grupe_id_fk",
+          "tableFrom": "lideri_grupe",
+          "tableTo": "grupe",
+          "columnsFrom": [
+            "grupa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "lideri_grupe_lider_id_grupa_id_pk": {
+          "columns": [
+            "lider_id",
+            "grupa_id"
+          ],
+          "name": "lideri_grupe_lider_id_grupa_id_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "membri": {
+      "name": "membri",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "grupa_id": {
+          "name": "grupa_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "nume": {
+          "name": "nume",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "telefon": {
+          "name": "telefon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "data_nasterii": {
+          "name": "data_nasterii",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "sex": {
+          "name": "sex",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "clasa": {
+          "name": "clasa",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'membru'"
+        },
+        "devenit_membru_la": {
+          "name": "devenit_membru_la",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "parinte1_nume": {
+          "name": "parinte1_nume",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "parinte1_telefon": {
+          "name": "parinte1_telefon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "parinte2_nume": {
+          "name": "parinte2_nume",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "parinte2_telefon": {
+          "name": "parinte2_telefon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "activ": {
+          "name": "activ",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
+        "creat_la": {
+          "name": "creat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "membri_grupa_idx": {
+          "name": "membri_grupa_idx",
+          "columns": [
+            "grupa_id"
+          ],
+          "isUnique": false
+        },
+        "membri_status_idx": {
+          "name": "membri_status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "membri_grupa_id_grupe_id_fk": {
+          "name": "membri_grupa_id_grupe_id_fk",
+          "tableFrom": "membri",
+          "tableTo": "grupe",
+          "columnsFrom": [
+            "grupa_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "note_membru": {
+      "name": "note_membru",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "membru_id": {
+          "name": "membru_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "autor_id": {
+          "name": "autor_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "creat_la": {
+          "name": "creat_la",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "note_membru_membru_idx": {
+          "name": "note_membru_membru_idx",
+          "columns": [
+            "membru_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "note_membru_membru_id_membri_id_fk": {
+          "name": "note_membru_membru_id_membri_id_fk",
+          "tableFrom": "note_membru",
+          "tableTo": "membri",
+          "columnsFrom": [
+            "membru_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "note_membru_autor_id_lideri_id_fk": {
+          "name": "note_membru_autor_id_lideri_id_fk",
+          "tableFrom": "note_membru",
+          "tableTo": "lideri",
+          "columnsFrom": [
+            "autor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "prezente": {
+      "name": "prezente",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "intalnire_id": {
+          "name": "intalnire_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "membru_id": {
+          "name": "membru_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "stare": {
+          "name": "stare",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "prezente_intalnire_membru_uq": {
+          "name": "prezente_intalnire_membru_uq",
+          "columns": [
+            "intalnire_id",
+            "membru_id"
+          ],
+          "isUnique": true
+        },
+        "prezente_membru_idx": {
+          "name": "prezente_membru_idx",
+          "columns": [
+            "membru_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "prezente_intalnire_id_intalniri_id_fk": {
+          "name": "prezente_intalnire_id_intalniri_id_fk",
+          "tableFrom": "prezente",
+          "tableTo": "intalniri",
+          "columnsFrom": [
+            "intalnire_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "prezente_membru_id_membri_id_fk": {
+          "name": "prezente_membru_id_membri_id_fk",
+          "tableFrom": "prezente",
+          "tableTo": "membri",
+          "columnsFrom": [
+            "membru_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

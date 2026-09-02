@@ -47,11 +47,12 @@ export default async function PaginaAdmin() {
         />
       </div>
 
-      <nav className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <nav className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Buton href="/adolescenti" text="Adolescenți" />
         <Buton href="/admin/lideri" text="Lideri" />
         <Buton href="/admin/grupe" text="Grupe" />
-        <Buton href="/admin/jurnal" text="Jurnal" />
         <Buton href="/admin/export" text="Export" />
+        <Buton href="/admin/jurnal" text="Jurnal" />
       </nav>
 
       {evolutie.length > 0 && (

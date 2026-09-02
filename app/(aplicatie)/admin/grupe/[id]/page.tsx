@@ -28,7 +28,7 @@ export default async function PaginaAdminGrupa({
 
   const [lideriAiGrupei, membri, toti, grupe, inlocuiri] = await Promise.all([
     liderilGrupei(grupaId),
-    membriGrupei(grupaId, true),
+    membriGrupei(grupaId, { includeInactivi: true, status: "toti" }),
     listaLideri(),
     toateGrupele(),
     inlocuiriGrupa(grupaId),
@@ -67,10 +67,7 @@ export default async function PaginaAdminGrupa({
           action={schimbaActivaGrupa.bind(null, grupaId, !g.activa)}
           className="mt-4 border-t border-[#eef1f7] pt-4"
         >
-          <button
-            type="submit"
-            className="rounded-lg border border-[#d7dced] px-4 py-2 text-sm font-medium"
-          >
+          <button type="submit" className="buton buton-secundar">
             {g.activa ? "Arhivează grupa" : "Reactivează grupa"}
           </button>
           <p className="mt-2 text-xs text-cenusiu">
@@ -87,10 +84,7 @@ export default async function PaginaAdminGrupa({
             <li key={l.id} className="flex items-center gap-3 py-2">
               <span className="flex-1 text-sm">{l.nume}</span>
               <form action={scoateLider.bind(null, grupaId, l.id)}>
-                <button
-                  type="submit"
-                  className="rounded-lg border border-[#d7dced] px-3 py-1.5 text-xs"
-                >
+                <button type="submit" className="buton buton-secundar buton-mic">
                   Scoate
                 </button>
               </form>
@@ -121,10 +115,7 @@ export default async function PaginaAdminGrupa({
                 ))}
               </select>
             </div>
-            <button
-              type="submit"
-              className="rounded-lg bg-albastru px-4 py-2.5 text-sm font-semibold text-white"
-            >
+            <button type="submit" className="buton buton-principal">
               Adaugă
             </button>
           </form>
@@ -156,6 +147,11 @@ export default async function PaginaAdminGrupa({
             <li key={m.id} className="flex flex-wrap items-center gap-2 py-2">
               <Link href={`/membri/${m.id}`} className="flex-1 text-sm">
                 {m.nume}
+                {m.status === "musafir" && (
+                  <span className="ml-2 rounded-full bg-lime/40 px-2 py-0.5 text-[11px] font-semibold">
+                    musafir
+                  </span>
+                )}
                 {!m.activ && (
                   <span className="ml-2 text-xs text-cenusiu">inactiv</span>
                 )}
@@ -167,7 +163,7 @@ export default async function PaginaAdminGrupa({
                 >
                   <select
                     name="grupaId"
-                    className="rounded-lg border border-[#d7dced] bg-hartie px-2 py-1.5 text-xs"
+                    className="camp min-h-9 w-auto py-1.5 text-sm"
                     defaultValue={alteGrupe[0].id}
                     aria-label={`Mută pe ${m.nume} în altă grupă`}
                   >
@@ -177,10 +173,7 @@ export default async function PaginaAdminGrupa({
                       </option>
                     ))}
                   </select>
-                  <button
-                    type="submit"
-                    className="rounded-lg border border-[#d7dced] px-3 py-1.5 text-xs"
-                  >
+                  <button type="submit" className="buton buton-secundar buton-mic">
                     Mută
                   </button>
                 </form>

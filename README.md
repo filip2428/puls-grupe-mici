@@ -8,24 +8,52 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 
 ## Ce poate face
 
+> Aplicația e gândită **întâi pentru telefon**: navigarea stă jos, sub degetul
+> mare, butoanele sunt suficient de mari cât să nu le ratezi, iar formularele nu
+> fac zoom pe iPhone. Se poate pune pe ecranul de start („Adaugă pe ecranul
+> principal") și se deschide ca o aplicație, fără bara de adrese.
+
 **Liderul**
 
 - vede doar grupele lui;
 - face prezența în câteva atingeri: **Prezent / Anunțat / Absent**, plus butonul „Toți prezenți";
-- scrie subiectul întâlnirii, o notă despre cum a fost și câți invitați noi au venit;
+- adaugă pe loc un **musafir** care a venit prima dată, fără să piardă ce a bifat;
+- scrie subiectul întâlnirii și o notă despre cum a fost;
 - vede cine a lipsit de mai multe ori la rând („de căutat") și îl poate suna direct;
+- are la îndemână datele părinților (nume și telefon, cu buton de sunat);
 - ține note despre fiecare adolescent (rugăciune, situații, follow-up);
 - adaugă adolescenți noi în grupă și îi marchează inactivi când nu mai vin;
 - când nu poate ajunge, trece o **înlocuire**: alt lider primește acces la grupă în perioada aleasă.
 
 **Coordonatorul (administrator)**
 
+- vede **lista tuturor adolescenților**, cu filtre după grupă, statut (membru sau
+  musafir), sex, clasă, vârstă și situație, plus căutare după nume, telefon sau
+  numele unui părinte;
+- descarcă lista în Excel exact cu filtrele alese;
 - creează lideri și generează coduri de acces (inclusiv coduri noi, dacă se pierd);
 - creează grupe și repartizează oricâți lideri la o grupă;
 - mută adolescenți dintr-o grupă în alta, fără să piardă istoricul;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
 - descarcă totul în Excel (prezențe, adolescenți, întâlniri);
 - vede jurnalul: cine, ce și când a modificat.
+
+---
+
+## Musafiri și membri
+
+Cine vine prima dată **nu** intră automat în grupă. Liderul îl adaugă de pe foaia
+de prezență, la secțiunea *Musafiri*, și de acolo:
+
+- prezența lui se notează normal, dar **nu intră în statistici** și nu declanșează
+  alerte de absență (n-are sens să „cauți" pe cineva care a trecut o dată pe la voi);
+- rămâne în lista de musafiri a grupei cât timp continuă să vină (apare pe foaie
+  dacă a fost prezent în ultimele 90 de zile);
+- când grupa hotărăște, după procedura voastră internă, că e parte din ea, apeși
+  **„Primește în grupă"** - din acel moment intră în statistici, iar data primirii
+  rămâne înregistrată.
+
+Merge și invers: „Trece-l înapoi la musafiri", dacă a fost primit din greșeală.
 
 ---
 
@@ -137,9 +165,10 @@ app/
   intra/              pagina de intrare cu codul de acces
   (aplicatie)/
     grupe/            grupele mele, grupa, foaia de prezență
-    membri/[id]/      fișa unui adolescent (istoric + note)
+    adolescenti/      lista cu filtre (adminul vede tot, liderul doar grupele lui)
+    membri/[id]/      fișa unui adolescent (istoric, părinți, note)
     admin/            tablou de bord, lideri, grupe, jurnal, export
-  api/export/         fișierul Excel
+  api/export/         fișierele Excel (prezențe și lista de adolescenți)
 componente/           bucățile de interfață (formulare, foaia de prezență)
 lib/
   auth/               coduri, sesiuni, limitarea încercărilor
@@ -161,5 +190,5 @@ respectivă** (`verificaAccesGrupa`). Datele adolescenților se citesc pe server
 
 - prezența la întâlnirea generală de vineri, pe lângă grupele mici;
 - notificare săptămânală pentru liderii care n-au făcut prezența;
-- zile de naștere („cine împlinește ani săptămâna asta");
+- memento pentru zilele de naștere („cine împlinește ani săptămâna asta");
 - pagină pentru părinți sau statistici pe lucrare, publice în interiorul bisericii.

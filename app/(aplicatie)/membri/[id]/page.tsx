@@ -13,7 +13,13 @@ import {
   noteleMembrului,
 } from "@/lib/interogari/grupe";
 import { dataScurta, momentLizibil, varsta } from "@/lib/util/date";
-import { schimbaActiv, stergeNota } from "./actions";
+import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
+import {
+  primesteInGrupa,
+  schimbaActiv,
+  stergeNota,
+  treceLaMusafiri,
+} from "./actions";
 
 const CULORI: Record<string, string> = {
   prezent: "bg-albastru text-white",
@@ -44,8 +50,17 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     noteleMembrului(membruId),
   ]);
 
-  const ani = varsta(date.membru.dataNasterii);
+  const m = date.membru;
+  const ani = varsta(m.dataNasterii);
   const prezenteNr = istoric.filter((i) => i.stare === "prezent").length;
+  const esteMusafir = m.status === "musafir";
+
+  const detalii = [
+    etichetaClasa(m.clasa),
+    ani !== null ? `${ani} ani` : "",
+    etichetaSex(m.sex),
+    m.activ ? "" : "inactiv",
+  ].filter(Boolean);
 
   return (
     <div className="flex flex-col gap-5">
@@ -53,32 +68,79 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         <Link href={`/grupe/${date.grupa.id}`} className="text-sm text-cenusiu">
           ← {date.grupa.nume}
         </Link>
-        <h1 className="mt-2 text-xl font-bold">{date.membru.nume}</h1>
+        <h1 className="mt-2 flex flex-wrap items-center gap-2 text-xl font-bold">
+          {m.nume}
+          {esteMusafir && (
+            <span className="rounded-full bg-lime/40 px-2 py-0.5 text-xs font-semibold">
+              musafir
+            </span>
+          )}
+        </h1>
         <p className="text-sm text-cenusiu">
-          {ani !== null ? `${ani} ani · ` : ""}
-          {date.membru.activ ? "activ" : "inactiv"}
+          {detalii.join(" · ")}
           {istoric.length > 0 &&
-            ` · prezent la ${prezenteNr} din ultimele ${istoric.length} întâlniri`}
+            `${detalii.length ? " · " : ""}prezent la ${prezenteNr} din ultimele ${istoric.length} întâlniri`}
         </p>
-        {date.membru.telefon && (
-          <div className="mt-3 flex gap-2">
-            <a
-              href={`tel:${date.membru.telefon}`}
-              className="rounded-lg border border-[#d7dced] bg-hartie px-3 py-2 text-sm font-medium"
-            >
-              Sună {date.membru.telefon}
+
+        {m.telefon && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a href={`tel:${m.telefon}`} className="buton buton-secundar">
+              Sună {m.telefon}
             </a>
             <a
-              href={`https://wa.me/${date.membru.telefon.replace(/[^0-9]/g, "").replace(/^0/, "40")}`}
+              href={`https://wa.me/${numarInternational(m.telefon)}`}
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg border border-[#d7dced] bg-hartie px-3 py-2 text-sm font-medium"
+              className="buton buton-secundar"
             >
               WhatsApp
             </a>
           </div>
         )}
       </div>
+
+      {/* Musafir sau membru */}
+      <section className="card p-4">
+        {esteMusafir ? (
+          <>
+            <h2 className="text-sm font-bold">E musafir</h2>
+            <p className="mb-3 text-xs text-cenusiu">
+              Vine în vizită, dar nu e (încă) parte din grupă: nu intră în
+              statistici și nu apare la „de căutat".
+            </p>
+            <form action={primesteInGrupa.bind(null, membruId)}>
+              <button type="submit" className="buton buton-principal">
+                Primește-l în grupă
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <h2 className="text-sm font-bold">E parte din grupă</h2>
+            <p className="mb-3 text-xs text-cenusiu">
+              {m.devenitMembruLa
+                ? `Primit în grupă pe ${dataScurta(m.devenitMembruLa)}.`
+                : "Intră în statistici și în alertele de absență."}
+            </p>
+            <form action={treceLaMusafiri.bind(null, membruId)}>
+              <button type="submit" className="buton buton-secundar buton-mic">
+                Trece-l înapoi la musafiri
+              </button>
+            </form>
+          </>
+        )}
+      </section>
+
+      {/* Părinții */}
+      {(m.parinte1Nume || m.parinte1Telefon || m.parinte2Nume || m.parinte2Telefon) && (
+        <section className="card p-4">
+          <h2 className="mb-3 text-sm font-bold">Părinți</h2>
+          <ul className="flex flex-col gap-3">
+            <Parinte nume={m.parinte1Nume} telefon={m.parinte1Telefon} />
+            <Parinte nume={m.parinte2Nume} telefon={m.parinte2Telefon} />
+          </ul>
+        </section>
+      )}
 
       {/* Istoricul prezenței */}
       <section className="card p-4">
@@ -142,26 +204,31 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
       {/* Editare */}
       <section className="card p-4">
         <details>
-          <summary className="cursor-pointer text-sm font-medium text-albastru">
-            Modifică datele
+          <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
+            Modifică datele și părinții
           </summary>
-          <div className="pt-3">
+          <div className="pt-2">
             <FormularEditareMembru
               membruId={membruId}
-              nume={date.membru.nume}
-              telefon={date.membru.telefon}
-              dataNasterii={date.membru.dataNasterii}
+              initial={{
+                nume: m.nume,
+                telefon: m.telefon,
+                dataNasterii: m.dataNasterii,
+                sex: m.sex,
+                clasa: m.clasa,
+                parinte1Nume: m.parinte1Nume,
+                parinte1Telefon: m.parinte1Telefon,
+                parinte2Nume: m.parinte2Nume,
+                parinte2Telefon: m.parinte2Telefon,
+              }}
             />
 
             <form
-              action={schimbaActiv.bind(null, membruId, !date.membru.activ)}
+              action={schimbaActiv.bind(null, membruId, !m.activ)}
               className="mt-4 border-t border-[#eef1f7] pt-4"
             >
-              <button
-                type="submit"
-                className="rounded-lg border border-[#d7dced] px-4 py-2 text-sm font-medium"
-              >
-                {date.membru.activ
+              <button type="submit" className="buton buton-secundar">
+                {m.activ
                   ? "Marchează ca inactiv (nu mai vine)"
                   : "Readu-l în grupă"}
               </button>
@@ -174,4 +241,42 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
       </section>
     </div>
   );
+}
+
+/** Un părinte, cu butoane de contact. */
+function Parinte({
+  nume,
+  telefon,
+}: {
+  nume: string | null;
+  telefon: string | null;
+}) {
+  if (!nume && !telefon) return null;
+  return (
+    <li className="flex flex-wrap items-center gap-2">
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">
+        {nume ?? "Părinte"}
+      </span>
+      {telefon && (
+        <>
+          <a href={`tel:${telefon}`} className="buton buton-secundar buton-mic">
+            Sună {telefon}
+          </a>
+          <a
+            href={`https://wa.me/${numarInternational(telefon)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="buton buton-secundar buton-mic"
+          >
+            WhatsApp
+          </a>
+        </>
+      )}
+    </li>
+  );
+}
+
+/** 0722... -> 40722... (formatul cerut de WhatsApp) */
+function numarInternational(telefon: string): string {
+  return telefon.replace(/[^0-9]/g, "").replace(/^0/, "40");
 }
