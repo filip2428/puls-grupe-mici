@@ -7,6 +7,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
+import { DURATA_ZILE, NUME_COOKIE, optiuniCookie } from "./cookie";
 import { lideri, type Lider } from "@/lib/db/schema";
 import { cheieSemnatura } from "./secret";
 
@@ -19,10 +20,11 @@ import { cheieSemnatura } from "./secret";
  *
  * Dacă adminul regenerează codul unui lider, `versiuneSesiuni` crește și
  * toate sesiunile vechi ale acelui lider devin invalide.
+ *
+ * Cele 90 de zile se numără de la ultima reînnoire, nu de la prima intrare:
+ * `proxy.ts` împrospătează cookie-ul săptămânal, cât timp liderul folosește
+ * aplicația.
  */
-
-const NUME_COOKIE = "puls_sesiune";
-const DURATA_ZILE = 90;
 
 type ContinutJwt = {
   sub: string;
@@ -39,13 +41,11 @@ export async function deschideSesiune(lider: Lider) {
     .sign(cheieSemnatura());
 
   const cookieStore = await cookies();
-  cookieStore.set(NUME_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: DURATA_ZILE * 24 * 60 * 60,
-  });
+  cookieStore.set(
+    NUME_COOKIE,
+    token,
+    optiuniCookie(process.env.NODE_ENV === "production"),
+  );
 }
 
 /** Șterge sesiunea (deconectare). */
