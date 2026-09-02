@@ -117,9 +117,21 @@ export default async function PaginaAdminGrupa({
                   <option key={l.id} value={l.id}>
                     {l.nume}
                     {l.rol === "admin" ? " (admin)" : ""}
+                    {/*
+                      Un lider ține o singură grupă. Dacă are deja una, o
+                      spunem aici, în dreptul numelui - e singurul loc unde se
+                      hotărăște, deci e singurul loc unde ajută să se vadă.
+                    */}
+                    {l.rol !== "admin" && l.grupe.length > 0
+                      ? ` - ține deja ${l.grupe.map((x) => x.nume).join(", ")}`
+                      : ""}
                   </option>
                 ))}
               </select>
+              <p className="mt-1.5 text-xs text-cenusiu">
+                Un lider ține o singură grupă. Dacă trebuie doar să acopere o
+                perioadă, mai bine îi dai o înlocuire din pagina grupei.
+              </p>
             </div>
             <button type="submit" className="buton buton-principal">
               Adaugă
