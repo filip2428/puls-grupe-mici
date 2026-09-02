@@ -291,6 +291,12 @@ abonate până atunci nu mai primesc nimic și liderii trebuie să apese din nou
 
 1. **Turso.** Creează o bază pe [turso.tech](https://turso.tech) și notează
    adresa (`libsql://...`) și un token.
+
+   **Alege regiunea Frankfurt (`fra`)**, aceeași cu regiunea în care rulează
+   aplicația pe Vercel. Fiecare pagină pune bazei mai multe întrebări; dacă baza
+   e peste ocean, fiecare întrebare pierde ~150 ms doar pe drum, iar liderii
+   simt asta la fiecare atingere. În Vercel, regiunea se vede la
+   *Settings → Functions → Function Region* și trebuie pusă tot pe Frankfurt.
 2. **Cheile pentru telefon.** Pe calculatorul tău:
 
    ```bash

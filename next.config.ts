@@ -12,6 +12,19 @@ const nextConfig: NextConfig = {
      * Tot de aici vine și `useOffline()`, folosit de bara de sus.
      */
     useOffline: true,
+
+    /**
+     * Cât timp ține telefonul în minte o pagină deja vizitată.
+     *
+     * Fără asta, „înapoi" la lista de grupe cere din nou totul de la server -
+     * pe telefon, pe date mobile, alea sunt secundele care se simt. Cu 60 de
+     * secunde, drumul obișnuit (grupe → o grupă → prezența → înapoi) se face
+     * fără nicio așteptare.
+     *
+     * Nu riscăm date vechi: fiecare acțiune care schimbă ceva în baza de date
+     * cheamă `revalidatePath`, iar asta șterge pe loc ce era ținut minte.
+     */
+    staleTimes: { dynamic: 60, static: 300 },
   },
 
   async headers() {

@@ -35,10 +35,14 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
   if (!Number.isInteger(grupaId)) notFound();
 
   const lider = await ceruteLider();
-  const acces = await verificaAccesGrupa(lider, grupaId);
+  // Verificarea accesului și datele grupei nu depind una de alta: le cerem
+  // odată. În producție baza de date e la distanță, deci fiecare întrebare
+  // pusă separat înseamnă încă un drum dus-întors până la ea.
+  const [acces, g] = await Promise.all([
+    verificaAccesGrupa(lider, grupaId),
+    iaGrupa(grupaId),
+  ]);
   if (!acces.permis) notFound();
-
-  const g = await iaGrupa(grupaId);
   if (!g) notFound();
 
   const azi = dataAzi();

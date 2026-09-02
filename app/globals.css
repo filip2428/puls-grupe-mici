@@ -98,3 +98,75 @@ select.camp {
   border-radius: 1rem;
   border: 1px solid #e3e7f2;
 }
+
+/*
+  Răspunsul la atingere.
+
+  Mai sus am scos evidențierea pe care o pune telefonul singur la atingere
+  (`-webkit-tap-highlight-color`), pentru că e un dreptunghi gri urât. Dar dacă
+  nu punem nimic în loc, apăsarea nu se vede deloc și aplicația pare moartă
+  o secundă. Deci: fiecare lucru apăsabil se strânge puțin sub deget.
+
+  `touch-action: manipulation` spune browserului că aici nu se face niciodată
+  dublu-clic pentru mărire, deci n-are de ce să mai aștepte ~300ms înainte de
+  a trimite atingerea mai departe.
+*/
+.buton,
+.card a,
+nav a,
+button,
+[role="button"],
+summary {
+  touch-action: manipulation;
+}
+
+.buton:active,
+button:not(:disabled):active,
+[role="button"]:active {
+  transform: scale(0.97);
+}
+
+.card a:active {
+  background-color: var(--color-fundal);
+}
+
+.buton,
+.card a {
+  transition:
+    transform 80ms ease-out,
+    background-color 80ms ease-out;
+}
+
+/* Schijele cenușii din locul conținutului care încă vine. */
+.schelet {
+  border-radius: 0.5rem;
+  background-color: #e3e7f2;
+  animation: puls-schelet 1.4s ease-in-out infinite;
+}
+
+@keyframes puls-schelet {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Cine a cerut telefonului mai puțină mișcare nu primește nici pâlpâit, nici strâns. */
+@media (prefers-reduced-motion: reduce) {
+  .schelet {
+    animation: none;
+    opacity: 0.75;
+  }
+  .buton,
+  .card a {
+    transition: none;
+  }
+  .buton:active,
+  button:not(:disabled):active,
+  [role="button"]:active {
+    transform: none;
+  }
+}

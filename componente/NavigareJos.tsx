@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
@@ -43,10 +44,11 @@ export function NavigareJos({
             <li key={l.href} className="flex-1">
               <Link
                 href={l.href}
-                className={`flex min-h-14 flex-col items-center justify-center gap-1 px-1 text-[10px] font-medium ${
+                className={`relative flex min-h-14 flex-col items-center justify-center gap-1 px-1 text-[10px] font-medium ${
                   activ ? "text-albastru" : "text-cenusiu"
                 }`}
               >
+                <DunguliteAsteptare />
                 <span className="relative">
                   {l.icon}
                   {!!l.bulina && (
@@ -62,6 +64,26 @@ export function NavigareJos({
         })}
       </ul>
     </nav>
+  );
+}
+
+/**
+ * Dunga subțire care apare deasupra tabului apăsat, cât timp se așteaptă pagina.
+ *
+ * Când pagina a apucat să fie preluată dinainte, `pending` nici nu ajunge să
+ * fie adevărat, deci dunga nu clipește degeaba - se vede doar când chiar e de
+ * așteptat. E desenată mereu, doar transparența se schimbă, ca să nu miște
+ * nimic pe ecran.
+ */
+function DunguliteAsteptare() {
+  const { pending } = useLinkStatus();
+  return (
+    <span
+      aria-hidden
+      className={`absolute inset-x-3 top-0 h-0.5 rounded-full bg-albastru transition-opacity duration-150 ${
+        pending ? "opacity-100" : "opacity-0"
+      }`}
+    />
   );
 }
 
