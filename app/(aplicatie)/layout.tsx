@@ -1,6 +1,8 @@
 import Link from "next/link";
 
+import { BaraOffline } from "@/componente/BaraOffline";
 import { NavigareJos } from "@/componente/NavigareJos";
+import { ServiceWorker } from "@/componente/ServiceWorker";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { cateNecitite } from "@/lib/notificari";
 
@@ -17,6 +19,8 @@ export default async function LayoutAplicatie({ children }: LayoutProps<"/">) {
 
   return (
     <div className="flex min-h-dvh flex-col">
+      <ServiceWorker />
+      <BaraOffline />
       <header className="sticky top-0 z-20 border-b border-[#e3e7f2] bg-hartie/95 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center gap-2 px-4 py-2.5">
           <Link href="/grupe" className="flex items-center gap-2">

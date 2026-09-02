@@ -358,6 +358,8 @@ export const notificari = sqliteTable(
     citita: integer("citita", { mode: "boolean" }).notNull().default(false),
     /** Când a plecat pe email (null = încă n-a plecat). */
     trimisaLa: integer("trimisa_la", { mode: "timestamp" }),
+    /** Când a ajuns pe telefon, ca notificare de sistem. */
+    pushTrimisLa: integer("push_trimis_la", { mode: "timestamp" }),
     /** Motivul pentru care nu a plecat, dacă e cazul. */
     eroareTrimitere: text("eroare_trimitere"),
     creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
@@ -365,6 +367,38 @@ export const notificari = sqliteTable(
   (t) => [
     uniqueIndex("notificari_lider_cheie_uq").on(t.liderId, t.cheie),
     index("notificari_lider_idx").on(t.liderId, t.creatLa),
+  ],
+);
+
+/**
+ * Telefoanele pe care liderul vrea notificări.
+ *
+ * Un lider poate avea mai multe: telefonul și laptopul, de exemplu. Fiecare
+ * abonament e legat de un browser anume, prin `endpoint` (adresa la care
+ * Google/Apple/Mozilla livrează mesajul). Dacă omul șterge aplicația sau
+ * refuză notificările, adresa moare, iar noi ștergem rândul la prima
+ * încercare eșuată.
+ */
+export const abonamentePush = sqliteTable(
+  "abonamente_push",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    liderId: integer("lider_id")
+      .notNull()
+      .references(() => lideri.id, { onDelete: "cascade" }),
+    /** Adresa serviciului de livrare. Unică - un browser, un abonament. */
+    endpoint: text("endpoint").notNull(),
+    /** Cheile de criptare ale browserului; fără ele mesajul nu poate fi citit. */
+    cheieP256dh: text("cheie_p256dh").notNull(),
+    cheieAuth: text("cheie_auth").notNull(),
+    /** Ca liderul să recunoască de pe ce telefon e, când are mai multe. */
+    descriere: text("descriere"),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+    ultimaFolosire: integer("ultima_folosire", { mode: "timestamp" }),
+  },
+  (t) => [
+    uniqueIndex("abonamente_push_endpoint_uq").on(t.endpoint),
+    index("abonamente_push_lider_idx").on(t.liderId),
   ],
 );
 
@@ -379,4 +413,5 @@ export type StarePrezenta = Prezenta["stare"];
 export type EchipaSlujire = typeof echipeSlujire.$inferSelect;
 export type ProgramareSlujire = typeof programariSlujire.$inferSelect;
 export type Notificare = typeof notificari.$inferSelect;
+export type AbonamentPush = typeof abonamentePush.$inferSelect;
 export type TipNotificare = Notificare["tip"];

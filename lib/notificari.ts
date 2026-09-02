@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, gte, inArray, isNull, lte } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, lte, or } from "drizzle-orm";
 
 import { adresaAplicatiei, emailConfigurat, trimiteEmail } from "@/lib/email";
 import { db } from "@/lib/db";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/db/schema";
 import { alerteAbsenteGrupa } from "@/lib/interogari/statistici";
 import { liderilDeAnuntat } from "@/lib/interogari/slujiri";
+import { pushConfigurat, trimitePush } from "@/lib/push";
 import {
   ZILE_SAPTAMANA,
   adaugaZile,
@@ -394,19 +395,27 @@ export async function genereazaNotificari(
 }
 
 export type RezultatTrimitere = {
+  /** Câte au plecat pe email. */
   trimise: number;
   esuate: number;
   /** Rămase în așteptare: liderul n-are adresă, sau serverul n-are cheia. */
   inAsteptare: number;
+  /** Câte au ajuns ca notificare pe telefon. */
+  pushTrimise: number;
+  /** Telefoane care nu mai ascultau; le-am scos din listă. */
+  pushSterse: number;
 };
 
 /**
- * Trimite pe email notificările care încă n-au plecat.
+ * Duce mai departe notificările care încă n-au plecat: pe telefon și pe email.
  *
  * Ne uităm doar la ultimele câteva zile: dacă un lider își pune adresa abia
  * peste o lună, nu are rost să primească dintr-o dată tot ce a ratat.
- * Cine n-are adresă rămâne în așteptare, fără să marcăm o eroare - poate și-o
- * pune mâine, și atunci notificarea pleacă normal.
+ *
+ * Cele două căi sunt independente. Cine n-are adresă de email rămâne în
+ * așteptare, fără să marcăm o eroare - poate și-o pune mâine, și atunci
+ * notificarea pleacă normal. La fel și cu telefonul: dacă nu s-a abonat încă,
+ * notificarea îl așteaptă câteva zile.
  */
 export async function trimiteNotificariNetrimise(
   limita = 100,
@@ -417,9 +426,13 @@ export async function trimiteNotificariNetrimise(
   const inAsteptare = await db
     .select({
       id: notificari.id,
+      liderId: notificari.liderId,
       titlu: notificari.titlu,
       mesaj: notificari.mesaj,
       link: notificari.link,
+      cheie: notificari.cheie,
+      trimisaLa: notificari.trimisaLa,
+      pushTrimisLa: notificari.pushTrimisLa,
       email: lideri.email,
       numeLider: lideri.nume,
     })
@@ -427,35 +440,64 @@ export async function trimiteNotificariNetrimise(
     .innerJoin(lideri, eq(lideri.id, notificari.liderId))
     .where(
       and(
-        isNull(notificari.trimisaLa),
         isNull(notificari.eroareTrimitere),
         gte(notificari.creatLa, deLa),
+        or(isNull(notificari.trimisaLa), isNull(notificari.pushTrimisLa)),
       ),
     )
     .orderBy(desc(notificari.creatLa))
     .limit(limita);
 
-  // Fără cheia de trimitere nu are rost să încercăm: notificările rămân
-  // în așteptare și pleacă singure la prima rulare de după configurare.
-  if (!emailConfigurat()) {
-    return { trimise: 0, esuate: 0, inAsteptare: inAsteptare.length };
-  }
-
-  const deTrimis = inAsteptare.filter(
-    (n): n is (typeof inAsteptare)[number] & { email: string } => Boolean(n.email),
-  );
   const rezultat: RezultatTrimitere = {
     trimise: 0,
     esuate: 0,
-    inAsteptare: inAsteptare.length - deTrimis.length,
+    inAsteptare: 0,
+    pushTrimise: 0,
+    pushSterse: 0,
   };
+
+  const potPush = pushConfigurat();
+  const potEmail = emailConfigurat();
   const adresa = adresaAplicatiei();
 
-  for (const n of deTrimis) {
+  for (const n of inAsteptare) {
+    // Pe telefon: notificarea de sistem, cu titlul și primul rând al mesajului.
+    if (potPush && n.pushTrimisLa === null) {
+      const dus = await trimitePush(n.liderId, {
+        titlu: n.titlu,
+        mesaj: n.mesaj,
+        link: n.link,
+        eticheta: n.cheie,
+      });
+      rezultat.pushSterse += dus.sterse;
+      if (dus.trimise > 0) {
+        rezultat.pushTrimise += dus.trimise;
+        await db
+          .update(notificari)
+          .set({ pushTrimisLa: new Date() })
+          .where(eq(notificari.id, n.id));
+      }
+    }
+
+    // Pe email: doar dacă liderul și-a pus adresa.
+    if (n.trimisaLa !== null) continue;
+    if (!potEmail || !n.email) {
+      rezultat.inAsteptare++;
+      continue;
+    }
+
     const raspuns = await trimiteEmail({
       catre: n.email,
       subiect: `Puls · ${n.titlu}`,
-      text: `Salut, ${n.numeLider}!\n\n${n.mesaj}\n\n${adresa}${n.link ?? "/grupe"}\n\n—\nPuls · grupe mici\nPoți opri notificările din Setări.`,
+      text: `Salut, ${n.numeLider}!
+
+${n.mesaj}
+
+${adresa}${n.link ?? "/grupe"}
+
+—
+Puls · grupe mici
+Poți opri notificările din Setări.`,
     });
 
     if (raspuns.trimis) {

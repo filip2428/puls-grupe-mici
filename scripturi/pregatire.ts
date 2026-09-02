@@ -11,22 +11,40 @@ import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import webpush from "web-push";
+
 const radacina = process.cwd();
 const caleEnv = resolve(radacina, ".env.local");
 
 function scrieEnv() {
+  const chei = webpush.generateVAPIDKeys();
+
   if (existsSync(caleEnv)) {
-    const continut = readFileSync(caleEnv, "utf8");
-    if (continut.includes("AUTH_SECRET=")) {
+    let continut = readFileSync(caleEnv, "utf8");
+    const adaugate: string[] = [];
+
+    if (!continut.includes("AUTH_SECRET=")) {
+      continut += `\nAUTH_SECRET=${randomBytes(48).toString("base64url")}\n`;
+      adaugate.push("AUTH_SECRET");
+    }
+    if (!continut.includes("VAPID_PRIVATE_KEY=")) {
+      continut += [
+        "",
+        "# Notificările pe telefon. Pentru producție generează altele:",
+        "#   npm run chei:push",
+        `NEXT_PUBLIC_VAPID_PUBLIC_KEY=${chei.publicKey}`,
+        `VAPID_PRIVATE_KEY=${chei.privateKey}`,
+        "",
+      ].join("\n");
+      adaugate.push("cheile pentru notificări");
+    }
+
+    if (adaugate.length === 0) {
       console.log("• .env.local există deja - îl las neatins.");
       return;
     }
-    writeFileSync(
-      caleEnv,
-      continut + `\nAUTH_SECRET=${randomBytes(48).toString("base64url")}\n`,
-      "utf8",
-    );
-    console.log("• Am adăugat AUTH_SECRET în .env.local.");
+    writeFileSync(caleEnv, continut, "utf8");
+    console.log(`• Am adăugat în .env.local: ${adaugate.join(", ")}.`);
     return;
   }
 
@@ -39,6 +57,11 @@ function scrieEnv() {
     "",
     "# Secretul cu care se semnează sesiunile. Nu îl publica nicăieri.",
     `AUTH_SECRET=${randomBytes(48).toString("base64url")}`,
+    "",
+    "# Notificările pe telefon. Pentru producție generează altele:",
+    "#   npm run chei:push",
+    `NEXT_PUBLIC_VAPID_PUBLIC_KEY=${chei.publicKey}`,
+    `VAPID_PRIVATE_KEY=${chei.privateKey}`,
     "",
   ].join("\n");
   writeFileSync(caleEnv, continut, "utf8");

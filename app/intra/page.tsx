@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { FormularIntrare } from "@/componente/FormularIntrare";
+import { UitaPaginile } from "@/componente/ServiceWorker";
 import { sesiuneCurenta } from "@/lib/auth/sesiune";
 
 export const metadata = { title: "Intră · Puls" };
@@ -11,6 +12,8 @@ export default async function PaginaIntrare() {
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-5 py-10">
+      {/* Ecranul de intrare = cineva a ieșit din cont. Uităm ce era salvat. */}
+      <UitaPaginile />
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-albastru text-2xl font-black text-lime">

@@ -2,8 +2,11 @@ import Link from "next/link";
 
 import { iesi } from "@/app/intra/actions";
 import { FormularSetari } from "@/componente/FormularSetari";
+import { InstaleazaAplicatia } from "@/componente/InstaleazaAplicatia";
+import { NotificariTelefon } from "@/componente/NotificariTelefon";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { emailConfigurat } from "@/lib/email";
+import { cheiePublica, pushConfigurat } from "@/lib/push";
 import { cateNecitite, notificarileMele } from "@/lib/notificari";
 import { momentLizibil } from "@/lib/util/date";
 import {
@@ -38,10 +41,29 @@ export default async function PaginaSetari() {
         </p>
       </div>
 
+      <InstaleazaAplicatia />
+
+      <section className="card p-4">
+        <h2 className="mb-1 text-sm font-bold">Notificări pe telefon</h2>
+        <p className="mb-4 text-xs text-cenusiu">
+          Îți sună telefonul când se întâmplă ceva la grupa ta, chiar dacă
+          aplicația e închisă.
+        </p>
+        {pushConfigurat() ? (
+          <NotificariTelefon cheiePublica={cheiePublica()} />
+        ) : (
+          <p className="text-sm text-cenusiu">
+            Notificările pe telefon nu sunt încă pornite pe server. Coordonatorul
+            trebuie să pună cheile de trimitere.
+          </p>
+        )}
+      </section>
+
       <section className="card p-4">
         <h2 className="mb-1 text-sm font-bold">Notificări pe email</h2>
         <p className="mb-4 text-xs text-cenusiu">
-          Aplicația îți poate scrie când se întâmplă ceva la grupa ta.
+          Aceleași vești, dar scrise pe email. Bifele de mai jos hotărăsc ce
+          primești, și pe telefon și pe email.
         </p>
         <FormularSetari
           initial={{

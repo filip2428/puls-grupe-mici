@@ -1,0 +1,1 @@
+ALTER TABLE `notificari` ADD `push_trimis_la` integer;

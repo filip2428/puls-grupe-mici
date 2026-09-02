@@ -9,6 +9,13 @@ import { db } from "@/lib/db";
 import { lideri, notificari } from "@/lib/db/schema";
 import { emailValid } from "@/lib/email";
 import { marcheazaToateCitite } from "@/lib/notificari";
+import {
+  abonamentValid,
+  pushConfigurat,
+  salveazaAbonament,
+  stergeAbonament,
+  trimitePush,
+} from "@/lib/push";
 
 export type StareSetari = { eroare?: string; reusit?: boolean };
 
@@ -68,4 +75,67 @@ export async function stergeToateNotificarile() {
   await db.delete(notificari).where(eq(notificari.liderId, lider.id));
   await scrieAudit(lider.id, "notificari:sterse", {});
   revalidatePath("/setari");
+}
+
+/* --------------------------- notificări pe telefon -------------------------- */
+
+export type StarePush = { eroare?: string; reusit?: string };
+
+/**
+ * Reține telefonul de pe care s-a apăsat butonul.
+ *
+ * `abonament` vine de la browser, deci îl verificăm înainte să-l punem în bază.
+ */
+export async function aboneazaTelefon(
+  abonament: unknown,
+  descriere?: string,
+): Promise<StarePush> {
+  const lider = await ceruteLider();
+
+  if (!pushConfigurat()) {
+    return { eroare: "Notificările pe telefon nu sunt configurate pe server." };
+  }
+  if (!abonamentValid(abonament)) {
+    return { eroare: "Telefonul n-a trimis datele corect. Mai încearcă o dată." };
+  }
+
+  await salveazaAbonament(lider.id, abonament, descriere);
+  revalidatePath("/setari");
+  return { reusit: "Gata, telefonul ăsta primește notificări." };
+}
+
+/** Liderul nu mai vrea notificări pe telefonul ăsta. */
+export async function dezaboneazaTelefon(endpoint: string): Promise<StarePush> {
+  const lider = await ceruteLider();
+  await stergeAbonament(lider.id, endpoint);
+  revalidatePath("/setari");
+  return { reusit: "Am oprit notificările pe telefonul ăsta." };
+}
+
+/** O notificare de probă, ca liderul să vadă pe loc că merge. */
+export async function notificareDeProba(): Promise<StarePush> {
+  const lider = await ceruteLider();
+
+  const rezultat = await trimitePush(lider.id, {
+    titlu: "Merge!",
+    mesaj: `Salut, ${lider.nume}! Așa o să arate notificările de la grupele mici.`,
+    link: "/setari",
+    eticheta: "proba",
+  });
+
+  if (rezultat.trimise > 0) {
+    return {
+      reusit:
+        rezultat.trimise === 1
+          ? "Am trimis-o. Ar trebui să apară în câteva secunde."
+          : `Am trimis-o pe ${rezultat.trimise} telefoane.`,
+    };
+  }
+  if (rezultat.sterse > 0) {
+    return {
+      eroare:
+        "Telefonul nu mai era abonat, așa că l-am scos. Pornește notificările din nou.",
+    };
+  }
+  return { eroare: "N-am reușit să trimit notificarea. Mai încearcă." };
 }

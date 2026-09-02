@@ -10,6 +10,7 @@ import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { audit, grupe, lideri, lideriGrupe, membri } from "@/lib/db/schema";
 import { emailConfigurat } from "@/lib/email";
+import { pushConfigurat } from "@/lib/push";
 import {
   genereazaNotificari,
   trimiteNotificariNetrimise,
@@ -208,19 +209,31 @@ export async function ruleazaNotificari(): Promise<StareNotificari> {
 
   const bucati = [
     `${generate.total} ${generate.total === 1 ? "notificare nouă" : "notificări noi"}`,
-    trimise.trimise > 0 ? `${trimise.trimise} trimise pe email` : "",
+    trimise.pushTrimise > 0 ? `${trimise.pushTrimise} pe telefon` : "",
+    trimise.trimise > 0 ? `${trimise.trimise} pe email` : "",
     trimise.inAsteptare > 0 ? `${trimise.inAsteptare} în așteptare` : "",
     trimise.esuate > 0 ? `${trimise.esuate} n-au putut fi trimise` : "",
+    trimise.pushSterse > 0
+      ? `${trimise.pushSterse} ${trimise.pushSterse === 1 ? "telefon care nu mai asculta, scos" : "telefoane care nu mai ascultau, scoase"}`
+      : "",
   ].filter(Boolean);
 
   revalidatePath("/setari");
   revalidatePath("/admin");
 
-  const explicatie = !emailConfigurat()
-    ? " Trimiterea pe email nu e configurată încă (lipsesc RESEND_API_KEY și EMAIL_EXPEDITOR), dar notificările se văd în aplicație și pleacă singure după ce o configurezi."
-    : trimise.inAsteptare > 0
-      ? " Cele în așteptare sunt ale liderilor care nu și-au pus adresa de email."
-      : "";
+  const lipsuri = [
+    emailConfigurat() ? "" : "email-ul (RESEND_API_KEY, EMAIL_EXPEDITOR)",
+    pushConfigurat()
+      ? ""
+      : "telefonul (NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)",
+  ].filter(Boolean);
+
+  const explicatie =
+    lipsuri.length > 0
+      ? ` Încă nu e configurat ${lipsuri.join(" și ")}. Notificările se văd oricum în aplicație și pleacă singure după ce configurezi.`
+      : trimise.inAsteptare > 0
+        ? " Cele în așteptare sunt ale liderilor care n-au pus adresa de email și nici nu și-au pornit notificările pe telefon."
+        : "";
 
   return { mesaj: `${bucati.join(", ")}.${explicatie}` };
 }

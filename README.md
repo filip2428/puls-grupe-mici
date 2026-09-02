@@ -89,8 +89,8 @@ modificat, programat) rămâne la coordonator.
 ## Notificări
 
 Aplicația se uită o dată pe zi ce urmează și îi anunță pe liderii pe care îi
-privește. Fiecare notificare se vede în *Setări* și, dacă liderul și-a pus
-adresa, pleacă și pe email:
+privește. Fiecare notificare se vede în *Setări*, îi sună telefonul dacă și-a
+pornit notificările și îi pleacă și pe email dacă și-a pus adresa:
 
 - **zile de naștere** - cu trei zile înainte, pentru adolescenții din grupa lui;
 - **slujiri** - când grupa lui sau adolescenții lui sunt programați;
@@ -100,9 +100,41 @@ adresa, pleacă și pe email:
 Fiecare lider bifează singur ce vrea să primească. Notificările nu se repetă:
 aceeași veste se anunță o singură dată, oricâte ori ar rula verificarea.
 
-Trimiterea pe email se face prin [Resend](https://resend.com) și cere două
-variabile de mediu (vezi mai jos). Cât timp lipsesc, aplicația merge normal -
-notificările se adună în aplicație și pleacă singure după ce le configurezi.
+Cele trei căi sunt independente și niciuna nu e obligatorie. Cât timp nu sunt
+configurate, aplicația merge normal - notificările se adună în *Setări* și pleacă
+singure la prima verificare de după configurare.
+
+**Pe telefon** (Web Push): fiecare lider apasă o dată *Pornește notificările aici*,
+în *Setări*, pe telefonul lui. Merge și cu aplicația închisă. Pe iPhone e o
+condiție în plus: aplicația trebuie pusă întâi pe ecranul principal - în Safari,
+nu în Chrome. Serverul are nevoie de o pereche de chei, generate cu
+`npm run chei:push`.
+
+**Pe email**: prin [Resend](https://resend.com), cu `RESEND_API_KEY` și
+`EMAIL_EXPEDITOR`.
+
+---
+
+## Aplicația pe telefon
+
+Nu e nevoie de magazin de aplicații. Liderul deschide linkul o dată și o pune pe
+ecranul principal: de atunci are o icoană ca orice altă aplicație, se deschide pe
+tot ecranul, fără bara de adrese.
+
+- **Android**: apare singur un buton *Instalează aplicația*, în *Setări*.
+- **iPhone**: trebuie **Safari** (din Chrome pe iOS nu se poate) → butonul de
+  partajare → *Adaugă pe ecranul principal*. Pașii sunt scriși în *Setări*.
+
+**Merge și fără semnal.** Fișierele aplicației și ultimele pagini vizitate rămân
+în telefon, deci se deschide și în subsolul unde nu prinde net. Dacă bifezi
+prezența și pică netul, apare o bară sus și bifa pleacă singură când revine
+semnalul - nu trebuie să apeși din nou și nu se pierde nimic.
+
+Paginile ținute în telefon se șterg la ieșirea din cont, ca să nu rămână datele
+unui lider pe un telefon împrumutat.
+
+Icoanele se generează din logo cu `npm run icoane` și sunt deja în proiect - le
+regenerezi doar dacă schimbi logo-ul.
 
 ---
 
@@ -198,6 +230,8 @@ Scriptul afișează codurile liderilor de test. Rulează-l **doar** pe baza loca
 | `npm run lider:nou -- --nume "Ana Popescu"` | creează un lider din linia de comandă |
 | `npm run cod:nou -- --id 3` | generează un cod nou pentru liderul cu id-ul 3 |
 | `npm run date:demo` | umple baza locală cu date de test |
+| `npm run chei:push` | generează cheile pentru notificările pe telefon |
+| `npm run icoane` | regenerează icoanele aplicației din logo |
 
 De obicei nu ai nevoie de ultimele două: totul se face din pagina de administrare.
 
@@ -222,39 +256,79 @@ când cineva citește codul de pe hârtie.
 
 ---
 
-## Publicarea (Vercel + Turso)
+## Punerea online (Vercel + Turso)
 
 Baza de date locală e un fișier; în producție e nevoie de una găzduită.
 Alegerea implicită e **Turso** (SQLite găzduit, plan gratuit generos), pentru că
 merge cu exact același cod.
 
-1. Creează o bază pe [turso.tech](https://turso.tech) și ia adresa
-   (`libsql://...`) și un token.
-2. În Vercel, la proiect → *Settings* → *Environment Variables*, pune:
-   - `DATABASE_URL` = adresa `libsql://...`
-   - `DATABASE_AUTH_TOKEN` = tokenul
-   - `AUTH_SECRET` = un șir lung și aleator (poți lua unul din `.env.local`, dar
-     mai bine generezi altul pentru producție)
+### Variabilele de mediu
 
-   Și, dacă vrei ca notificările să plece pe email:
+Se pun în Vercel, la proiect → *Settings* → *Environment Variables*. Șablonul
+lor e în [`.env.example`](.env.example).
 
-   - `RESEND_API_KEY` = cheia din contul [Resend](https://resend.com)
-   - `EMAIL_EXPEDITOR` = de la cine pleacă, ex. `Puls <puls@biserica.ro>`
-     (domeniul trebuie verificat în Resend)
-   - `APP_URL` = adresa aplicației, pentru legăturile din email
-   - `CRON_SECRET` = un șir aleator; Vercel îl trimite când pornește singur
-     verificarea de dimineață (vezi `vercel.json`, în fiecare zi la 8:00)
-3. Aplică migrările pe baza din producție, de pe calculatorul tău:
+| Variabilă | Trebuie? | Ce e |
+| --- | --- | --- |
+| `DATABASE_URL` | **da** | adresa bazei, `libsql://...` |
+| `DATABASE_AUTH_TOKEN` | **da** | tokenul bazei din Turso |
+| `AUTH_SECRET` | **da** | șir lung și aleator, cu care se semnează sesiunile |
+| `APP_URL` | da | adresa aplicației, ex. `https://grupe.puls.ro` |
+| `CRON_SECRET` | da | șir aleator; cu el se legitimează verificarea de dimineață |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | pentru telefon | din `npm run chei:push` |
+| `VAPID_PRIVATE_KEY` | pentru telefon | din `npm run chei:push`, **nu se dă nimănui** |
+| `RESEND_API_KEY` | pentru email | cheia din contul [Resend](https://resend.com) |
+| `EMAIL_EXPEDITOR` | pentru email | de la cine pleacă, ex. `Puls <puls@biserica.ro>` |
+
+Fără cele pentru telefon și email aplicația merge; doar că notificările rămân
+doar în *Setări*. Se pot adăuga oricând, iar ce s-a adunat între timp pleacă la
+prima verificare de după.
+
+**Atenție la `VAPID_PRIVATE_KEY`:** dacă o schimbi mai târziu, toate telefoanele
+abonate până atunci nu mai primesc nimic și liderii trebuie să apese din nou
+*Pornește notificările aici*.
+
+### Pașii
+
+1. **Turso.** Creează o bază pe [turso.tech](https://turso.tech) și notează
+   adresa (`libsql://...`) și un token.
+2. **Cheile pentru telefon.** Pe calculatorul tău:
+
+   ```bash
+   npm run chei:push
+   ```
+
+3. **Vercel.** Importă proiectul din Git, pune variabilele de mai sus și pornește
+   prima construire. Verificarea zilnică se configurează singură din
+   `vercel.json` (în fiecare zi la 8:00, ora României).
+4. **Tabelele în producție.** De pe calculatorul tău:
 
    ```bash
    DATABASE_URL="libsql://..." DATABASE_AUTH_TOKEN="..." npm run db:migrate
    ```
 
-4. Creează primul administrator în producție, la fel:
+5. **Primul administrator**, la fel:
 
    ```bash
    DATABASE_URL="libsql://..." DATABASE_AUTH_TOKEN="..." npm run lider:nou -- --nume "Numele tău" --rol admin
    ```
+
+6. **Verifică.** Intră cu codul primit, deschide *Administrare → Trimite
+   notificările acum* și citește ce raportează: îți spune ce a plecat pe telefon,
+   ce pe email și ce mai lipsește din configurare.
+
+De fiecare dată când mai adaugi ceva în `lib/db/schema.ts`, rulează întâi
+`npm run db:generate`, iar după ce ai pus codul pe Vercel rulează
+`npm run db:migrate` pe baza din producție - pasul 4, cu aceleași variabile.
+
+### Ce trebuie să faci tu, personal
+
+Restul e scris; astea cer un cont sau o decizie:
+
+- contul **Turso** și baza de date;
+- contul **Vercel**, proiectul și numele lui (de acolo iese adresa aplicației);
+- contul **Resend** și un **domeniu verificat**, dacă vrei și email - fără domeniu
+  propriu, Resend trimite doar către adresa cu care te-ai înscris;
+- rularea celor două comenzi de mai sus (migrare + primul admin), o singură dată.
 
 Aplicația nu e indexată de motoarele de căutare (`robots: noindex`) și nu are
 nicio pagină publică - fără cod nu se vede nimic.

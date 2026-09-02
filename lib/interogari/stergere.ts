@@ -4,6 +4,7 @@ import { count, eq, inArray } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
+  abonamentePush,
   audit,
   delegari,
   echipeSlujire,
@@ -82,6 +83,7 @@ export async function stergeLiderDefinitiv(liderId: number) {
     await tx.delete(lideriGrupe).where(eq(lideriGrupe.liderId, liderId));
     await tx.delete(delegari).where(eq(delegari.liderId, liderId));
     await tx.delete(notificari).where(eq(notificari.liderId, liderId));
+    await tx.delete(abonamentePush).where(eq(abonamentePush.liderId, liderId));
 
     await tx
       .update(delegari)
