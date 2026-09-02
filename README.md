@@ -292,11 +292,23 @@ abonate până atunci nu mai primesc nimic și liderii trebuie să apese din nou
 1. **Turso.** Creează o bază pe [turso.tech](https://turso.tech) și notează
    adresa (`libsql://...`) și un token.
 
-   **Alege regiunea Frankfurt (`fra`)**, aceeași cu regiunea în care rulează
-   aplicația pe Vercel. Fiecare pagină pune bazei mai multe întrebări; dacă baza
-   e peste ocean, fiecare întrebare pierde ~150 ms doar pe drum, iar liderii
-   simt asta la fiecare atingere. În Vercel, regiunea se vede la
-   *Settings → Functions → Function Region* și trebuie pusă tot pe Frankfurt.
+   **Regiunea contează mai mult decât pare.** O pagină pune bazei între 4 și 10
+   întrebări, unele una după alta. Dacă baza e într-o parte a lumii și codul în
+   alta, fiecare întrebare pierde ~80 ms doar pe drum, iar liderii simt asta la
+   fiecare atingere.
+
+   Baza noastră e în **Irlanda**, deci codul trebuie să ruleze tot acolo: în
+   `vercel.json` scrie `"regions": ["dub1"]` (Dublin). Dacă vreodată muți baza
+   în altă regiune, schimbă și rândul ăla, altfel una fuge de cealaltă.
+
+   Verifici oricând unde rulează, fără să intri în Vercel:
+
+   ```bash
+   curl -s -D - -o $null https://puls-grupe-mici-one.vercel.app/intra | Select-String "x-vercel-id"
+   ```
+
+   Răspunsul arată `dub1::dub1::...` - prima parte e pe unde a intrat cererea,
+   a doua e unde a rulat codul. A doua trebuie să fie `dub1`.
 2. **Cheile pentru telefon.** Pe calculatorul tău:
 
    ```bash
