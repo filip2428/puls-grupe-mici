@@ -12,11 +12,24 @@ import {
   membru as iaMembru,
   noteleMembrului,
 } from "@/lib/interogari/grupe";
-import { dataScurta, momentLizibil, varsta } from "@/lib/util/date";
+import { RandProgramare } from "@/componente/RandProgramare";
+import { ZonaStergere } from "@/componente/ZonaStergere";
+import {
+  adaugaSlujireaMembrului,
+  scoateSlujireaMembrului,
+} from "@/app/(aplicatie)/slujiri/actions";
+import {
+  echipeleMembrului,
+  programariMembrului,
+  slujiriDisponibilePentru,
+} from "@/lib/interogari/slujiri";
+import { pierderiMembru } from "@/lib/interogari/stergere";
+import { dataAzi, dataScurta, momentLizibil, varsta } from "@/lib/util/date";
 import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 import {
   primesteInGrupa,
   schimbaActiv,
+  stergeMembru,
   stergeNota,
   treceLaMusafiri,
 } from "./actions";
@@ -45,10 +58,16 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   const acces = await verificaAccesGrupa(lider, date.grupa.id);
   if (!acces.permis) notFound();
 
-  const [istoric, note] = await Promise.all([
-    istoricMembru(membruId, 16),
-    noteleMembrului(membruId),
-  ]);
+  const [istoric, note, echipe, disponibile, slujiri, pierderi] =
+    await Promise.all([
+      istoricMembru(membruId, 16),
+      noteleMembrului(membruId),
+      echipeleMembrului(membruId),
+      slujiriDisponibilePentru(membruId),
+      programariMembrului(membruId, 3),
+      pierderiMembru(membruId),
+    ]);
+  const azi = dataAzi();
 
   const m = date.membru;
   const ani = varsta(m.dataNasterii);
@@ -106,7 +125,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             <h2 className="text-sm font-bold">E musafir</h2>
             <p className="mb-3 text-xs text-cenusiu">
               Vine în vizită, dar nu e (încă) parte din grupă: nu intră în
-              statistici și nu apare la „de căutat".
+              statistici și nu apare la „de căutat”.
             </p>
             <form action={primesteInGrupa.bind(null, membruId)}>
               <button type="submit" className="buton buton-principal">
@@ -141,6 +160,104 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           </ul>
         </section>
       )}
+
+      {/* Unde slujește */}
+      <section className="card p-4">
+        <h2 className="text-sm font-bold">Unde slujește</h2>
+        <p className="mb-3 text-xs text-cenusiu">
+          Locurile în care e implicat: Harvest Kids, cafeneaua, laudă și
+          așa mai departe.
+        </p>
+
+        {echipe.length === 0 ? (
+          <p className="text-sm text-cenusiu">Nu slujește nicăieri deocamdată.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+            {echipe.map((e) => (
+              <li key={e.echipaId} className="flex items-center gap-2 py-2.5">
+                <Link
+                  href={`/slujiri/${e.echipaId}`}
+                  className="min-w-0 flex-1 text-sm font-medium text-albastru"
+                >
+                  {e.nume}
+                  {e.rol && (
+                    <span className="font-normal text-cenusiu"> · {e.rol}</span>
+                  )}
+                  {!e.activa && (
+                    <span className="ml-2 text-xs text-cenusiu">arhivată</span>
+                  )}
+                </Link>
+                <form
+                  action={scoateSlujireaMembrului.bind(null, membruId, e.echipaId)}
+                >
+                  <button type="submit" className="buton buton-secundar buton-mic">
+                    Scoate
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {disponibile.length > 0 ? (
+          <form
+            action={adaugaSlujireaMembrului.bind(null, membruId)}
+            className="mt-3 flex flex-col gap-3 border-t border-[#eef1f7] pt-3"
+          >
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="eticheta" htmlFor="echipaId">
+                  Adaugă o slujire
+                </label>
+                <select id="echipaId" name="echipaId" className="camp" required>
+                  <option value="">Alege</option>
+                  {disponibile.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {e.nume}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="eticheta" htmlFor="rolSlujire">
+                  Ce face acolo
+                </label>
+                <input
+                  id="rolSlujire"
+                  name="rol"
+                  className="camp"
+                  placeholder="opțional"
+                  maxLength={60}
+                />
+              </div>
+            </div>
+            <button type="submit" className="buton buton-secundar self-start">
+              Adaugă
+            </button>
+          </form>
+        ) : (
+          <p className="mt-3 border-t border-[#eef1f7] pt-3 text-xs text-cenusiu">
+            {echipe.length > 0
+              ? "E deja în toate locurile de slujire din aplicație."
+              : "Nu e creat niciun loc de slujire încă. Coordonatorul le adaugă din pagina Slujiri."}
+          </p>
+        )}
+
+        {slujiri.length > 0 && (
+          <div className="mt-4 border-t border-[#eef1f7] pt-3">
+            <h3 className="mb-2 text-xs font-bold text-cenusiu uppercase">
+              Ce urmează
+            </h3>
+            <ul className="flex flex-col divide-y divide-[#eef1f7]">
+              {slujiri.map((p) => (
+                <li key={p.id} className="py-3">
+                  <RandProgramare programare={p} azi={azi} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
 
       {/* Istoricul prezenței */}
       <section className="card p-4">
@@ -239,8 +356,49 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           </div>
         </details>
       </section>
+
+      {/* Ștergerea definitivă */}
+      {pierderi && (
+        <ZonaStergere
+          actiune={stergeMembru.bind(null, membruId)}
+          nume={m.nume}
+          titlu="Șterge definitiv din aplicație"
+          avertisment={`${pierderiText(pierderi)} Nu se mai poate aduce înapoi. Dacă doar nu mai vine, folosește „Marchează ca inactiv” - acolo istoricul rămâne întreg.`}
+          textButon="Șterge definitiv"
+        />
+      )}
     </div>
   );
+}
+
+/** „Dispar cu totul 4 prezențe, 2 note și o echipă de slujire." */
+function pierderiText(p: {
+  prezente: number;
+  note: number;
+  echipe: number;
+}): string {
+  const bucati = [
+    p.prezente === 0
+      ? ""
+      : p.prezente === 1
+        ? "o prezență"
+        : `${p.prezente} prezențe`,
+    p.note === 0 ? "" : p.note === 1 ? "o notă" : `${p.note} note`,
+    p.echipe === 0
+      ? ""
+      : p.echipe === 1
+        ? "o echipă de slujire"
+        : `${p.echipe} echipe de slujire`,
+  ].filter(Boolean);
+
+  if (bucati.length === 0) {
+    return "Nu are nimic în istoric, deci nu se pierde decât fișa lui.";
+  }
+  const lista =
+    bucati.length === 1
+      ? bucati[0]
+      : `${bucati.slice(0, -1).join(", ")} și ${bucati.at(-1)}`;
+  return `Dispar cu totul ${lista}.`;
 }
 
 /** Un părinte, cu butoane de contact. */

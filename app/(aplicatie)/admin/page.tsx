@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ButonNotificari } from "@/componente/ButonNotificari";
 import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { evolutiePrezenta, rezumatGrupe } from "@/lib/interogari/statistici";
 import { dataScurta } from "@/lib/util/date";
@@ -51,9 +52,21 @@ export default async function PaginaAdmin() {
         <Buton href="/adolescenti" text="Adolescenți" />
         <Buton href="/admin/lideri" text="Lideri" />
         <Buton href="/admin/grupe" text="Grupe" />
+        <Buton href="/slujiri" text="Slujiri" />
+        <Buton href="/admin/import" text="Import Excel" />
         <Buton href="/admin/export" text="Export" />
         <Buton href="/admin/jurnal" text="Jurnal" />
       </nav>
+
+      <section className="card p-4">
+        <h2 className="mb-1 text-sm font-bold">Notificări</h2>
+        <p className="mb-3 text-xs text-cenusiu">
+          Se generează singure în fiecare dimineață: zile de naștere, slujiri
+          care urmează, prezențe necompletate și rezumatul de luni. Butonul le
+          rulează acum, dacă vrei să verifici că totul merge.
+        </p>
+        <ButonNotificari />
+      </section>
 
       {evolutie.length > 0 && (
         <section className="card p-4">

@@ -23,7 +23,10 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - are la îndemână datele părinților (nume și telefon, cu buton de sunat);
 - ține note despre fiecare adolescent (rugăciune, situații, follow-up);
 - adaugă adolescenți noi în grupă și îi marchează inactivi când nu mai vin;
-- când nu poate ajunge, trece o **înlocuire**: alt lider primește acces la grupă în perioada aleasă.
+- trece pe fișa fiecăruia **unde slujește** (Harvest Kids, cafenea, laudă...);
+- vede **când e programată grupa lui la o slujire**;
+- când nu poate ajunge, trece o **înlocuire**: alt lider primește acces la grupă în perioada aleasă;
+- își pune adresa de email și alege ce **notificări** vrea să primească.
 
 **Coordonatorul (administrator)**
 
@@ -31,9 +34,12 @@ Coordonatorii văd toată lucrarea într-un singur loc.
   musafir), sex, clasă, vârstă și situație, plus căutare după nume, telefon sau
   numele unui părinte;
 - descarcă lista în Excel exact cu filtrele alese;
+- **importă adolescenți dintr-un Excel**, după un model descărcabil;
 - creează lideri și generează coduri de acces (inclusiv coduri noi, dacă se pierd);
 - creează grupe și repartizează oricâți lideri la o grupă;
+- creează **locurile de slujire** și programează cine slujește și când;
 - mută adolescenți dintr-o grupă în alta, fără să piardă istoricul;
+- **șterge definitiv** un lider sau un adolescent, când chiar e nevoie;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
 - descarcă totul în Excel (prezențe, adolescenți, întâlniri);
 - vede jurnalul: cine, ce și când a modificat.
@@ -54,6 +60,80 @@ de prezență, la secțiunea *Musafiri*, și de acolo:
   rămâne înregistrată.
 
 Merge și invers: „Trece-l înapoi la musafiri", dacă a fost primit din greșeală.
+
+---
+
+## Slujiri
+
+Sunt două lucruri diferite, legate între ele:
+
+**Locurile de slujire** - Harvest Kids, cafeneaua, laudă, media... Coordonatorul
+le creează din pagina *Slujiri*. Fiecare are un nume, o descriere scurtă și,
+dacă vrei, un lider care coordonează.
+
+**Cine unde slujește** - se trece de pe fișa adolescentului, la *Unde slujește*:
+alegi din listă și, opțional, scrii ce face acolo („la povestire", „chitară").
+Merge și invers, din pagina slujirii. Așa știi oricând că Filip e la Harvest
+Kids, iar pagina slujirii îți arată toată echipa.
+
+**Calendarul** - „pe 5 septembrie slujește grupa Băieți 14-16". O programare se
+pune fie pe o grupă mică, fie pe un loc de slujire, fie pe amândouă. Liderul o
+vede pe pagina grupei și pe *Slujiri*, iar cu câteva zile înainte primește și o
+notificare.
+
+Un lider poate trece un adolescent din grupa lui la o slujire; restul (creat,
+modificat, programat) rămâne la coordonator.
+
+---
+
+## Notificări
+
+Aplicația se uită o dată pe zi ce urmează și îi anunță pe liderii pe care îi
+privește. Fiecare notificare se vede în *Setări* și, dacă liderul și-a pus
+adresa, pleacă și pe email:
+
+- **zile de naștere** - cu trei zile înainte, pentru adolescenții din grupa lui;
+- **slujiri** - când grupa lui sau adolescenții lui sunt programați;
+- **prezența necompletată** - dacă a trecut ziua întâlnirii și lipsește;
+- **rezumatul de luni** - cum a fost săptămâna și cine ar trebui căutat.
+
+Fiecare lider bifează singur ce vrea să primească. Notificările nu se repetă:
+aceeași veste se anunță o singură dată, oricâte ori ar rula verificarea.
+
+Trimiterea pe email se face prin [Resend](https://resend.com) și cere două
+variabile de mediu (vezi mai jos). Cât timp lipsesc, aplicația merge normal -
+notificările se adună în aplicație și pleacă singure după ce le configurezi.
+
+---
+
+## Import din Excel
+
+*Administrare → Import Excel*. Descarci modelul (are coloanele potrivite, un rând
+de exemplu și o foaie cu explicații), îl completezi și îl încarci înapoi.
+
+Obligatorii sunt doar **Nume** și **Grupa**; restul (statut, sex, clasă, data
+nașterii, telefon, cei doi părinți) se completează dacă le ai. Ordinea coloanelor
+nu contează, iar cele în plus se ignoră.
+
+Înainte să scrie ceva, aplicația îți arată ce a înțeles: cine intră, cine e deja
+în aplicație (îi sare, ca să poți încărca fișierul de mai multe ori fără să
+dublezi pe nimeni) și ce rânduri n-a putut citi, cu motivul. Abia după ce
+confirmi se scrie în baza de date.
+
+---
+
+## Ștergerea definitivă
+
+De obicei nu vrei să ștergi: pentru cine nu mai vine există „Marchează ca
+inactiv", iar pentru un lider care nu mai slujește o vreme, „Dezactivează".
+Acolo nu se pierde nimic.
+
+Când chiar trebuie șters, butonul e sub datele persoanei. Înainte îți arată
+exact ce dispare („Dispar cu totul 9 prezențe și o echipă de slujire") și îți
+cere să scrii numele ca să confirmi. Nu se mai poate aduce înapoi.
+
+La un lider șters, prezențele pe care le-a completat și notele scrise de el
+**rămân** - doar că nu mai au un nume lângă ele.
 
 ---
 
@@ -134,6 +214,15 @@ merge cu exact același cod.
    - `DATABASE_AUTH_TOKEN` = tokenul
    - `AUTH_SECRET` = un șir lung și aleator (poți lua unul din `.env.local`, dar
      mai bine generezi altul pentru producție)
+
+   Și, dacă vrei ca notificările să plece pe email:
+
+   - `RESEND_API_KEY` = cheia din contul [Resend](https://resend.com)
+   - `EMAIL_EXPEDITOR` = de la cine pleacă, ex. `Puls <puls@biserica.ro>`
+     (domeniul trebuie verificat în Resend)
+   - `APP_URL` = adresa aplicației, pentru legăturile din email
+   - `CRON_SECRET` = un șir aleator; Vercel îl trimite când pornește singur
+     verificarea de dimineață (vezi `vercel.json`, în fiecare zi la 8:00)
 3. Aplică migrările pe baza din producție, de pe calculatorul tău:
 
    ```bash
@@ -166,9 +255,13 @@ app/
   (aplicatie)/
     grupe/            grupele mele, grupa, foaia de prezență
     adolescenti/      lista cu filtre (adminul vede tot, liderul doar grupele lui)
-    membri/[id]/      fișa unui adolescent (istoric, părinți, note)
-    admin/            tablou de bord, lideri, grupe, jurnal, export
+    membri/[id]/      fișa unui adolescent (istoric, părinți, note, unde slujește)
+    slujiri/          locurile de slujire și calendarul programărilor
+    setari/           email, notificări, ieșire din cont
+    admin/            tablou de bord, lideri, grupe, import, jurnal, export
   api/export/         fișierele Excel (prezențe și lista de adolescenți)
+  api/import/model/   fișierul-model pentru import
+  api/cron/           verificarea zilnică a notificărilor
 componente/           bucățile de interfață (formulare, foaia de prezență)
 lib/
   auth/               coduri, sesiuni, limitarea încercărilor
@@ -189,6 +282,6 @@ respectivă** (`verificaAccesGrupa`). Datele adolescenților se citesc pe server
 ## Ce se poate adăuga mai târziu
 
 - prezența la întâlnirea generală de vineri, pe lângă grupele mici;
-- notificare săptămânală pentru liderii care n-au făcut prezența;
-- memento pentru zilele de naștere („cine împlinește ani săptămâna asta");
+- filtru pe slujire în lista de adolescenți („arată-mi toți cei de la Harvest Kids");
+- prezență și la slujiri, nu doar la grupele mici;
 - pagină pentru părinți sau statistici pe lucrare, publice în interiorul bisericii.

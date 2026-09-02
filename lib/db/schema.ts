@@ -30,6 +30,21 @@ export const lideri = sqliteTable(
     id: integer("id").primaryKey({ autoIncrement: true }),
     nume: text("nume").notNull(),
     telefon: text("telefon"),
+    /** Adresa pe care primește notificări. Opțională - fără ea nu pleacă email-uri. */
+    email: text("email"),
+    /** Ce vrea să afle pe email. Notificarea se vede oricum în aplicație. */
+    notifZileNastere: integer("notif_zile_nastere", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    notifSlujiri: integer("notif_slujiri", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    notifPrezenta: integer("notif_prezenta", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    notifRezumat: integer("notif_rezumat", { mode: "boolean" })
+      .notNull()
+      .default(true),
     /** "admin" vede tot și administrează; "lider" vede doar grupele lui. */
     rol: text("rol", { enum: ["admin", "lider"] })
       .notNull()
@@ -249,6 +264,110 @@ export const incercariLogin = sqliteTable(
   (t) => [index("incercari_cheie_idx").on(t.cheie, t.creatLa)],
 );
 
+/**
+ * Echipele de slujire (Laudă, Media, Protocol, Copii...).
+ * Aici sunt adolescenții implicați pe termen lung într-o slujire.
+ */
+export const echipeSlujire = sqliteTable("echipe_slujire", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  nume: text("nume").notNull(),
+  descriere: text("descriere"),
+  /** Liderul care coordonează slujirea (opțional). */
+  responsabilId: integer("responsabil_id").references(() => lideri.id, {
+    onDelete: "set null",
+  }),
+  activa: integer("activa", { mode: "boolean" }).notNull().default(true),
+  creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+});
+
+/** Cine e implicat în ce echipă de slujire. */
+export const membriEchipe = sqliteTable(
+  "membri_echipe",
+  {
+    echipaId: integer("echipa_id")
+      .notNull()
+      .references(() => echipeSlujire.id, { onDelete: "cascade" }),
+    membruId: integer("membru_id")
+      .notNull()
+      .references(() => membri.id, { onDelete: "cascade" }),
+    /** Ce face acolo (ex. "chitară", "cameră"). */
+    rol: text("rol"),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+  },
+  (t) => [
+    primaryKey({ columns: [t.echipaId, t.membruId] }),
+    index("membri_echipe_membru_idx").on(t.membruId),
+  ],
+);
+
+/**
+ * Calendarul slujirilor: la data X slujește o grupă mică sau o echipă
+ * (sau amândouă - de exemplu grupa ajută echipa de protocol).
+ */
+export const programariSlujire = sqliteTable(
+  "programari_slujire",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    /** Data în format AAAA-LL-ZZ. */
+    data: text("data").notNull(),
+    titlu: text("titlu").notNull(),
+    detalii: text("detalii"),
+    ora: text("ora"),
+    locatie: text("locatie"),
+    grupaId: integer("grupa_id").references(() => grupe.id, {
+      onDelete: "cascade",
+    }),
+    echipaId: integer("echipa_id").references(() => echipeSlujire.id, {
+      onDelete: "cascade",
+    }),
+    creatDeId: integer("creat_de_id").references(() => lideri.id, {
+      onDelete: "set null",
+    }),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+  },
+  (t) => [
+    index("programari_data_idx").on(t.data),
+    index("programari_grupa_idx").on(t.grupaId),
+    index("programari_echipa_idx").on(t.echipaId),
+  ],
+);
+
+/**
+ * Notificările liderilor.
+ *
+ * Se generează o dată pe zi (vezi `/api/cron/notificari`), se văd în aplicație
+ * și, dacă liderul și-a pus adresa de email, pleacă și pe email.
+ * `cheie` e unică per lider, ca aceeași veste să nu fie anunțată de două ori.
+ */
+export const notificari = sqliteTable(
+  "notificari",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    liderId: integer("lider_id")
+      .notNull()
+      .references(() => lideri.id, { onDelete: "cascade" }),
+    tip: text("tip", {
+      enum: ["zi_nastere", "slujire", "prezenta", "rezumat"],
+    }).notNull(),
+    /** Cheie de dedublare, ex. "zi_nastere:2026:12". */
+    cheie: text("cheie").notNull(),
+    titlu: text("titlu").notNull(),
+    mesaj: text("mesaj").notNull(),
+    /** Unde duce notificarea în aplicație (ex. "/membri/12"). */
+    link: text("link"),
+    citita: integer("citita", { mode: "boolean" }).notNull().default(false),
+    /** Când a plecat pe email (null = încă n-a plecat). */
+    trimisaLa: integer("trimisa_la", { mode: "timestamp" }),
+    /** Motivul pentru care nu a plecat, dacă e cazul. */
+    eroareTrimitere: text("eroare_trimitere"),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+  },
+  (t) => [
+    uniqueIndex("notificari_lider_cheie_uq").on(t.liderId, t.cheie),
+    index("notificari_lider_idx").on(t.liderId, t.creatLa),
+  ],
+);
+
 export type Lider = typeof lideri.$inferSelect;
 export type Grupa = typeof grupe.$inferSelect;
 export type Membru = typeof membri.$inferSelect;
@@ -257,3 +376,7 @@ export type Prezenta = typeof prezente.$inferSelect;
 export type NotaMembru = typeof noteMembru.$inferSelect;
 export type Delegare = typeof delegari.$inferSelect;
 export type StarePrezenta = Prezenta["stare"];
+export type EchipaSlujire = typeof echipeSlujire.$inferSelect;
+export type ProgramareSlujire = typeof programariSlujire.$inferSelect;
+export type Notificare = typeof notificari.$inferSelect;
+export type TipNotificare = Notificare["tip"];

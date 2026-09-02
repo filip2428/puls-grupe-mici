@@ -3,22 +3,34 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { iesi } from "@/app/intra/actions";
-
 /**
  * Bara de navigare de jos - locul unde ajunge degetul mare pe telefon.
  * Se ascunde pe foaia de prezență, ca să nu se bată cu bara de salvare.
+ * „Ieși" stă în Setări: e un gest rar, n-are ce căuta lângă degetul mare.
  */
-export function NavigareJos({ esteAdmin }: { esteAdmin: boolean }) {
+export function NavigareJos({
+  esteAdmin,
+  necitite,
+}: {
+  esteAdmin: boolean;
+  necitite: number;
+}) {
   const cale = usePathname();
   if (cale.endsWith("/prezenta")) return null;
 
   const linkuri = [
     { href: "/grupe", text: "Grupe", icon: <IconGrupe /> },
     { href: "/adolescenti", text: "Adolescenți", icon: <IconOameni /> },
+    { href: "/slujiri", text: "Slujiri", icon: <IconSlujiri /> },
     ...(esteAdmin
-      ? [{ href: "/admin", text: "Administrare", icon: <IconSetari /> }]
+      ? [{ href: "/admin", text: "Admin", icon: <IconAdmin /> }]
       : []),
+    {
+      href: "/setari",
+      text: "Setări",
+      icon: <IconSetari />,
+      bulina: necitite,
+    },
   ];
 
   return (
@@ -31,27 +43,23 @@ export function NavigareJos({ esteAdmin }: { esteAdmin: boolean }) {
             <li key={l.href} className="flex-1">
               <Link
                 href={l.href}
-                className={`flex min-h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium ${
+                className={`flex min-h-14 flex-col items-center justify-center gap-1 px-1 text-[10px] font-medium ${
                   activ ? "text-albastru" : "text-cenusiu"
                 }`}
               >
-                {l.icon}
+                <span className="relative">
+                  {l.icon}
+                  {!!l.bulina && (
+                    <span className="absolute -top-1 -right-2 min-w-4 rounded-full bg-red-600 px-1 text-[9px] leading-4 font-bold text-white">
+                      {l.bulina > 9 ? "9+" : l.bulina}
+                    </span>
+                  )}
+                </span>
                 {l.text}
               </Link>
             </li>
           );
         })}
-        <li className="flex-1">
-          <form action={iesi} className="h-full">
-            <button
-              type="submit"
-              className="flex min-h-14 w-full flex-col items-center justify-center gap-1 text-[11px] font-medium text-cenusiu"
-            >
-              <IconIesire />
-              Ieși
-            </button>
-          </form>
-        </li>
       </ul>
     </nav>
   );
@@ -88,6 +96,48 @@ function IconOameni() {
   );
 }
 
+/** Două mâini ridicate - slujire. */
+function IconSlujiri() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M8 20v-4.5C8 13 6.5 12 6.5 10.5V4.8a1.3 1.3 0 0 1 2.6 0V9"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M16 20v-4.5c0-2.5 1.5-3.5 1.5-5V4.8a1.3 1.3 0 0 0-2.6 0V9"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9.1 9V3.3a1.45 1.45 0 0 1 2.9 0V9M14.9 9V3.3a1.45 1.45 0 0 0-2.9 0"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconAdmin() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 20v-5M10 20V9M16 20v-8M22 20V5"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+      <path d="M2 20h20" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function IconSetari() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -97,26 +147,6 @@ function IconSetari() {
         stroke="currentColor"
         strokeWidth="1.7"
         strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function IconIesire() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-      <path
-        d="M10 8 6 12l4 4M6 12h9"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );

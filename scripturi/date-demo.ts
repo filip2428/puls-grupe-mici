@@ -11,12 +11,15 @@ import { and, desc, eq } from "drizzle-orm";
 import { genereazaCod, hashCod } from "../lib/auth/cod";
 import { db } from "../lib/db";
 import {
+  echipeSlujire,
   grupe,
   intalniri,
   lideri,
   lideriGrupe,
   membri,
+  membriEchipe,
   prezente,
+  programariSlujire,
   type StarePrezenta,
 } from "../lib/db/schema";
 import { adaugaZile, dataAzi, ziSaptamanii } from "../lib/util/date";
@@ -230,6 +233,80 @@ async function main() {
       .where(and(eq(prezente.intalnireId, i.id), eq(prezente.membruId, disparut.id)));
   }
   console.log(`(${disparut.nume} are acum 3 absențe la rând, ca să vezi alertele)`);
+
+  // Echipe de slujire, cu câțiva adolescenți din grupe diferite în fiecare.
+  const ECHIPE = [
+    {
+      nume: "Harvest Kids",
+      descriere: "Lucrarea cu copiii, duminica dimineața",
+      roluri: ["la grupa mică", "la joacă", "la povestire"],
+    },
+    {
+      nume: "Cafenea",
+      descriere: "Cafeneaua de la intrare, înainte și după program",
+      roluri: ["la espressor", "la casă"],
+    },
+    {
+      nume: "Laudă și închinare",
+      descriere: "Trupa care conduce închinarea vineri seara",
+      roluri: ["chitară", "voce", "tobe", "clape"],
+    },
+    {
+      nume: "Media",
+      descriere: "Sunet, proiecție și filmare",
+      roluri: ["sunet", "proiecție", "cameră"],
+    },
+  ];
+
+  const totiMembrii = [...membriPeGrupa.values()].flat();
+  const idEchipe: number[] = [];
+  let cursorEchipa = 0;
+  for (const [index, e] of ECHIPE.entries()) {
+    const [creata] = await db
+      .insert(echipeSlujire)
+      .values({
+        nume: e.nume,
+        descriere: e.descriere,
+        responsabilId: idLideri[index],
+      })
+      .returning({ id: echipeSlujire.id });
+    idEchipe.push(creata.id);
+
+    for (const rol of e.roluri) {
+      const membruId = totiMembrii[cursorEchipa++ % totiMembrii.length];
+      await db
+        .insert(membriEchipe)
+        .values({ echipaId: creata.id, membruId, rol })
+        .onConflictDoNothing();
+    }
+  }
+
+  // Calendarul slujirilor: fiecare grupă are ceva în următoarele săptămâni.
+  const SLUJIRI = [
+    { titlu: "Protocol la slujba de duminică", ora: "09:30", locatie: "Intrarea principală" },
+    { titlu: "Program de tineret", ora: "18:00", locatie: "Sala mare" },
+    { titlu: "Curățenie la biserică", ora: "10:00", locatie: "Toată clădirea" },
+    { titlu: "Vizită la azilul de bătrâni", ora: "16:00", locatie: "Azilul Sf. Maria" },
+  ];
+  for (const [index, grupaId] of idGrupe.entries()) {
+    const s = SLUJIRI[index];
+    await db.insert(programariSlujire).values({
+      data: adaugaZile(azi, 4 + index * 7),
+      titlu: s.titlu,
+      ora: s.ora,
+      locatie: s.locatie,
+      grupaId,
+      detalii: index === 0 ? "Venim cu 30 de minute înainte." : null,
+    });
+  }
+  // Și o slujire a unei echipe, nu a unei grupe.
+  await db.insert(programariSlujire).values({
+    data: adaugaZile(azi, 9),
+    titlu: "Laudă la seara de rugăciune",
+    ora: "19:00",
+    locatie: "Sala mare",
+    echipaId: idEchipe[0],
+  });
 
   console.log("\nDate de test create. Coduri de acces:\n");
   for (const linie of coduri) console.log("  " + linie);

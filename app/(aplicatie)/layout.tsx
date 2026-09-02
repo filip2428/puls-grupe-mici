@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { NavigareJos } from "@/componente/NavigareJos";
 import { ceruteLider } from "@/lib/auth/sesiune";
+import { cateNecitite } from "@/lib/notificari";
 
 /**
  * Cadrul comun al aplicației.
@@ -12,6 +13,7 @@ import { ceruteLider } from "@/lib/auth/sesiune";
 export default async function LayoutAplicatie({ children }: LayoutProps<"/">) {
   const lider = await ceruteLider();
   const esteAdmin = lider.rol === "admin";
+  const necitite = await cateNecitite(lider.id);
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -34,7 +36,7 @@ export default async function LayoutAplicatie({ children }: LayoutProps<"/">) {
         {children}
       </main>
 
-      <NavigareJos esteAdmin={esteAdmin} />
+      <NavigareJos esteAdmin={esteAdmin} necitite={necitite} />
     </div>
   );
 }

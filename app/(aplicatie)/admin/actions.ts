@@ -8,7 +8,17 @@ import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { grupe, lideri, lideriGrupe, membri } from "@/lib/db/schema";
+import { emailConfigurat } from "@/lib/email";
+import {
+  genereazaNotificari,
+  trimiteNotificariNetrimise,
+} from "@/lib/notificari";
 import { creeazaLiderCuCod, regenereazaCodLider } from "@/lib/interogari/lideri";
+import {
+  numeConfirmat,
+  pierderiLider,
+  stergeLiderDefinitiv,
+} from "@/lib/interogari/stergere";
 
 export type StareAdmin = {
   eroare?: string;
@@ -94,6 +104,44 @@ export async function schimbaRol(liderId: number, rol: "lider" | "admin") {
   revalidatePath("/admin/lideri");
 }
 
+/**
+ * Șterge definitiv un lider.
+ *
+ * E ireversibil, deci cerem numele scris de mână. Prezențele pe care le-a
+ * completat rămân în istoric, doar că nu mai au un nume lângă ele.
+ * Pentru cine doar nu mai slujește există „Dezactivează".
+ */
+export async function stergeLider(
+  liderId: number,
+  _stare: StareAdmin,
+  formData: FormData,
+): Promise<StareAdmin> {
+  const admin = await ceruteAdmin();
+  if (liderId === admin.id) {
+    return { eroare: "Nu te poți șterge pe tine." };
+  }
+
+  const pierderi = await pierderiLider(liderId);
+  if (!pierderi) return { eroare: "Liderul nu mai există." };
+
+  const scris = String(formData.get("confirmare") ?? "");
+  if (!numeConfirmat(scris, pierderi.nume)) {
+    return { eroare: `Scrie exact „${pierderi.nume}" ca să confirmi ștergerea.` };
+  }
+
+  await stergeLiderDefinitiv(liderId);
+  await scrieAudit(admin.id, "lider:sters", {
+    liderId,
+    nume: pierderi.nume,
+    grupe: pierderi.grupe,
+    intalniriCompletate: pierderi.intalniriCompletate,
+  });
+
+  // La fel ca la adolescenți: atinge prea multe pagini ca să le numărăm.
+  revalidatePath("/", "layout");
+  return { reusit: true, numePersoana: pierderi.nume };
+}
+
 /** Repartizează un lider la o grupă. */
 export async function repartizeazaLider(grupaId: number, liderId: number) {
   const admin = await ceruteAdmin();
@@ -137,6 +185,41 @@ export async function mutaMembruDinFormular(
   const grupaId = Number(formData.get("grupaId"));
   if (!Number.isInteger(grupaId)) return;
   await mutaMembru(membruId, grupaId);
+}
+
+export type StareNotificari = {
+  eroare?: string;
+  mesaj?: string;
+};
+
+/**
+ * Rulează acum generarea și trimiterea notificărilor, fără să aștepți
+ * rularea automată de dimineață. Util ca să vezi imediat dacă merge.
+ */
+export async function ruleazaNotificari(): Promise<StareNotificari> {
+  const admin = await ceruteAdmin();
+
+  const generate = await genereazaNotificari();
+  const trimise = await trimiteNotificariNetrimise();
+  await scrieAudit(admin.id, "notificari:rulate", { generate, trimise });
+
+  const bucati = [
+    `${generate.total} ${generate.total === 1 ? "notificare nouă" : "notificări noi"}`,
+    trimise.trimise > 0 ? `${trimise.trimise} trimise pe email` : "",
+    trimise.inAsteptare > 0 ? `${trimise.inAsteptare} în așteptare` : "",
+    trimise.esuate > 0 ? `${trimise.esuate} n-au putut fi trimise` : "",
+  ].filter(Boolean);
+
+  revalidatePath("/setari");
+  revalidatePath("/admin");
+
+  const explicatie = !emailConfigurat()
+    ? " Trimiterea pe email nu e configurată încă (lipsesc RESEND_API_KEY și EMAIL_EXPEDITOR), dar notificările se văd în aplicație și pleacă singure după ce o configurezi."
+    : trimise.inAsteptare > 0
+      ? " Cele în așteptare sunt ale liderilor care nu și-au pus adresa de email."
+      : "";
+
+  return { mesaj: `${bucati.join(", ")}.${explicatie}` };
 }
 
 const schemaGrupa = z.object({

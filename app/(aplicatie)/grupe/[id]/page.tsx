@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { primesteInGrupa } from "@/app/(aplicatie)/membri/[id]/actions";
 import { FormularInlocuire } from "@/componente/FormularInlocuire";
 import { FormularMembruNou } from "@/componente/FormularMembruNou";
+import { RandProgramare } from "@/componente/RandProgramare";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import {
   inlocuiriGrupa,
@@ -16,6 +17,7 @@ import {
   intalniriGrupei,
   membriGrupei,
 } from "@/lib/interogari/grupe";
+import { programariGrupei } from "@/lib/interogari/slujiri";
 import { alerteAbsenteGrupa } from "@/lib/interogari/statistici";
 import {
   ZILE_SAPTAMANA,
@@ -39,16 +41,25 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
   if (!g) notFound();
 
   const azi = dataAzi();
-  const [membri, musafiri, intalniri, alerte, lideri, inlocuiri, potentiali] =
-    await Promise.all([
-      membriGrupei(grupaId),
-      membriGrupei(grupaId, { status: "musafir" }),
-      intalniriGrupei(grupaId, 10),
-      alerteAbsenteGrupa(grupaId),
-      liderilGrupei(grupaId),
-      inlocuiriGrupa(grupaId),
-      liderilPotentiali(grupaId),
-    ]);
+  const [
+    membri,
+    musafiri,
+    intalniri,
+    alerte,
+    lideri,
+    inlocuiri,
+    potentiali,
+    slujiri,
+  ] = await Promise.all([
+    membriGrupei(grupaId),
+    membriGrupei(grupaId, { status: "musafir" }),
+    intalniriGrupei(grupaId, 10),
+    alerteAbsenteGrupa(grupaId),
+    liderilGrupei(grupaId),
+    inlocuiriGrupa(grupaId),
+    liderilPotentiali(grupaId),
+    programariGrupei(grupaId, 4),
+  ]);
 
   const poateOrganiza = !acces.prinInlocuire || acces.esteAdmin;
 
@@ -104,6 +115,25 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
           </button>
         </form>
       </section>
+
+      {/* Slujirile care urmează */}
+      {slujiri.length > 0 && (
+        <section className="card p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-bold">Slujiri care urmează</h2>
+            <Link href="/slujiri" className="text-xs text-albastru underline">
+              Toate
+            </Link>
+          </div>
+          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+            {slujiri.map((p) => (
+              <li key={p.id} className="py-3">
+                <RandProgramare programare={p} azi={azi} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Cine ar trebui căutat */}
       {alerte.length > 0 && (

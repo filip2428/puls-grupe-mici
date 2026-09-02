@@ -1,16 +1,23 @@
 import Link from "next/link";
 
 import { ButonCodNou, FormularLiderNou } from "@/componente/AdminLideri";
+import { ZonaStergere } from "@/componente/ZonaStergere";
 import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { listaLideri } from "@/lib/interogari/lideri";
+import { pierderiLider } from "@/lib/interogari/stergere";
 import { momentLizibil } from "@/lib/util/date";
-import { schimbaActivLider, schimbaRol } from "../actions";
+import { schimbaActivLider, schimbaRol, stergeLider } from "../actions";
 
 export const metadata = { title: "Lideri · Puls" };
 
 export default async function PaginaLideri() {
   const admin = await ceruteAdmin();
   const lideri = await listaLideri();
+  const pierderi = new Map(
+    (await Promise.all(lideri.map((l) => pierderiLider(l.id))))
+      .map((p, i) => [lideri[i].id, p] as const)
+      .filter(([, p]) => p !== null),
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -83,10 +90,53 @@ export default async function PaginaLideri() {
                   </>
                 )}
               </div>
+
+              {l.id !== admin.id && pierderi.get(l.id) && (
+                <div className="w-full">
+                  <ZonaStergere
+                    actiune={stergeLider.bind(null, l.id)}
+                    nume={l.nume}
+                    titlu={`Șterge ${l.nume} din aplicație`}
+                    avertisment={avertismentLider(pierderi.get(l.id)!)}
+                    textButon="Șterge definitiv"
+                  />
+                </div>
+              )}
             </li>
           ))}
         </ul>
       </section>
     </div>
   );
+}
+
+/** Ce se pierde și ce rămâne, spus pe scurt înainte de ștergere. */
+function avertismentLider(p: {
+  grupe: number;
+  intalniriCompletate: number;
+  note: number;
+  inlocuiri: number;
+}): string {
+  const dispare = [
+    p.grupe > 0
+      ? `iese din ${p.grupe === 1 ? "grupa la care e repartizat" : `cele ${p.grupe} grupe la care e repartizat`}`
+      : "",
+    p.inlocuiri > 0 ? "se anulează înlocuirile" : "",
+    "codul de acces nu mai merge",
+  ].filter(Boolean);
+
+  const ramane = [
+    p.intalniriCompletate > 0
+      ? `${p.intalniriCompletate === 1 ? "prezența completată" : `cele ${p.intalniriCompletate} prezențe completate`}`
+      : "",
+    p.note > 0
+      ? `${p.note === 1 ? "nota scrisă" : `cele ${p.note} note scrise`}`
+      : "",
+  ].filter(Boolean);
+
+  const coada = ramane.length
+    ? ` Rămân în aplicație ${ramane.join(" și ")}, doar fără nume lângă ele.`
+    : "";
+
+  return `Se șterge definitiv: ${dispare.join(", ")}.${coada} Dacă doar nu mai slujește o vreme, folosește „Dezactivează".`;
 }

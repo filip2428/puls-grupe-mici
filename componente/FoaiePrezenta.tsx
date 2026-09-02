@@ -6,7 +6,6 @@ import { useActionState, useMemo, useState, useTransition } from "react";
 import {
   adaugaMusafir,
   salveazaFoaia,
-  type StareMusafir,
   type StarePrezentaFormular,
 } from "@/app/(aplicatie)/grupe/[id]/prezenta/actions";
 import type { StarePrezenta } from "@/lib/db/schema";

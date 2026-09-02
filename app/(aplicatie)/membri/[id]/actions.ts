@@ -2,6 +2,7 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { ceruteLider } from "@/lib/auth/sesiune";
@@ -9,6 +10,11 @@ import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { membri, noteMembru } from "@/lib/db/schema";
 import { verificaAccesGrupa } from "@/lib/interogari/acces";
+import {
+  numeConfirmat,
+  pierderiMembru,
+  stergeMembruDefinitiv,
+} from "@/lib/interogari/stergere";
 import { dataAzi, esteDataValida } from "@/lib/util/date";
 
 export type StareFormular = { eroare?: string; reusit?: boolean };
@@ -112,6 +118,12 @@ export async function salveazaMembru(
     nume: formData.get("nume"),
     telefon: formData.get("telefon"),
     dataNasterii: formData.get("dataNasterii"),
+    sex: formData.get("sex"),
+    clasa: formData.get("clasa"),
+    parinte1Nume: formData.get("parinte1Nume"),
+    parinte1Telefon: formData.get("parinte1Telefon"),
+    parinte2Nume: formData.get("parinte2Nume"),
+    parinte2Telefon: formData.get("parinte2Telefon"),
   });
   if (!rezultat.success) {
     return { eroare: rezultat.error.issues[0]?.message ?? "Date invalide." };
@@ -160,6 +172,44 @@ export async function primesteInGrupa(membruId: number) {
 
   revalidatePath(`/membri/${membruId}`);
   revalidatePath(`/grupe/${acces.membru.grupaId}`);
+}
+
+/**
+ * Șterge definitiv un adolescent, cu tot ce ține de el: prezențe, note,
+ * echipele de slujire. E ireversibil, deci cerem numele scris de mână.
+ *
+ * Dacă doar nu mai vine, varianta bună e „Marchează ca inactiv" - acolo
+ * istoricul rămâne întreg.
+ */
+export async function stergeMembru(
+  membruId: number,
+  _stare: StareFormular,
+  formData: FormData,
+): Promise<StareFormular> {
+  const acces = await accesLaMembru(membruId);
+  if (!acces) return { eroare: "Nu ai acces la adolescentul ăsta." };
+
+  const pierderi = await pierderiMembru(membruId);
+  if (!pierderi) return { eroare: "Adolescentul nu mai există." };
+
+  const scris = String(formData.get("confirmare") ?? "");
+  if (!numeConfirmat(scris, pierderi.nume)) {
+    return { eroare: `Scrie exact „${pierderi.nume}" ca să confirmi ștergerea.` };
+  }
+
+  await stergeMembruDefinitiv(membruId);
+  await scrieAudit(acces.lider.id, "membru:sters", {
+    membruId,
+    nume: pierderi.nume,
+    grupaId: pierderi.grupaId,
+    prezente: pierderi.prezente,
+    note: pierderi.note,
+  });
+
+  // Ștergerea atinge multe pagini deodată (grupa, lista, slujirile, alertele),
+  // așa că golim tot ce ține de cadrul aplicației - se întâmplă destul de rar.
+  revalidatePath("/", "layout");
+  redirect(`/grupe/${pierderi.grupaId}`);
 }
 
 /** Îl trece înapoi la musafiri (dacă a fost primit din greșeală). */
