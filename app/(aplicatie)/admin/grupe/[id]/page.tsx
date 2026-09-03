@@ -64,7 +64,6 @@ export default async function PaginaAdminGrupa({
           grupaId={grupaId}
           initial={{
             nume: g.nume,
-            ziIntalnire: g.ziIntalnire,
             oraIntalnire: g.oraIntalnire,
             locatie: g.locatie,
           }}

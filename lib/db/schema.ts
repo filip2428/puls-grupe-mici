@@ -62,12 +62,16 @@ export const lideri = sqliteTable(
   (t) => [uniqueIndex("lideri_cod_public_uq").on(t.codPublic)],
 );
 
-/** Grupele mici. */
+/**
+ * Grupele mici.
+ *
+ * Ziua în care se stă pe grupe nu e aici: ea vine din calendar, din serile
+ * trecute ca fiind pe grupe mici. Rămân doar ora și locul, care chiar țin de
+ * grupă - fiecare cu sala și ceasul ei în aceeași seară.
+ */
 export const grupe = sqliteTable("grupe", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   nume: text("nume").notNull(),
-  /** 0 = duminică ... 6 = sâmbătă. Doar informativ, pentru afișare. */
-  ziIntalnire: integer("zi_intalnire"),
   oraIntalnire: text("ora_intalnire"),
   locatie: text("locatie"),
   activa: integer("activa", { mode: "boolean" }).notNull().default(true),

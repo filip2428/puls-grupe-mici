@@ -29,7 +29,6 @@ import {
 } from "@/lib/interogari/slujiri";
 import { pierderiMembru } from "@/lib/interogari/stergere";
 import {
-  ZILE_SAPTAMANA,
   dataAzi,
   dataScurta,
   momentLizibil,
@@ -93,7 +92,6 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   const tinLocul = inlocuiri.filter((d) => d.deLa <= azi && d.panaLa >= azi);
 
   const candSeVede = [
-    date.grupa.ziIntalnire !== null ? ZILE_SAPTAMANA[date.grupa.ziIntalnire] : "",
     date.grupa.oraIntalnire ? `ora ${date.grupa.oraIntalnire}` : "",
     date.grupa.locatie ?? "",
   ]

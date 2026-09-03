@@ -12,6 +12,7 @@ import { genereazaCod, hashCod } from "../lib/auth/cod";
 import { db } from "../lib/db";
 import {
   echipeSlujire,
+  evenimente,
   grupe,
   intalniri,
   lideri,
@@ -59,12 +60,19 @@ const LIDERI = [
   "Adi Bogdan", "Ovidiu Marcu", "Caleb Walker", "Ioana Predescu", "Sergiu Tanase",
 ];
 
+/*
+  Grupele se strâng toate în aceeași seară - cea trecută în calendar - dar
+  fiecare în sala și la ora ei.
+*/
 const GRUPE = [
-  { nume: "Băieți 14-16", ziIntalnire: 5, oraIntalnire: "18:00", locatie: "Sala mică" },
-  { nume: "Fete 14-16", ziIntalnire: 5, oraIntalnire: "18:00", locatie: "Sala de sus" },
-  { nume: "Băieți 17-19", ziIntalnire: 3, oraIntalnire: "19:00", locatie: "Cafeneaua" },
-  { nume: "Fete 17-19", ziIntalnire: 3, oraIntalnire: "19:00", locatie: "Biblioteca" },
+  { nume: "Băieți 14-16", oraIntalnire: "18:00", locatie: "Sala mică" },
+  { nume: "Fete 14-16", oraIntalnire: "18:00", locatie: "Sala de sus" },
+  { nume: "Băieți 17-19", oraIntalnire: "19:00", locatie: "Cafeneaua" },
+  { nume: "Fete 17-19", oraIntalnire: "19:00", locatie: "Biblioteca" },
 ];
+
+/** În ce zi a săptămânii e Pulsul: 5 = vineri. */
+const ZIUA_PULSULUI = 5;
 
 function alege<T>(lista: T[]): T {
   return lista[Math.floor(Math.random() * lista.length)];
@@ -164,19 +172,45 @@ async function main() {
     musafiri.push(creat.id);
   }
 
-  // Prezențe pe ultimele 8 săptămâni
+  // Calendarul: opt seri în urmă și încă patru înainte, în fiecare vineri.
   const azi = dataAzi();
+  let prima = adaugaZile(azi, -8 * 7);
+  while (ziSaptamanii(prima) !== ZIUA_PULSULUI) prima = adaugaZile(prima, 1);
+
+  const seri: string[] = [];
+  for (let zi = prima; zi <= adaugaZile(azi, 28); zi = adaugaZile(zi, 7)) {
+    seri.push(zi);
+  }
+
+  for (const data of seri) {
+    await db.insert(evenimente).values({
+      data,
+      titlu: "Puls de vineri",
+      ora: "18:00",
+      locatie: "Biserica",
+      peGrupeMici: true,
+      creatDeId: idLideri[0],
+    });
+  }
+
+  // O seară în care stăm toți împreună: aici nu se ține prezența pe grupe,
+  // deci nici notificarea de prezență lipsă n-are ce căuta.
+  await db.insert(evenimente).values({
+    data: adaugaZile(seri[seri.length - 1], -3),
+    titlu: "Gamenight",
+    ora: "19:00",
+    locatie: "Sala mare",
+    peGrupeMici: false,
+    creatDeId: idLideri[0],
+  });
+
+  // Prezențe la serile care au trecut deja.
+  const seriTrecute = seri.filter((zi) => zi < azi);
   for (const [index, grupaId] of idGrupe.entries()) {
-    const ziua = GRUPE[index].ziIntalnire;
     const idMembri = membriPeGrupa.get(grupaId)!;
     const liderId = idLideri[index];
 
-    for (let saptamana = 8; saptamana >= 1; saptamana--) {
-      // Găsim ziua potrivită din săptămâna respectivă.
-      let data = adaugaZile(azi, -saptamana * 7);
-      while (ziSaptamanii(data) !== ziua) data = adaugaZile(data, 1);
-      if (data > azi) continue;
-
+    for (const data of seriTrecute) {
       const [intalnire] = await db
         .insert(intalniri)
         .values({

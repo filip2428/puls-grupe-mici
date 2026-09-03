@@ -7,7 +7,7 @@ import {
   rezumatGrupe,
   type RezumatGrupaAdmin,
 } from "@/lib/interogari/statistici";
-import { ZILE_SAPTAMANA, dataAzi, dataScurta } from "@/lib/util/date";
+import { dataAzi, dataScurta } from "@/lib/util/date";
 
 export const metadata = { title: "Grupele mele · Puls" };
 
@@ -127,9 +127,9 @@ function CardGrupa({
               )}
             </div>
             <p className="mt-1 text-sm text-cenusiu">
-              {g.ziIntalnire !== null && ZILE_SAPTAMANA[g.ziIntalnire]}
-              {g.oraIntalnire ? `, ora ${g.oraIntalnire}` : ""}
-              {g.locatie ? ` · ${g.locatie}` : ""}
+              {[g.oraIntalnire ? `ora ${g.oraIntalnire}` : "", g.locatie ?? ""]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
             <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cenusiu">
               <span>{r?.membriActivi ?? 0} pulsiști</span>

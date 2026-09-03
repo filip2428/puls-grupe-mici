@@ -244,11 +244,6 @@ export async function ruleazaNotificari(): Promise<StareNotificari> {
 
 const schemaGrupa = z.object({
   nume: z.string().trim().min(2, "Numele grupei e prea scurt.").max(80),
-  ziIntalnire: z
-    .string()
-    .optional()
-    .transform((v) => (v === undefined || v === "" ? null : Number(v)))
-    .refine((v) => v === null || (v >= 0 && v <= 6), "Zi invalidă."),
   oraIntalnire: z
     .string()
     .trim()
@@ -272,7 +267,6 @@ export async function creeazaGrupa(
 
   const rezultat = schemaGrupa.safeParse({
     nume: formData.get("nume"),
-    ziIntalnire: formData.get("ziIntalnire"),
     oraIntalnire: formData.get("oraIntalnire"),
     locatie: formData.get("locatie"),
   });
@@ -303,7 +297,6 @@ export async function salveazaGrupa(
 
   const rezultat = schemaGrupa.safeParse({
     nume: formData.get("nume"),
-    ziIntalnire: formData.get("ziIntalnire"),
     oraIntalnire: formData.get("oraIntalnire"),
     locatie: formData.get("locatie"),
   });

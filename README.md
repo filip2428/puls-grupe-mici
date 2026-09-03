@@ -76,7 +76,14 @@ La fiecare întâlnire se răspunde la întrebarea care schimbă seara: **se st�
 grupe mici sau toți împreună?** Un Puls obișnuit e pe grupe mici, un gamenight
 nu e. De răspunsul ăsta atârnă dacă liderului i se propune, chiar în ziua aia,
 să facă prezența la grupa lui - la gamenight n-are cine s-o facă și pe cine s-o
-treacă.
+treacă. Tot de el atârnă și notificarea de a doua zi: după o seară pe grupe
+mici, grupele care n-au prezența trecută își anunță liderii; după un gamenight,
+nimeni nu e bătut la cap.
+
+Calendarul e singurul loc unde se spune când se stă pe grupe. Grupa însăși nu
+mai are o „zi a întâlnirii" - ar fi fost două adevăruri despre același lucru,
+care mai devreme sau mai târziu s-ar fi contrazis. Ce ține de grupă rămâne pe
+grupă: ora și sala ei.
 
 Dacă întâlnirea se ține săptămână de săptămână, o bifă („se repetă în fiecare
 săptămână", până la o dată) o scrie de câte ori trebuie. Nu se ține minte nicio
@@ -123,7 +130,7 @@ pornit notificările și îi pleacă și pe email dacă și-a pus adresa:
 
 - **zile de naștere** - cu trei zile înainte, pentru pulsiștii din grupa lui;
 - **slujiri** - când grupa lui sau pulsiștii lui sunt programați;
-- **prezența necompletată** - dacă a trecut ziua întâlnirii și lipsește;
+- **prezența necompletată** - după o seară pe grupe mici din calendar;
 - **rezumatul de luni** - cum a fost săptămâna și cine ar trebui căutat.
 
 Fiecare lider bifează singur ce vrea să primească. Notificările nu se repetă:

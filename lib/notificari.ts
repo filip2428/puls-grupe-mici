@@ -1,10 +1,11 @@
 import "server-only";
 
-import { and, count, desc, eq, gte, inArray, isNull, lte, or } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, lt, lte, or } from "drizzle-orm";
 
 import { adresaAplicatiei, emailActiv, trimiteEmail } from "@/lib/email";
 import { db } from "@/lib/db";
 import {
+  evenimente,
   grupe,
   intalniri,
   lideri,
@@ -42,6 +43,8 @@ import {
 /** Cu câte zile înainte anunțăm o zi de naștere sau o slujire. */
 const ZILE_INAINTE_NASTERE = 3;
 const ZILE_INAINTE_SLUJIRE = 4;
+/** Cât de în urmă mai căutăm o prezență necompletată. */
+const ZILE_INAPOI_PREZENTA = 7;
 
 type NotificareNoua = {
   liderId: number;
@@ -189,26 +192,41 @@ async function notificariSlujiri(azi: string): Promise<NotificareNoua[]> {
   return noi;
 }
 
-/** Grupele care aveau întâlnire zilele trecute, dar n-au prezența completată. */
+/**
+ * Serile pe grupe mici care au trecut, dar n-au prezența completată.
+ *
+ * Punctul de plecare e calendarul, nu o zi fixă a grupei: dacă seara aia n-a
+ * fost trecută în calendar ca fiind pe grupe mici, liderii n-aveau ce prezență
+ * să facă, deci n-are rost să fie bătuți la cap. La un gamenight, de exemplu,
+ * nu se stă pe grupe și nu se ține prezența.
+ *
+ * Ne uităm o săptămână în urmă, nu doar la ziua de ieri: o seară scăpată
+ * vinerea mai poate fi prinsă și miercurea următoare.
+ */
 async function notificariPrezentaLipsa(azi: string): Promise<NotificareNoua[]> {
+  const serile = await db
+    .select({ data: evenimente.data, titlu: evenimente.titlu })
+    .from(evenimente)
+    .where(
+      and(
+        eq(evenimente.peGrupeMici, true),
+        gte(evenimente.data, adaugaZile(azi, -ZILE_INAPOI_PREZENTA)),
+        // Seara de azi încă n-a trecut - abia mâine are sens s-o cerem.
+        lt(evenimente.data, azi),
+      ),
+    );
+  if (serile.length === 0) return [];
+
+  // Dacă în calendar sunt două întâlniri în aceeași zi, ziua rămâne una.
+  const peZi = new Map<string, string>();
+  for (const s of serile) if (!peZi.has(s.data)) peZi.set(s.data, s.titlu);
+  const zile = [...peZi.keys()];
+
   const active = await db
-    .select({ id: grupe.id, nume: grupe.nume, ziIntalnire: grupe.ziIntalnire })
+    .select({ id: grupe.id, nume: grupe.nume })
     .from(grupe)
     .where(eq(grupe.activa, true));
-
-  // Pentru fiecare grupă, ultima zi de întâlnire care a trecut (max. o săptămână).
-  const deVerificat: { grupaId: number; nume: string; data: string }[] = [];
-  for (const g of active) {
-    if (g.ziIntalnire === null) continue;
-    for (let inapoi = 1; inapoi <= 7; inapoi++) {
-      const zi = adaugaZile(azi, -inapoi);
-      if (ziSaptamanii(zi) === g.ziIntalnire) {
-        deVerificat.push({ grupaId: g.id, nume: g.nume, data: zi });
-        break;
-      }
-    }
-  }
-  if (deVerificat.length === 0) return [];
+  if (active.length === 0) return [];
 
   const facute = await db
     .select({ grupaId: intalniri.grupaId, data: intalniri.data })
@@ -217,19 +235,28 @@ async function notificariPrezentaLipsa(azi: string): Promise<NotificareNoua[]> {
       and(
         inArray(
           intalniri.grupaId,
-          deVerificat.map((d) => d.grupaId),
+          active.map((g) => g.id),
         ),
-        gte(intalniri.data, adaugaZile(azi, -7)),
+        inArray(intalniri.data, zile),
       ),
     );
   const existente = new Set(facute.map((f) => `${f.grupaId}:${f.data}`));
 
-  const lipsa = deVerificat.filter(
-    (d) => !existente.has(`${d.grupaId}:${d.data}`),
-  );
+  const lipsa: {
+    grupaId: number;
+    nume: string;
+    data: string;
+    titlu: string;
+  }[] = [];
+  for (const [data, titlu] of peZi) {
+    for (const g of active) {
+      if (existente.has(`${g.id}:${data}`)) continue;
+      lipsa.push({ grupaId: g.id, nume: g.nume, data, titlu });
+    }
+  }
   if (lipsa.length === 0) return [];
 
-  const peGrupa = await liderilPeGrupa(lipsa.map((l) => l.grupaId));
+  const peGrupa = await liderilPeGrupa([...new Set(lipsa.map((l) => l.grupaId))]);
   const noi: NotificareNoua[] = [];
 
   for (const l of lipsa) {
@@ -240,7 +267,7 @@ async function notificariPrezentaLipsa(azi: string): Promise<NotificareNoua[]> {
         tip: "prezenta",
         cheie: `prezenta:${l.grupaId}:${l.data}`,
         titlu: `Prezența de ${dataScurta(l.data)} n-a fost completată`,
-        mesaj: `Grupa ${l.nume} a avut întâlnire ${ZILE_SAPTAMANA[ziSaptamanii(l.data)]}, ${dataScurta(l.data)}, dar prezența nu e trecută. Se poate completa și acum.`,
+        mesaj: `La ${l.titlu} de ${ZILE_SAPTAMANA[ziSaptamanii(l.data)]}, ${dataScurta(l.data)}, s-a stat pe grupe mici, dar prezența grupei ${l.nume} nu e trecută. Se poate completa și acum.`,
         link: `/grupe/${l.grupaId}/prezenta?data=${l.data}`,
       });
     }

@@ -7,11 +7,8 @@ import {
   salveazaGrupa,
   type StareAdmin,
 } from "@/app/(aplicatie)/admin/actions";
-import { ZILE_SAPTAMANA } from "@/lib/util/date";
-
 type DateGrupa = {
   nume?: string;
-  ziIntalnire?: number | null;
   oraIntalnire?: string | null;
   locatie?: string | null;
 };
@@ -34,25 +31,7 @@ function CampuriGrupa({ initial }: { initial?: DateGrupa }) {
         />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div>
-          <label className="eticheta" htmlFor="ziIntalnire">
-            Ziua întâlnirii
-          </label>
-          <select
-            id="ziIntalnire"
-            name="ziIntalnire"
-            className="camp"
-            defaultValue={initial?.ziIntalnire ?? ""}
-          >
-            <option value="">-</option>
-            {ZILE_SAPTAMANA.map((zi, index) => (
-              <option key={zi} value={index}>
-                {zi}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="eticheta" htmlFor="oraIntalnire">
             Ora

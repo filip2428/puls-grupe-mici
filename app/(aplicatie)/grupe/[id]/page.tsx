@@ -21,7 +21,6 @@ import {
 import { programariGrupei, slujiriDeCompletat } from "@/lib/interogari/slujiri";
 import { alerteAbsenteGrupa } from "@/lib/interogari/statistici";
 import {
-  ZILE_SAPTAMANA,
   dataAzi,
   dataLunga,
   dataScurta,
@@ -81,10 +80,13 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
         </Link>
         <h1 className="mt-2 text-xl font-bold">{g.nume}</h1>
         <p className="text-sm text-cenusiu">
-          {g.ziIntalnire !== null && ZILE_SAPTAMANA[g.ziIntalnire]}
-          {g.oraIntalnire ? `, ora ${g.oraIntalnire}` : ""}
-          {g.locatie ? ` · ${g.locatie}` : ""}
-          {` · ${membri.length} pulsiști`}
+          {[
+            g.oraIntalnire ? `ora ${g.oraIntalnire}` : "",
+            g.locatie ?? "",
+            `${membri.length} pulsiști`,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
         </p>
         {acces.prinInlocuire && (
           <p className="mt-2 rounded-xl bg-lime/25 px-3 py-2 text-sm">

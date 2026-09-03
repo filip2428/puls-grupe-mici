@@ -18,7 +18,6 @@ import { dataAzi } from "@/lib/util/date";
 export type GrupaAccesibila = {
   id: number;
   nume: string;
-  ziIntalnire: number | null;
   oraIntalnire: string | null;
   locatie: string | null;
   activa: boolean;

@@ -1,0 +1,1 @@
+ALTER TABLE `grupe` DROP COLUMN `zi_intalnire`;
