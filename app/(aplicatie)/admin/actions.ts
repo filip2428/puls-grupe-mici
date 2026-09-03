@@ -228,6 +228,10 @@ export async function ruleazaNotificari(): Promise<StareNotificari> {
       : "telefonul (NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)",
   ].filter(Boolean);
 
+  const motiv = trimise.ultimaEroare
+    ? ` De ce n-au plecat: ${trimise.ultimaEroare}`
+    : "";
+
   const explicatie =
     lipsuri.length > 0
       ? ` Încă nu e configurat ${lipsuri.join(" și ")}. Notificările se văd oricum în aplicație și pleacă singure după ce configurezi.`
@@ -235,7 +239,7 @@ export async function ruleazaNotificari(): Promise<StareNotificari> {
         ? " Cele în așteptare sunt ale liderilor care n-au pus adresa de email și nici nu și-au pornit notificările pe telefon."
         : "";
 
-  return { mesaj: `${bucati.join(", ")}.${explicatie}` };
+  return { mesaj: `${bucati.join(", ")}.${explicatie}${motiv}` };
 }
 
 const schemaGrupa = z.object({

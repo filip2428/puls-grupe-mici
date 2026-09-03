@@ -404,6 +404,14 @@ export type RezultatTrimitere = {
   pushTrimise: number;
   /** Telefoane care nu mai ascultau; le-am scos din listă. */
   pushSterse: number;
+  /**
+   * De ce n-a plecat ultimul email care a eșuat.
+   *
+   * Îl scoatem la suprafață pentru că altfel rămânea doar în coloana
+   * `eroareTrimitere` din baza de date, unde nu se uită nimeni, iar în
+   * administrare scria doar „3 n-au putut fi trimise" - adevărat, dar inutil.
+   */
+  ultimaEroare: string | null;
 };
 
 /**
@@ -454,6 +462,7 @@ export async function trimiteNotificariNetrimise(
     inAsteptare: 0,
     pushTrimise: 0,
     pushSterse: 0,
+    ultimaEroare: null,
   };
 
   const potPush = pushConfigurat();
@@ -512,6 +521,7 @@ Poți opri notificările din Setări.`,
         .set({ eroareTrimitere: raspuns.motiv })
         .where(eq(notificari.id, n.id));
       rezultat.esuate++;
+      rezultat.ultimaEroare = raspuns.motiv;
     }
   }
 

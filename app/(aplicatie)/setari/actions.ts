@@ -7,7 +7,7 @@ import { scrieAudit } from "@/lib/audit";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { db } from "@/lib/db";
 import { lideri, notificari } from "@/lib/db/schema";
-import { emailValid } from "@/lib/email";
+import { emailConfigurat, emailValid, trimiteEmail } from "@/lib/email";
 import { marcheazaToateCitite } from "@/lib/notificari";
 import {
   abonamentValid,
@@ -138,4 +138,45 @@ export async function notificareDeProba(): Promise<StarePush> {
     };
   }
   return { eroare: "N-am reușit să trimit notificarea. Mai încearcă." };
+}
+
+/**
+ * Trimite un email de probă către adresa liderului.
+ *
+ * Rostul lui nu e doar să zică „merge": când nu merge, întoarce exact ce a
+ * răspuns Resend, tradus. Altfel singurul semn că email-urile nu pleacă era
+ * un „3 n-au putut fi trimise" în panoul de administrare, fără niciun motiv.
+ */
+export async function emailDeProba(): Promise<StarePush> {
+  const lider = await ceruteLider();
+
+  if (!emailConfigurat()) {
+    return {
+      eroare:
+        "Trimiterea pe email nu e pornită pe server. Lipsesc RESEND_API_KEY sau EMAIL_EXPEDITOR.",
+    };
+  }
+  if (!lider.email) {
+    return { eroare: "Scrie-ți întâi adresa de email mai sus și apasă Salvează." };
+  }
+
+  const raspuns = await trimiteEmail({
+    catre: lider.email,
+    subiect: "Puls · email de probă",
+    text: `Salut, ${lider.nume}!
+
+Dacă citești asta, trimiterea pe email merge. Așa o să arate notificările de
+la grupele mici.
+
+—
+Puls · grupe mici
+Poți opri notificările din Setări.`,
+  });
+
+  if (raspuns.trimis) {
+    return {
+      reusit: `Am trimis-o către ${lider.email}. Dacă nu apare în câteva minute, caută și în Spam.`,
+    };
+  }
+  return { eroare: raspuns.motiv };
 }

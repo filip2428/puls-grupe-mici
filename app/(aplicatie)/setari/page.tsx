@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { iesi } from "@/app/intra/actions";
+import { ButonEmailProba } from "@/componente/ButonEmailProba";
 import { FormularSetari } from "@/componente/FormularSetari";
 import { InstaleazaAplicatia } from "@/componente/InstaleazaAplicatia";
 import { NotificariTelefon } from "@/componente/NotificariTelefon";
@@ -75,6 +76,8 @@ export default async function PaginaSetari() {
           }}
           emailConfigurat={emailConfigurat()}
         />
+
+        {emailConfigurat() && <ButonEmailProba areAdresa={!!lider.email} />}
       </section>
 
       <section className="card p-4">
