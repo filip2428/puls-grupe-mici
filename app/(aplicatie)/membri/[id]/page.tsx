@@ -6,7 +6,11 @@ import {
   FormularNota,
 } from "@/componente/MembruFormulare";
 import { ceruteLider } from "@/lib/auth/sesiune";
-import { verificaAccesGrupa } from "@/lib/interogari/acces";
+import {
+  inlocuiriGrupa,
+  liderilGrupei,
+  verificaAccesGrupa,
+} from "@/lib/interogari/acces";
 import {
   istoricMembru,
   membru as iaMembru,
@@ -24,7 +28,13 @@ import {
   slujiriDisponibilePentru,
 } from "@/lib/interogari/slujiri";
 import { pierderiMembru } from "@/lib/interogari/stergere";
-import { dataAzi, dataScurta, momentLizibil, varsta } from "@/lib/util/date";
+import {
+  ZILE_SAPTAMANA,
+  dataAzi,
+  dataScurta,
+  momentLizibil,
+  varsta,
+} from "@/lib/util/date";
 import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 import {
   primesteInGrupa,
@@ -58,16 +68,37 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   const acces = await verificaAccesGrupa(lider, date.grupa.id);
   if (!acces.permis) notFound();
 
-  const [istoric, note, echipe, disponibile, slujiri, pierderi] =
-    await Promise.all([
-      istoricMembru(membruId, 16),
-      noteleMembrului(membruId),
-      echipeleMembrului(membruId),
-      slujiriDisponibilePentru(membruId),
-      programariMembrului(membruId, 3),
-      pierderiMembru(membruId),
-    ]);
+  const [
+    istoric,
+    note,
+    echipe,
+    disponibile,
+    slujiri,
+    pierderi,
+    lideriiGrupei,
+    inlocuiri,
+  ] = await Promise.all([
+    istoricMembru(membruId, 16),
+    noteleMembrului(membruId),
+    echipeleMembrului(membruId),
+    slujiriDisponibilePentru(membruId),
+    programariMembrului(membruId, 3),
+    pierderiMembru(membruId),
+    liderilGrupei(date.grupa.id),
+    inlocuiriGrupa(date.grupa.id),
+  ]);
   const azi = dataAzi();
+
+  /* Cine ține locul chiar azi - nu și înlocuirile care abia urmează. */
+  const tinLocul = inlocuiri.filter((d) => d.deLa <= azi && d.panaLa >= azi);
+
+  const candSeVede = [
+    date.grupa.ziIntalnire !== null ? ZILE_SAPTAMANA[date.grupa.ziIntalnire] : "",
+    date.grupa.oraIntalnire ? `ora ${date.grupa.oraIntalnire}` : "",
+    date.grupa.locatie ?? "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const m = date.membru;
   const ani = varsta(m.dataNasterii);
@@ -118,36 +149,97 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         )}
       </div>
 
-      {/* Musafir sau membru */}
+      {/* Grupa lui, cu liderii ei - primul lucru pe care vrei să-l știi */}
       <section className="card p-4">
-        {esteMusafir ? (
-          <>
-            <h2 className="text-sm font-bold">E musafir</h2>
-            <p className="mb-3 text-xs text-cenusiu">
-              Vine în vizită, dar nu e (încă) parte din grupă: nu intră în
-              statistici și nu apare la „de căutat”.
-            </p>
-            <form action={primesteInGrupa.bind(null, membruId)}>
-              <button type="submit" className="buton buton-principal">
-                Primește-l în grupă
-              </button>
-            </form>
-          </>
-        ) : (
-          <>
-            <h2 className="text-sm font-bold">E parte din grupă</h2>
-            <p className="mb-3 text-xs text-cenusiu">
-              {m.devenitMembruLa
-                ? `Primit în grupă pe ${dataScurta(m.devenitMembruLa)}.`
-                : "Intră în statistici și în alertele de absență."}
-            </p>
-            <form action={treceLaMusafiri.bind(null, membruId)}>
-              <button type="submit" className="buton buton-secundar buton-mic">
-                Trece-l înapoi la musafiri
-              </button>
-            </form>
-          </>
-        )}
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+          <h2 className="text-sm font-bold">
+            <Link href={`/grupe/${date.grupa.id}`} className="text-albastru">
+              {date.grupa.nume}
+            </Link>
+          </h2>
+          {candSeVede && (
+            <span className="text-xs text-cenusiu">{candSeVede}</span>
+          )}
+        </div>
+
+        <ul className="mt-3 flex flex-col gap-2 border-t border-[#eef1f7] pt-3">
+          {lideriiGrupei.length === 0 && (
+            <li className="text-sm text-cenusiu">
+              Grupa n-are niciun lider repartizat.
+            </li>
+          )}
+          {lideriiGrupei.map((l) => (
+            <li key={l.id} className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium">{l.nume}</span>
+              {l.rol === "admin" && (
+                <span className="rounded-full bg-fundal px-2 py-0.5 text-[11px] text-cenusiu">
+                  coordonator
+                </span>
+              )}
+              {!l.activ && (
+                <span className="text-xs text-cenusiu">inactiv</span>
+              )}
+              {l.telefon && (
+                <a
+                  href={`tel:${l.telefon}`}
+                  className="buton buton-secundar buton-mic ml-auto"
+                >
+                  Sună
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {/*
+          Cine ține locul azi. Fără rândul ăsta, cine se uită pe fișă ar suna
+          liderul titular tocmai în săptămâna în care el lipsește.
+        */}
+        {tinLocul.map((d) => (
+          <p
+            key={d.id}
+            className="mt-2 rounded-xl bg-lime/25 px-3 py-2 text-xs"
+          >
+            <span className="font-semibold">{d.liderNume}</span> ține locul
+            până pe {dataScurta(d.panaLa)}
+            {d.motiv ? ` · ${d.motiv}` : ""}
+          </p>
+        ))}
+
+        {/* Musafir sau membru */}
+        <div className="mt-3 border-t border-[#eef1f7] pt-3">
+          {esteMusafir ? (
+            <>
+              <p className="mb-3 text-xs text-cenusiu">
+                Vine în vizită, dar nu e (încă) parte din grupă: nu intră în
+                statistici și nu apare la „de căutat”.
+              </p>
+              <form action={primesteInGrupa.bind(null, membruId)}>
+                <button type="submit" className="buton buton-principal">
+                  Primește-l în grupă
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <p className="mb-3 text-xs text-cenusiu">
+                E parte din grupă
+                {m.devenitMembruLa
+                  ? ` din ${dataScurta(m.devenitMembruLa)}`
+                  : ""}
+                : intră în statistici și în alertele de absență.
+              </p>
+              <form action={treceLaMusafiri.bind(null, membruId)}>
+                <button
+                  type="submit"
+                  className="buton buton-secundar buton-mic"
+                >
+                  Trece-l înapoi la musafiri
+                </button>
+              </form>
+            </>
+          )}
+        </div>
       </section>
 
       {/* Părinții */}

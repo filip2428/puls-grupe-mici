@@ -3,12 +3,14 @@ import { NextResponse } from "next/server";
 
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
+import { TON, adaugaFoaie, adaugaFoaieDespre } from "@/lib/excel";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import {
   cautaPulsisti,
   filtruDinParametri,
+  type FiltruPulsisti,
 } from "@/lib/interogari/pulsisti";
-import { dataAzi } from "@/lib/util/date";
+import { dataAzi, momentLizibil } from "@/lib/util/date";
 import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 
 /**
@@ -31,57 +33,83 @@ export async function GET(cerere: Request) {
   registru.creator = "Puls · Grupe mici";
   registru.created = new Date();
 
-  const foaie = registru.addWorksheet("Pulsiști");
-  foaie.columns = [
-    { header: "Nume", key: "nume", width: 26 },
-    { header: "Grupa", key: "grupa", width: 20 },
-    { header: "Statut", key: "statut", width: 10 },
-    { header: "Sex", key: "sex", width: 8 },
-    { header: "Clasa", key: "clasa", width: 12 },
-    { header: "Vârstă", key: "varsta", width: 8 },
-    { header: "Data nașterii", key: "dataNasterii", width: 14 },
-    { header: "Telefon", key: "telefon", width: 14 },
-    { header: "Părinte 1", key: "parinte1Nume", width: 22 },
-    { header: "Telefon părinte 1", key: "parinte1Telefon", width: 16 },
-    { header: "Părinte 2", key: "parinte2Nume", width: 22 },
-    { header: "Telefon părinte 2", key: "parinte2Telefon", width: 16 },
-    { header: "Activ", key: "activ", width: 8 },
-    { header: "Întâlniri", key: "intalniri", width: 10 },
-    { header: "Prezențe", key: "prezente", width: 10 },
-    { header: "% prezență", key: "procent", width: 12 },
-    { header: "Primit în grupă la", key: "devenitMembruLa", width: 16 },
-  ] as ExcelJS.Column[];
+  const randuri = lista.map((a) => ({
+    nume: a.nume,
+    grupa: a.grupaNume,
+    statut: a.status === "musafir" ? "musafir" : "membru",
+    sex: etichetaSex(a.sex),
+    clasa: etichetaClasa(a.clasa),
+    varsta: a.varsta,
+    dataNasterii: a.dataNasterii,
+    telefon: a.telefon,
+    parinte1Nume: a.parinte1Nume,
+    parinte1Telefon: a.parinte1Telefon,
+    parinte2Nume: a.parinte2Nume,
+    parinte2Telefon: a.parinte2Telefon,
+    activ: a.activ ? "da" : "nu",
+    intalniri: a.intalniri,
+    prezente: a.prezente,
+    procent: a.procent,
+    devenitMembruLa: a.devenitMembruLa,
+  }));
 
-  foaie.addRows(
-    lista.map((a) => ({
-      nume: a.nume,
-      grupa: a.grupaNume,
-      statut: a.status === "musafir" ? "musafir" : "membru",
-      sex: etichetaSex(a.sex),
-      clasa: etichetaClasa(a.clasa),
-      varsta: a.varsta,
-      dataNasterii: a.dataNasterii,
-      telefon: a.telefon,
-      parinte1Nume: a.parinte1Nume,
-      parinte1Telefon: a.parinte1Telefon,
-      parinte2Nume: a.parinte2Nume,
-      parinte2Telefon: a.parinte2Telefon,
-      activ: a.activ ? "da" : "nu",
-      intalniri: a.intalniri,
-      prezente: a.prezente,
-      procent: a.procent,
-      devenitMembruLa: a.devenitMembruLa,
-    })),
-  );
+  adaugaFoaie(registru, {
+    nume: "Pulsiști",
+    inghetate: 1,
+    coloane: [
+      { antet: "Nume", cheie: "nume", latime: 26 },
+      { antet: "Grupa", cheie: "grupa", latime: 20 },
+      { antet: "Statut", cheie: "statut", latime: 10, ton: TON.statut },
+      { antet: "Sex", cheie: "sex", latime: 8 },
+      { antet: "Clasa", cheie: "clasa", latime: 12 },
+      { antet: "Vârstă", cheie: "varsta", latime: 8 },
+      {
+        antet: "Data nașterii",
+        cheie: "dataNasterii",
+        latime: 14,
+        format: "data",
+      },
+      { antet: "Telefon", cheie: "telefon", latime: 14 },
+      { antet: "Părinte 1", cheie: "parinte1Nume", latime: 22 },
+      { antet: "Telefon părinte 1", cheie: "parinte1Telefon", latime: 16 },
+      { antet: "Părinte 2", cheie: "parinte2Nume", latime: 22 },
+      { antet: "Telefon părinte 2", cheie: "parinte2Telefon", latime: 16 },
+      { antet: "Activ", cheie: "activ", latime: 8, ton: TON.activ },
+      { antet: "Întâlniri", cheie: "intalniri", latime: 10 },
+      { antet: "Prezențe", cheie: "prezente", latime: 10 },
+      {
+        antet: "% prezență",
+        cheie: "procent",
+        latime: 12,
+        format: "procent",
+        ton: TON.procent,
+      },
+      {
+        antet: "Primit în grupă la",
+        cheie: "devenitMembruLa",
+        latime: 18,
+        format: "data",
+      },
+    ],
+    randuri,
+  });
 
-  foaie.getRow(1).font = { bold: true };
-  foaie.views = [{ state: "frozen", ySplit: 1 }];
-  if (lista.length > 0) {
-    foaie.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: 1, column: foaie.columns.length },
-    };
-  }
+  adaugaFoaieDespre(registru, {
+    titlu: "Lista de pulsiști",
+    detalii: [
+      { eticheta: "Descărcat de", valoare: lider.nume },
+      { eticheta: "Când", valoare: momentLizibil(new Date()) },
+      { eticheta: "Câți", valoare: String(lista.length) },
+      { eticheta: "Filtre", valoare: descrieFiltrul(filtru, randuri) },
+    ],
+    legenda: [
+      { ton: "bine", text: "prezență peste 80%" },
+      { ton: "atentie", text: "prezență între 50 și 80%" },
+      { ton: "slab", text: "prezență sub 50%" },
+      { ton: "aparte", text: "musafir - vine, dar nu e (încă) în grupă" },
+      { ton: "stins", text: "nu mai vine (inactiv) - rămâne pentru istoric" },
+    ],
+  });
 
   const continut = await registru.xlsx.writeBuffer();
   await scrieAudit(lider.id, "export:pulsisti", {
@@ -97,4 +125,33 @@ export async function GET(cerere: Request) {
       "Cache-Control": "no-store",
     },
   });
+}
+
+/**
+ * Filtrele, scrise pe românește.
+ *
+ * Numele grupei îl luăm din rândurile exportate, nu dintr-o interogare în
+ * plus - când s-a filtrat pe o grupă, toate rândurile sunt oricum din ea.
+ */
+function descrieFiltrul(
+  filtru: FiltruPulsisti,
+  randuri: { grupa: string }[],
+): string {
+  const bucati: string[] = [];
+
+  if (filtru.grupaId !== undefined) {
+    bucati.push(`grupa ${randuri[0]?.grupa ?? filtru.grupaId}`);
+  }
+  if (filtru.status) {
+    bucati.push(filtru.status === "membru" ? "doar membri" : "doar musafiri");
+  }
+  if (filtru.sex) bucati.push(filtru.sex === "baiat" ? "doar băieți" : "doar fete");
+  if (filtru.clasa !== undefined) bucati.push(`clasa ${filtru.clasa}`);
+  if (filtru.varstaMin !== undefined) bucati.push(`de la ${filtru.varstaMin} ani`);
+  if (filtru.varstaMax !== undefined) bucati.push(`până la ${filtru.varstaMax} ani`);
+  if (filtru.activi === "inactivi") bucati.push("doar cei care nu mai vin");
+  else if (filtru.activi === "toti") bucati.push("cu tot cu cei care nu mai vin");
+  if (filtru.q) bucati.push(`căutare după „${filtru.q}"`);
+
+  return bucati.length > 0 ? bucati.join(" · ") : "fără filtre - toată lista";
 }

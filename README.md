@@ -44,7 +44,8 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - mută pulsiști dintr-o grupă în alta, fără să piardă istoricul;
 - **șterge definitiv** un lider sau un pulsist, când chiar e nevoie;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
-- descarcă totul în Excel (prezențe, pulsiști, întâlniri);
+- descarcă totul în Excel (prezențe, pulsiști, întâlniri), într-un fișier
+  colorat, cu antet care stă pe loc și cu o foaie care spune ce e în el;
 - vede jurnalul: cine, ce și când a modificat.
 
 ---
@@ -173,6 +174,35 @@ unui lider pe un telefon împrumutat.
 
 Icoanele se generează din logo cu `npm run icoane` și sunt deja în proiect - le
 regenerezi doar dacă schimbi logo-ul.
+
+---
+
+## Fișierele Excel
+
+Se descarcă din *Administrare → Export* (prezențe, pulsiști și întâlniri) sau
+de pe pagina *Pulsiști* (lista, exact cu filtrele de pe ecran).
+
+Nu sunt tabele seci: antetul e albastru și rămâne pe loc când derulezi, primele
+coloane la fel, rândurile sunt în dungi, iar filtrele Excel sunt puse deja.
+Datele sunt **date adevărate**, nu text, deci se pot sorta și filtra pe
+interval („tot ce e în septembrie").
+
+Câteva coloane sunt colorate, ca să se vadă din fugă unde e o problemă:
+
+| Culoare | Ce înseamnă |
+| --- | --- |
+| verde | prezent · prezență peste 80% |
+| chihlimbar | a anunțat că lipsește · prezență între 50 și 80% |
+| roșu | absent · prezență sub 50% |
+| verde-lime | musafir - vine, dar nu e (încă) în grupă |
+| gri, cursiv | nu mai vine (inactiv) - rămâne în fișier, pentru istoric |
+
+Ultima foaie, *Ce e în fișier*, scrie cine l-a descărcat și când, ce grupe și ce
+perioadă cuprinde, câte rânduri are și ce înseamnă culorile. Peste trei luni,
+când găsești fișierul în Descărcări, nu mai e nevoie să ghicești.
+
+Aspectul stă tot într-un singur loc, `lib/excel.ts`, ca ambele exporturi să
+arate la fel.
 
 ---
 

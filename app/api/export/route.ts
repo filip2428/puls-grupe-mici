@@ -3,13 +3,14 @@ import { NextResponse } from "next/server";
 
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
+import { TON, adaugaFoaie, adaugaFoaieDespre } from "@/lib/excel";
 import { grupeAccesibile, verificaAccesGrupa } from "@/lib/interogari/acces";
 import {
   randuriPulsisti,
   randuriIntalniri,
   randuriPrezente,
 } from "@/lib/interogari/export";
-import { dataAzi, esteDataValida } from "@/lib/util/date";
+import { dataAzi, dataLunga, esteDataValida, momentLizibil } from "@/lib/util/date";
 
 /**
  * Descarcă datele într-un fișier Excel.
@@ -59,62 +60,93 @@ export async function GET(cerere: Request) {
   registru.creator = "Puls · Grupe mici";
   registru.created = new Date();
 
-  adaugaFoaie(
-    registru,
-    "Prezențe",
-    [
-      { header: "Grupa", key: "grupa", width: 22 },
-      { header: "Data", key: "data", width: 12 },
-      { header: "Pulsist", key: "pulsist", width: 24 },
-      { header: "Statut", key: "statut", width: 10 },
-      { header: "Stare", key: "stare", width: 12 },
-      { header: "Subiect", key: "subiect", width: 24 },
-      { header: "Completat de", key: "marcatDe", width: 20 },
+  adaugaFoaie(registru, {
+    nume: "Prezențe",
+    inghetate: 3,
+    coloane: [
+      { antet: "Grupa", cheie: "grupa", latime: 22 },
+      { antet: "Data", cheie: "data", latime: 12, format: "data" },
+      { antet: "Pulsist", cheie: "pulsist", latime: 24 },
+      { antet: "Statut", cheie: "statut", latime: 10, ton: TON.statut },
+      { antet: "Stare", cheie: "stare", latime: 12, ton: TON.stare },
+      { antet: "Subiect", cheie: "subiect", latime: 28, rupeTextul: true },
+      { antet: "Completat de", cheie: "marcatDe", latime: 20 },
     ],
-    prezente,
-  );
+    randuri: prezente,
+  });
 
-  adaugaFoaie(
-    registru,
-    "Pulsiști",
-    [
-      { header: "Grupa", key: "grupa", width: 22 },
-      { header: "Nume", key: "nume", width: 24 },
-      { header: "Statut", key: "statut", width: 10 },
-      { header: "Sex", key: "sex", width: 8 },
-      { header: "Clasa", key: "clasa", width: 12 },
-      { header: "Telefon", key: "telefon", width: 14 },
-      { header: "Data nașterii", key: "dataNasterii", width: 14 },
-      { header: "Părinte 1", key: "parinte1Nume", width: 22 },
-      { header: "Telefon părinte 1", key: "parinte1Telefon", width: 16 },
-      { header: "Părinte 2", key: "parinte2Nume", width: 22 },
-      { header: "Telefon părinte 2", key: "parinte2Telefon", width: 16 },
-      { header: "Activ", key: "activ", width: 8 },
-      { header: "Prezențe", key: "prezente", width: 10 },
-      { header: "Anunțate", key: "anuntate", width: 10 },
-      { header: "Absențe", key: "absente", width: 10 },
-      { header: "% prezență", key: "procent", width: 12 },
+  adaugaFoaie(registru, {
+    nume: "Pulsiști",
+    inghetate: 2,
+    coloane: [
+      { antet: "Grupa", cheie: "grupa", latime: 22 },
+      { antet: "Nume", cheie: "nume", latime: 24 },
+      { antet: "Statut", cheie: "statut", latime: 10, ton: TON.statut },
+      { antet: "Sex", cheie: "sex", latime: 8 },
+      { antet: "Clasa", cheie: "clasa", latime: 12 },
+      { antet: "Telefon", cheie: "telefon", latime: 14 },
+      {
+        antet: "Data nașterii",
+        cheie: "dataNasterii",
+        latime: 14,
+        format: "data",
+      },
+      { antet: "Părinte 1", cheie: "parinte1Nume", latime: 22 },
+      { antet: "Telefon părinte 1", cheie: "parinte1Telefon", latime: 16 },
+      { antet: "Părinte 2", cheie: "parinte2Nume", latime: 22 },
+      { antet: "Telefon părinte 2", cheie: "parinte2Telefon", latime: 16 },
+      { antet: "Activ", cheie: "activ", latime: 8, ton: TON.activ },
+      { antet: "Prezențe", cheie: "prezente", latime: 10 },
+      { antet: "Anunțate", cheie: "anuntate", latime: 10 },
+      { antet: "Absențe", cheie: "absente", latime: 10 },
+      {
+        antet: "% prezență",
+        cheie: "procent",
+        latime: 12,
+        format: "procent",
+        ton: TON.procent,
+      },
     ],
-    pulsisti,
-  );
+    randuri: pulsisti,
+  });
 
-  adaugaFoaie(
-    registru,
-    "Întâlniri",
-    [
-      { header: "Grupa", key: "grupa", width: 22 },
-      { header: "Data", key: "data", width: 12 },
-      { header: "Subiect", key: "subiect", width: 24 },
-      { header: "Prezenți", key: "prezenti", width: 10 },
-      { header: "Anunțați", key: "anuntati", width: 10 },
-      { header: "Absenți", key: "absenti", width: 10 },
-      { header: "Musafiri", key: "musafiri", width: 10 },
-      { header: "Completat de", key: "marcatDe", width: 20 },
-      { header: "Prin înlocuire", key: "prinInlocuire", width: 14 },
-      { header: "Notă", key: "nota", width: 50 },
+  adaugaFoaie(registru, {
+    nume: "Întâlniri",
+    inghetate: 2,
+    coloane: [
+      { antet: "Grupa", cheie: "grupa", latime: 22 },
+      { antet: "Data", cheie: "data", latime: 12, format: "data" },
+      { antet: "Subiect", cheie: "subiect", latime: 26, rupeTextul: true },
+      { antet: "Prezenți", cheie: "prezenti", latime: 10 },
+      { antet: "Anunțați", cheie: "anuntati", latime: 10 },
+      { antet: "Absenți", cheie: "absenti", latime: 10 },
+      { antet: "Musafiri", cheie: "musafiri", latime: 10 },
+      { antet: "Completat de", cheie: "marcatDe", latime: 20 },
+      { antet: "Prin înlocuire", cheie: "prinInlocuire", latime: 14 },
+      { antet: "Notă", cheie: "nota", latime: 50, rupeTextul: true },
     ],
-    intalniri,
-  );
+    randuri: intalniri,
+  });
+
+  adaugaFoaieDespre(registru, {
+    titlu: "Prezențe, pulsiști și întâlniri",
+    detalii: [
+      { eticheta: "Descărcat de", valoare: lider.nume },
+      { eticheta: "Când", valoare: momentLizibil(new Date()) },
+      { eticheta: "Grupe", valoare: numeleGrupelor(pulsisti, grupaIds) },
+      { eticheta: "Perioada", valoare: perioada(filtru.deLa, filtru.panaLa) },
+      { eticheta: "Rânduri de prezență", valoare: String(prezente.length) },
+      { eticheta: "Pulsiști", valoare: String(pulsisti.length) },
+      { eticheta: "Întâlniri", valoare: String(intalniri.length) },
+    ],
+    legenda: [
+      { ton: "bine", text: "prezent · prezență peste 80%" },
+      { ton: "atentie", text: "a anunțat că lipsește · prezență între 50 și 80%" },
+      { ton: "slab", text: "absent · prezență sub 50%" },
+      { ton: "aparte", text: "musafir - vine, dar nu e (încă) în grupă" },
+      { ton: "stins", text: "nu mai vine (inactiv) - rămâne pentru istoric" },
+    ],
+  });
 
   const continut = await registru.xlsx.writeBuffer();
   await scrieAudit(lider.id, "export", {
@@ -136,22 +168,26 @@ export async function GET(cerere: Request) {
   });
 }
 
-/** Adaugă o foaie de calcul cu antet îngroșat și filtre. */
-function adaugaFoaie(
-  registru: ExcelJS.Workbook,
-  nume: string,
-  coloane: Partial<ExcelJS.Column>[],
-  randuri: Record<string, unknown>[],
-) {
-  const foaie = registru.addWorksheet(nume);
-  foaie.columns = coloane as ExcelJS.Column[];
-  foaie.addRows(randuri);
-  foaie.getRow(1).font = { bold: true };
-  foaie.views = [{ state: "frozen", ySplit: 1 }];
-  if (randuri.length > 0) {
-    foaie.autoFilter = {
-      from: { row: 1, column: 1 },
-      to: { row: 1, column: coloane.length },
-    };
-  }
+/**
+ * Ce grupe sunt în fișier.
+ *
+ * Le luăm din chiar rândurile exportate, nu dintr-o interogare în plus: dacă
+ * o grupă n-a intrat în export, n-are ce căuta nici în descriere.
+ */
+function numeleGrupelor(
+  pulsisti: { grupa: string }[],
+  grupaIds: number[] | undefined,
+): string {
+  const nume = [...new Set(pulsisti.map((p) => p.grupa))].sort((a, b) =>
+    a.localeCompare(b, "ro"),
+  );
+  if (nume.length === 0) return "-";
+  return grupaIds === undefined ? `toate (${nume.join(", ")})` : nume.join(", ");
+}
+
+function perioada(deLa: string | undefined, panaLa: string | undefined): string {
+  if (!deLa && !panaLa) return "tot ce e în aplicație";
+  if (deLa && panaLa) return `${dataLunga(deLa)} - ${dataLunga(panaLa)}`;
+  if (deLa) return `de la ${dataLunga(deLa)}`;
+  return `până la ${dataLunga(panaLa!)}`;
 }
