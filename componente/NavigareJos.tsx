@@ -22,6 +22,7 @@ export function NavigareJos({
   const linkuri = [
     { href: "/grupe", text: "Grupe", icon: <IconGrupe /> },
     { href: "/pulsisti", text: "Pulsiști", icon: <IconOameni /> },
+    { href: "/calendar", text: "Calendar", icon: <IconCalendar /> },
     { href: "/slujiri", text: "Slujiri", icon: <IconSlujiri /> },
     ...(esteAdmin
       ? [{ href: "/admin", text: "Admin", icon: <IconAdmin /> }]
@@ -142,6 +143,16 @@ function IconSlujiri() {
         strokeWidth="1.7"
         strokeLinecap="round"
       />
+    </svg>
+  );
+}
+
+/** Foaie de calendar cu două urechi. */
+function IconCalendar() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
 }

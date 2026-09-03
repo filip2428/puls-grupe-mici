@@ -8,6 +8,7 @@ import {
   audit,
   delegari,
   echipeSlujire,
+  evenimente,
   grupe,
   intalniri,
   lideri,
@@ -106,6 +107,10 @@ export async function stergeLiderDefinitiv(liderId: number) {
       .update(programariSlujire)
       .set({ creatDeId: null })
       .where(eq(programariSlujire.creatDeId, liderId));
+    await tx
+      .update(evenimente)
+      .set({ creatDeId: null })
+      .where(eq(evenimente.creatDeId, liderId));
     await tx.update(audit).set({ liderId: null }).where(eq(audit.liderId, liderId));
 
     await tx.delete(lideri).where(eq(lideri.id, liderId));

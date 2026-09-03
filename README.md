@@ -25,6 +25,7 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - adaugă pulsiști noi în grupă și îi marchează inactivi când nu mai vin;
 - trece pe fișa fiecăruia **unde slujește** (Harvest Kids, cafenea, laudă...);
 - vede **când e programată grupa lui la o slujire**;
+- vede în **Calendar** ce urmează în lucrare și când slujește grupa lui;
 - când nu poate ajunge, trece o **înlocuire**: alt lider primește acces la grupă în perioada aleasă;
 - își pune adresa de email și alege ce **notificări** vrea să primească.
 
@@ -38,6 +39,8 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - creează lideri și generează coduri de acces (inclusiv coduri noi, dacă se pierd);
 - creează grupe și repartizează oricâți lideri la o grupă;
 - creează **locurile de slujire** și programează cine slujește și când;
+- ține **calendarul întâlnirilor**: ce e în fiecare zi și dacă se stă pe grupe
+  mici sau toți împreună;
 - mută pulsiști dintr-o grupă în alta, fără să piardă istoricul;
 - **șterge definitiv** un lider sau un pulsist, când chiar e nevoie;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
@@ -63,6 +66,31 @@ Merge și invers: „Trece-l înapoi la musafiri", dacă a fost primit din greș
 
 ---
 
+## Calendarul întâlnirilor
+
+Pagina *Calendar* e programul lucrării, lună cu lună: apeși pe o zi și vezi ce e
+în ea. Toată lumea vede aceleași întâlniri; le scrie coordonatorul.
+
+La fiecare întâlnire se răspunde la întrebarea care schimbă seara: **se stă pe
+grupe mici sau toți împreună?** Un Puls obișnuit e pe grupe mici, un gamenight
+nu e. De răspunsul ăsta atârnă dacă liderului i se propune, chiar în ziua aia,
+să facă prezența la grupa lui - la gamenight n-are cine s-o facă și pe cine s-o
+treacă.
+
+Dacă întâlnirea se ține săptămână de săptămână, o bifă („se repetă în fiecare
+săptămână", până la o dată) o scrie de câte ori trebuie. Nu se ține minte nicio
+regulă de repetare: ies rânduri obișnuite, unul pe săptămână. Așa, o săptămână
+în care nu se ține se șterge singură, fără să strice restul.
+
+Peste întâlniri se așază **slujirile deja programate**, dar fiecare lider le
+vede doar pe cele care îl privesc: ale grupei lui și ale echipelor în care are
+pulsiști. Coordonatorul le vede pe toate.
+
+Bulinele de sub zile spun dintr-o privire ce fel de zi e: verde - pe grupe mici,
+albastru - toți împreună, albastru deschis - o slujire.
+
+---
+
 ## Slujiri
 
 Sunt două lucruri diferite, legate între ele:
@@ -76,10 +104,10 @@ alegi din listă și, opțional, scrii ce face acolo („la povestire", „chita
 Merge și invers, din pagina slujirii. Așa știi oricând că Filip e la Harvest
 Kids, iar pagina slujirii îți arată toată echipa.
 
-**Calendarul** - „pe 5 septembrie slujește grupa Băieți 14-16". O programare se
-pune fie pe o grupă mică, fie pe un loc de slujire, fie pe amândouă. Liderul o
-vede pe pagina grupei și pe *Slujiri*, iar cu câteva zile înainte primește și o
-notificare.
+**Programările** - „pe 5 septembrie slujește grupa Băieți 14-16". O programare
+se pune fie pe o grupă mică, fie pe un loc de slujire, fie pe amândouă. Liderul
+o vede pe pagina grupei, pe *Slujiri* și în *Calendar*, iar cu câteva zile
+înainte primește și o notificare.
 
 Un lider poate trece un pulsist din grupa lui la o slujire; restul (creat,
 modificat, programat) rămâne la coordonator.
@@ -414,7 +442,6 @@ respectivă** (`verificaAccesGrupa`). Datele pulsiștilor se citesc pe server;
 
 ## Ce se poate adăuga mai târziu
 
-- prezența la întâlnirea generală de vineri, pe lângă grupele mici;
+- prezența la întâlnirea generală, în serile în care nu se stă pe grupe mici;
 - filtru pe slujire în lista de pulsiști („arată-mi toți cei de la Harvest Kids");
-- prezență și la slujiri, nu doar la grupele mici;
 - pagină pentru părinți sau statistici pe lucrare, publice în interiorul bisericii.

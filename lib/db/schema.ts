@@ -378,6 +378,40 @@ export const prezenteSlujire = sqliteTable(
 );
 
 /**
+ * Calendarul lucrării: ce se întâmplă și când.
+ *
+ * Atenție la nume: tabelul `intalniri` de mai sus e altceva - acolo se ține
+ * prezența unei grupe la o dată anume, adică ce s-a întâmplat. Aici e
+ * programul pus dinainte de coordonator: „vineri e Puls", „sâmbătă e
+ * gamenight".
+ *
+ * `peGrupeMici` spune dacă în seara aia lucrarea se împarte pe grupe mici.
+ * La gamenight nu se împarte, deci n-are rost să aștepte nimeni prezența pe
+ * grupe în ziua aia.
+ */
+export const evenimente = sqliteTable(
+  "evenimente",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    /** Data în format AAAA-LL-ZZ. */
+    data: text("data").notNull(),
+    titlu: text("titlu").notNull(),
+    detalii: text("detalii"),
+    ora: text("ora"),
+    locatie: text("locatie"),
+    /** Adevărat dacă în ziua aia se stă pe grupe mici. */
+    peGrupeMici: integer("pe_grupe_mici", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    creatDeId: integer("creat_de_id").references(() => lideri.id, {
+      onDelete: "set null",
+    }),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+  },
+  (t) => [index("evenimente_data_idx").on(t.data)],
+);
+
+/**
  * Notificările liderilor.
  *
  * Se generează o dată pe zi (vezi `/api/cron/notificari`), se văd în aplicație
@@ -458,6 +492,7 @@ export type StarePrezenta = Prezenta["stare"];
 export type EchipaSlujire = typeof echipeSlujire.$inferSelect;
 export type ProgramareSlujire = typeof programariSlujire.$inferSelect;
 export type PrezentaSlujire = typeof prezenteSlujire.$inferSelect;
+export type Eveniment = typeof evenimente.$inferSelect;
 export type Notificare = typeof notificari.$inferSelect;
 export type AbonamentPush = typeof abonamentePush.$inferSelect;
 export type TipNotificare = Notificare["tip"];
