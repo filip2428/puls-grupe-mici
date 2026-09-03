@@ -7,7 +7,7 @@ import { scrieAudit } from "@/lib/audit";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { db } from "@/lib/db";
 import { lideri, notificari } from "@/lib/db/schema";
-import { emailConfigurat, emailValid, trimiteEmail } from "@/lib/email";
+import { emailActiv, emailValid, trimiteEmail } from "@/lib/email";
 import { marcheazaToateCitite } from "@/lib/notificari";
 import {
   abonamentValid,
@@ -29,16 +29,27 @@ export async function salveazaSetari(
 ): Promise<StareSetari> {
   const lider = await ceruteLider();
 
+  /*
+    Câmpul de adresă se vede doar cât timp trimiterea pe email e pornită.
+    Când e ascuns, formularul nu-l trimite deloc - și atunci NU ne atingem de
+    coloană. Altfel, o singură salvare a preferințelor ar fi șters adresele
+    tuturor liderilor, tăcut, și le-am fi descoperit lipsă abia când s-ar fi
+    reaprins email-ul.
+  */
+  const aTrimisAdresa = formData.has("email");
   const email = String(formData.get("email") ?? "").trim();
-  if (email && !emailValid(email)) {
-    return { eroare: "Adresa de email nu pare corectă." };
+
+  if (aTrimisAdresa) {
+    if (email && !emailValid(email)) {
+      return { eroare: "Adresa de email nu pare corectă." };
+    }
+    if (email.length > 120) return { eroare: "Adresa de email e prea lungă." };
   }
-  if (email.length > 120) return { eroare: "Adresa de email e prea lungă." };
 
   await db
     .update(lideri)
     .set({
-      email: email || null,
+      ...(aTrimisAdresa ? { email: email || null } : {}),
       notifZileNastere: formData.get("notifZileNastere") === "da",
       notifSlujiri: formData.get("notifSlujiri") === "da",
       notifPrezenta: formData.get("notifPrezenta") === "da",
@@ -46,7 +57,10 @@ export async function salveazaSetari(
     })
     .where(eq(lideri.id, lider.id));
 
-  await scrieAudit(lider.id, "setari:salvate", { areEmail: Boolean(email) });
+  await scrieAudit(lider.id, "setari:salvate", {
+    adresaAtinsa: aTrimisAdresa,
+    areEmail: aTrimisAdresa ? Boolean(email) : undefined,
+  });
   revalidatePath("/setari");
   return { reusit: true };
 }
@@ -150,10 +164,10 @@ export async function notificareDeProba(): Promise<StarePush> {
 export async function emailDeProba(): Promise<StarePush> {
   const lider = await ceruteLider();
 
-  if (!emailConfigurat()) {
+  if (!emailActiv()) {
     return {
       eroare:
-        "Trimiterea pe email nu e pornită pe server. Lipsesc RESEND_API_KEY sau EMAIL_EXPEDITOR.",
+        "Trimiterea pe email nu e pornită pe server. Sunt nevoie de RESEND_API_KEY, EMAIL_EXPEDITOR și EMAIL_PORNIT=da.",
     };
   }
   if (!lider.email) {

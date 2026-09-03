@@ -110,8 +110,18 @@ condiție în plus: aplicația trebuie pusă întâi pe ecranul principal - în 
 nu în Chrome. Serverul are nevoie de o pereche de chei, generate cu
 `npm run chei:push`.
 
-**Pe email**: prin [Resend](https://resend.com), cu `RESEND_API_KEY` și
-`EMAIL_EXPEDITOR`.
+**Pe email**: prin [Resend](https://resend.com), cu `RESEND_API_KEY`,
+`EMAIL_EXPEDITOR` și `EMAIL_PORNIT=da`.
+
+Deocamdată e **oprit**, pentru că nu avem încă domeniul bisericii verificat în
+Resend. Cât timp `EMAIL_PORNIT` lipsește, partea de email nu se vede nicăieri
+în aplicație: nu se cere adresa nimănui și nu se trimite nimic. Notificările
+merg pe telefon și se adună în aplicație, ca de obicei.
+
+Codul de trimitere e întreg, nu comentat. Când domeniul e gata: verifici
+domeniul pe [resend.com/domains](https://resend.com/domains), pui
+`EMAIL_EXPEDITOR` pe o adresă de pe el, adaugi `EMAIL_PORNIT=da`, iar
+secțiunea de email reapare singură în *Setări*, cu buton de probă cu tot.
 
 ---
 
@@ -278,6 +288,7 @@ lor e în [`.env.example`](.env.example).
 | `VAPID_PRIVATE_KEY` | pentru telefon | din `npm run chei:push`, **nu se dă nimănui** |
 | `RESEND_API_KEY` | pentru email | cheia din contul [Resend](https://resend.com) |
 | `EMAIL_EXPEDITOR` | pentru email | de la cine pleacă, ex. `Puls <puls@biserica.ro>` |
+| `EMAIL_PORNIT` | pentru email | `da` - comutatorul; fără el, email-ul stă stins și nu se vede în aplicație |
 
 Fără cele pentru telefon și email aplicația merge; doar că notificările rămân
 doar în *Setări*. Se pot adăuga oricând, iar ce s-a adunat între timp pleacă la

@@ -2,7 +2,7 @@ import "server-only";
 
 import { and, count, desc, eq, gte, inArray, isNull, lte, or } from "drizzle-orm";
 
-import { adresaAplicatiei, emailConfigurat, trimiteEmail } from "@/lib/email";
+import { adresaAplicatiei, emailActiv, trimiteEmail } from "@/lib/email";
 import { db } from "@/lib/db";
 import {
   grupe,
@@ -466,7 +466,7 @@ export async function trimiteNotificariNetrimise(
   };
 
   const potPush = pushConfigurat();
-  const potEmail = emailConfigurat();
+  const potEmail = emailActiv();
   const adresa = adresaAplicatiei();
 
   for (const n of inAsteptare) {

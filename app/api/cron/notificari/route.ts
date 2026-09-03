@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { sesiuneCurenta } from "@/lib/auth/sesiune";
-import { emailConfigurat } from "@/lib/email";
+import { emailActiv, emailConfigurat } from "@/lib/email";
 import {
   genereazaNotificari,
   trimiteNotificariNetrimise,
@@ -41,7 +41,10 @@ async function ruleaza(cerere: Request) {
   return NextResponse.json({
     generate,
     trimise,
+    // Amandoua, ca sa se vada din raspuns daca lipsesc cheile sau doar
+    // comutatorul EMAIL_PORNIT.
     emailConfigurat: emailConfigurat(),
+    emailActiv: emailActiv(),
   });
 }
 

@@ -20,6 +20,26 @@ export function emailConfigurat(): boolean {
   return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_EXPEDITOR);
 }
 
+/**
+ * Trimiterea pe email e pornită de-adevăratelea?
+ *
+ * Cheile singure nu ajung. Resend, pe cont fără domeniu verificat, trimite
+ * doar către adresa cu care ai făcut contul - deci ai avea o secțiune de
+ * email în aplicație care le cere liderilor adresa și apoi nu le trimite
+ * nimic. Mai rău decât să lipsească.
+ *
+ * De-aia mai e nevoie de un „da" spus limpede: EMAIL_PORNIT=da. Îl pui
+ * abia când domeniul e verificat în Resend și proba chiar ajunge la cineva
+ * din afara contului tău. Până atunci, partea de email nu se vede nicăieri,
+ * iar notificările merg pe telefon și se adună în aplicație ca până acum.
+ *
+ * Codul de trimitere rămâne întreg dedesubt - nu e comentat, nu e scos.
+ * Când vine ziua, o variabilă de mediu îl aprinde.
+ */
+export function emailActiv(): boolean {
+  return emailConfigurat() && process.env.EMAIL_PORNIT === "da";
+}
+
 /** Adresa aplicației, folosită în legăturile din email-uri. */
 export function adresaAplicatiei(): string {
   return (
@@ -35,8 +55,13 @@ export async function trimiteEmail(mesaj: {
   subiect: string;
   text: string;
 }): Promise<RezultatEmail> {
-  if (!emailConfigurat()) {
-    return { trimis: false, motiv: "Trimiterea pe email nu e configurată." };
+  if (!emailActiv()) {
+    return {
+      trimis: false,
+      motiv: emailConfigurat()
+        ? "Trimiterea pe email e oprită. Pune EMAIL_PORNIT=da după ce domeniul e verificat în Resend."
+        : "Trimiterea pe email nu e configurată.",
+    };
   }
 
   try {

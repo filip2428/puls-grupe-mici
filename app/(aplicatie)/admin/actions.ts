@@ -9,7 +9,7 @@ import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { audit, grupe, lideri, lideriGrupe, membri } from "@/lib/db/schema";
-import { emailConfigurat } from "@/lib/email";
+import { emailActiv } from "@/lib/email";
 import { pushConfigurat } from "@/lib/push";
 import {
   genereazaNotificari,
@@ -222,7 +222,7 @@ export async function ruleazaNotificari(): Promise<StareNotificari> {
   revalidatePath("/admin");
 
   const lipsuri = [
-    emailConfigurat() ? "" : "email-ul (RESEND_API_KEY, EMAIL_EXPEDITOR)",
+    emailActiv() ? "" : "email-ul (RESEND_API_KEY, EMAIL_EXPEDITOR, EMAIL_PORNIT=da)",
     pushConfigurat()
       ? ""
       : "telefonul (NEXT_PUBLIC_VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY)",

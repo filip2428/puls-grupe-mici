@@ -6,7 +6,7 @@ import { FormularSetari } from "@/componente/FormularSetari";
 import { InstaleazaAplicatia } from "@/componente/InstaleazaAplicatia";
 import { NotificariTelefon } from "@/componente/NotificariTelefon";
 import { ceruteLider } from "@/lib/auth/sesiune";
-import { emailConfigurat } from "@/lib/email";
+import { emailActiv } from "@/lib/email";
 import { cheiePublica, pushConfigurat } from "@/lib/push";
 import { cateNecitite, notificarileMele } from "@/lib/notificari";
 import { momentLizibil } from "@/lib/util/date";
@@ -31,6 +31,8 @@ export default async function PaginaSetari() {
     notificarileMele(lider.id, 30),
     cateNecitite(lider.id),
   ]);
+
+  const arataEmail = emailActiv();
 
   return (
     <div className="flex flex-col gap-5">
@@ -61,10 +63,13 @@ export default async function PaginaSetari() {
       </section>
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">Notificări pe email</h2>
+        <h2 className="mb-1 text-sm font-bold">
+          {arataEmail ? "Ce afli și pe email" : "Ce vrei să afli"}
+        </h2>
         <p className="mb-4 text-xs text-cenusiu">
-          Aceleași vești, dar scrise pe email. Bifele de mai jos hotărăsc ce
-          primești, și pe telefon și pe email.
+          {arataEmail
+            ? "Bifele hotărăsc ce primești, și pe telefon și pe email."
+            : "Bifele hotărăsc ce ajunge pe telefon. Ce nu bifezi nu te mai caută."}
         </p>
         <FormularSetari
           initial={{
@@ -74,10 +79,10 @@ export default async function PaginaSetari() {
             notifPrezenta: lider.notifPrezenta,
             notifRezumat: lider.notifRezumat,
           }}
-          emailConfigurat={emailConfigurat()}
+          arataEmail={arataEmail}
         />
 
-        {emailConfigurat() && <ButonEmailProba areAdresa={!!lider.email} />}
+        {arataEmail && <ButonEmailProba areAdresa={!!lider.email} />}
       </section>
 
       <section className="card p-4">

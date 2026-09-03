@@ -40,10 +40,15 @@ const TIPURI = [
 
 export function FormularSetari({
   initial,
-  emailConfigurat,
+  arataEmail,
 }: {
   initial: PreferinteNotificari;
-  emailConfigurat: boolean;
+  /**
+   * Cât timp trimiterea pe email nu e pornită pe server, nu cerem nimănui
+   * adresa: ar fi o casetă care promite ceva ce nu se întâmplă. Bifele de
+   * dedesubt rămân oricum - ele hotărăsc și ce ajunge pe telefon.
+   */
+  arataEmail: boolean;
 }) {
   const [stare, actiune, seTrimite] = useActionState<StareSetari, FormData>(
     salveazaSetari,
@@ -52,29 +57,39 @@ export function FormularSetari({
 
   return (
     <form action={actiune} className="flex flex-col gap-4">
-      <div>
-        <label className="eticheta" htmlFor="email">
-          Adresa ta de email
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          className="camp"
-          defaultValue={initial.email ?? ""}
-          placeholder="numele.tau@exemplu.ro"
-          autoComplete="email"
-          inputMode="email"
-          maxLength={120}
-        />
-        <p className="mt-1 text-xs text-cenusiu">
-          Fără adresă, notificările se văd doar aici, în aplicație. Nu se
-          folosește la autentificare - intri tot cu codul tău.
-        </p>
-      </div>
+      {arataEmail && (
+        <div>
+          <label className="eticheta" htmlFor="email">
+            Adresa ta de email
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            className="camp"
+            defaultValue={initial.email ?? ""}
+            placeholder="numele.tau@exemplu.ro"
+            autoComplete="email"
+            inputMode="email"
+            maxLength={120}
+          />
+          <p className="mt-1 text-xs text-cenusiu">
+            Fără adresă, notificările se văd doar aici, în aplicație. Nu se
+            folosește la autentificare - intri tot cu codul tău.
+          </p>
+        </div>
+      )}
 
       <fieldset className="flex flex-col gap-1">
-        <legend className="eticheta">Ce vrei să afli</legend>
+        {/*
+          Când partea de email e stinsă, cardul se numește chiar „Ce vrei să
+          afli", iar legenda ar repeta titlul la un centimetru sub el. O
+          ascundem pentru ochi, dar o lăsăm pentru cititoarele de ecran, care
+          au nevoie de un nume pentru grupul de bife.
+        */}
+        <legend className={arataEmail ? "eticheta" : "sr-only"}>
+          Ce vrei să afli
+        </legend>
         {TIPURI.map((t) => (
           <label
             key={t.camp}
@@ -95,12 +110,6 @@ export function FormularSetari({
         ))}
       </fieldset>
 
-      {!emailConfigurat && (
-        <p className="rounded-xl bg-lime/25 px-3 py-2 text-xs">
-          Trimiterea pe email nu e pornită încă pe server. Până atunci
-          notificările se adună aici, în aplicație.
-        </p>
-      )}
 
       {stare.eroare && <p className="text-sm text-red-700">{stare.eroare}</p>}
       {stare.reusit && <p className="text-sm text-green-700">Salvat.</p>}
