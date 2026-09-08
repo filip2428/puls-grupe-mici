@@ -3,7 +3,7 @@ import "server-only";
 import ExcelJS from "exceljs";
 
 import { esteDataValida } from "@/lib/util/date";
-import type { Biserica } from "@/lib/util/etichete";
+import type { Biserica, Botez } from "@/lib/util/etichete";
 
 /**
  * Importul pulsiștilor dintr-un fișier Excel.
@@ -34,6 +34,7 @@ export const COLOANE = [
     obligatoriu: false,
     exemplu: "Harvest Arad",
   },
+  { cheie: "botez", titlu: "Botez", obligatoriu: false, exemplu: "botezat" },
   { cheie: "telefon", titlu: "Telefon", obligatoriu: false, exemplu: "0722000111" },
   { cheie: "parinte1Nume", titlu: "Părinte 1", obligatoriu: false, exemplu: "Maria Popa" },
   {
@@ -65,6 +66,7 @@ export type RandPregatit = {
   dataNasterii: string | null;
   biserica: Biserica | null;
   bisericaNume: string | null;
+  botez: Botez | null;
   telefon: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
@@ -175,6 +177,24 @@ function bisericaDinText(text: string): {
   if (curat.includes("harvest")) return { biserica: "harvest", bisericaNume: null };
   if (FARA_BISERICA.includes(curat)) return { biserica: "fara", bisericaNume: null };
   return { biserica: "alta", bisericaNume: text.trim().slice(0, 80) };
+}
+
+/**
+ * „botezat", „da", „nu" -> dacă e botezat.
+ *
+ * Într-un tabel scris de om, coloana asta e de obicei un da/nu. Ce nu se
+ * înțelege rămâne nescris - mai bine o întrebare nepusă decât un răspuns
+ * inventat.
+ */
+const BOTEZAT = ["botezat", "botezata", "da", "d", "x", "y", "yes", "true", "1"];
+const NEBOTEZAT = ["nebotezat", "nebotezata", "nu", "n", "-", "no", "false", "0"];
+
+function botezDinText(text: string): Botez | null {
+  const curat = normalizeaza(text);
+  if (!curat) return null;
+  if (BOTEZAT.includes(curat)) return "botezat";
+  if (NEBOTEZAT.includes(curat)) return "nebotezat";
+  return null;
 }
 
 function sexDinText(text: string): "baiat" | "fata" | null {
@@ -312,6 +332,7 @@ export async function analizeazaFisier(
       dataNasterii,
       biserica: biserica.biserica,
       bisericaNume: biserica.bisericaNume,
+      botez: botezDinText(valoare(rand, "botez")),
       telefon: valoare(rand, "telefon") || null,
       parinte1Nume: valoare(rand, "parinte1Nume") || null,
       parinte1Telefon: valoare(rand, "parinte1Telefon") || null,
@@ -373,6 +394,7 @@ export async function fisierModel(grupe: GrupaCunoscuta[]): Promise<Buffer> {
     dataNasterii: "2011-04-23 sau 23.04.2011.",
     biserica:
       "De unde vine: Harvest (Arad) pentru ai noștri, numele bisericii pentru ceilalți, o liniuță dacă nu ține de nicio biserică.",
+    botez: "botezat sau nebotezat (merge și da / nu). Gol = nu știm încă.",
     telefon: "Telefonul pulsistului.",
     parinte1Nume: "Cum îl salvezi în agendă, ex. mama, Maria.",
     parinte1Telefon: "Telefonul primului părinte.",

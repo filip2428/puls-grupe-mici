@@ -227,6 +227,17 @@ export default async function PaginaStatistici({
           )}
 
           <Tabel
+            titlu="Pe botez"
+            explicatie="Câți au făcut pasul, câți nu încă - și cât de des vin unii și alții."
+            capete={["Botez", "Pulsiști", "%"]}
+            randuri={s.peBotez.map((b) => [
+              b.nume,
+              b.pulsisti,
+              b.procent !== null ? `${b.procent}%` : "-",
+            ])}
+          />
+
+          <Tabel
             titlu="Pe luni"
             explicatie="Unde a urcat și unde a căzut prezența de-a lungul perioadei."
             capete={["Luna", "Întâlniri", "Media", "%"]}

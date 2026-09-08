@@ -130,6 +130,23 @@ export async function GET(cerere: Request) {
   }
 
   adaugaFoaie(registru, {
+    nume: "Pe botez",
+    inghetate: 1,
+    coloane: [
+      { antet: "Botez", cheie: "nume", latime: 22 },
+      { antet: "Pulsiști", cheie: "pulsisti", latime: 11 },
+      {
+        antet: "% prezență",
+        cheie: "procent",
+        latime: 12,
+        format: "procent",
+        ton: TON.procent,
+      },
+    ],
+    randuri: s.peBotez,
+  });
+
+  adaugaFoaie(registru, {
     nume: "Pe luni",
     inghetate: 1,
     coloane: [

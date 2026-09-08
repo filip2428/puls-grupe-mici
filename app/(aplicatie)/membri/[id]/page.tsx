@@ -6,6 +6,7 @@ import {
   FormularNota,
 } from "@/componente/MembruFormulare";
 import { InsignaBiserica } from "@/componente/InsignaBiserica";
+import { InsignaBotez } from "@/componente/InsignaBotez";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import {
   grupeAccesibile,
@@ -157,6 +158,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             biserica={m.biserica}
             bisericaNume={date.bisericaNume}
           />
+          <InsignaBotez botez={m.botez} />
         </h1>
         <p className="text-sm text-cenusiu">
           {detalii.join(" · ")}
@@ -551,6 +553,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 clasa: m.clasa,
                 biserica: m.biserica,
                 bisericaId: m.bisericaId,
+                botez: m.botez,
                 parinte1Nume: m.parinte1Nume,
                 parinte1Telefon: m.parinte1Telefon,
                 parinte2Nume: m.parinte2Nume,

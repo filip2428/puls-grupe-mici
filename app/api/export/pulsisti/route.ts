@@ -14,7 +14,9 @@ import {
 import { dataAzi, momentLizibil } from "@/lib/util/date";
 import {
   BISERICI,
+  BOTEZ,
   bisericaPeLarg,
+  etichetaBotez,
   etichetaClasa,
   etichetaSex,
 } from "@/lib/util/etichete";
@@ -47,6 +49,7 @@ export async function GET(cerere: Request) {
     sex: etichetaSex(a.sex),
     clasa: etichetaClasa(a.clasa),
     biserica: bisericaPeLarg(a.biserica, a.bisericaNume),
+    botez: a.botez ? etichetaBotez(a.botez) : "",
     varsta: a.varsta,
     dataNasterii: a.dataNasterii,
     telefon: a.telefon,
@@ -72,6 +75,7 @@ export async function GET(cerere: Request) {
       { antet: "Sex", cheie: "sex", latime: 8 },
       { antet: "Clasa", cheie: "clasa", latime: 12 },
       { antet: "Biserica", cheie: "biserica", latime: 22 },
+      { antet: "Botez", cheie: "botez", latime: 12 },
       { antet: "Vârstă", cheie: "varsta", latime: 8 },
       {
         antet: "Data nașterii",
@@ -167,6 +171,13 @@ function descrieFiltrul(
       filtru.biserica === "nescris"
         ? "doar cei fără biserica scrisă"
         : `biserica: ${BISERICI.find((b) => b.valoare === filtru.biserica)?.titlu ?? filtru.biserica}`,
+    );
+  }
+  if (filtru.botez) {
+    bucati.push(
+      filtru.botez === "nescris"
+        ? "doar cei fără botezul scris"
+        : `botez: ${BOTEZ.find((b) => b.valoare === filtru.botez)?.titlu ?? filtru.botez}`,
     );
   }
   if (filtru.clasa !== undefined) bucati.push(`clasa ${filtru.clasa}`);

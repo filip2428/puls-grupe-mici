@@ -9,9 +9,11 @@ import {
 } from "@/app/(aplicatie)/membri/[id]/actions";
 import {
   BISERICI,
+  BOTEZ,
   CLASE,
   etichetaClasa,
   type Biserica,
+  type Botez,
 } from "@/lib/util/etichete";
 
 /** Caseta în care liderul scrie o notă despre pulsist. */
@@ -62,6 +64,7 @@ export type DateMembru = {
   clasa: number | null;
   biserica: Biserica | null;
   bisericaId: number | null;
+  botez: Botez | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
   parinte2Nume: string | null;
@@ -174,15 +177,17 @@ export function FormularEditareMembru({
         </legend>
         <div className="grid grid-cols-2 gap-2">
           {BISERICI.map((b) => (
-            <CartonasBiserica
+            <Cartonas
               key={b.valoare}
+              camp="biserica"
               valoare={b.valoare}
               implicit={initial.biserica === b.valoare}
               titlu={b.titlu}
               explicatie={b.explicatie}
             />
           ))}
-          <CartonasBiserica
+          <Cartonas
+            camp="biserica"
             valoare=""
             implicit={initial.biserica === null}
             titlu="Nu știm încă"
@@ -278,6 +283,36 @@ export function FormularEditareMembru({
         </details>
       </fieldset>
 
+      {/*
+        Botezul stă separat de biserică, nu sub ea: nu se deduce unul din
+        altul. Sunt botezați care nu mai merg nicăieri și pulsiști de la noi,
+        veniți de ani de zile, care încă n-au făcut pasul.
+      */}
+      <fieldset className="rounded-xl border border-[#e3e7f2] p-3">
+        <legend className="px-1 text-xs font-bold text-cenusiu uppercase">
+          Botez
+        </legend>
+        <div className="grid grid-cols-2 gap-2">
+          {BOTEZ.map((b) => (
+            <Cartonas
+              key={b.valoare}
+              camp="botez"
+              valoare={b.valoare}
+              implicit={initial.botez === b.valoare}
+              titlu={b.titlu}
+              explicatie={b.explicatie}
+            />
+          ))}
+          <Cartonas
+            camp="botez"
+            valoare=""
+            implicit={initial.botez === null}
+            titlu="Nu știm încă"
+            explicatie="nu s-a întrebat"
+          />
+        </div>
+      </fieldset>
+
       <fieldset className="rounded-xl border border-[#e3e7f2] p-3">
         <legend className="px-1 text-xs font-bold text-cenusiu uppercase">
           Părinți
@@ -355,14 +390,17 @@ export function FormularEditareMembru({
   );
 }
 
-/** Unul din cartonașele de ales la „Biserica". */
-function CartonasBiserica({
+/** Unul din cartonașele de bifat, la „Biserica" sau la „Botez". */
+function Cartonas({
+  camp,
   valoare,
   implicit,
   titlu,
   explicatie,
 }: {
-  valoare: Biserica | "";
+  /** Numele câmpului din formular - toate cartonașele unui grup îl împart. */
+  camp: string;
+  valoare: string;
   implicit: boolean;
   titlu: string;
   explicatie: string;
@@ -371,7 +409,7 @@ function CartonasBiserica({
     <label className="flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-[#d7dced] bg-hartie px-3 py-2 has-[:checked]:border-albastru has-[:checked]:bg-albastru/10 has-[:checked]:text-albastru has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-albastru-deschis/40">
       <input
         type="radio"
-        name="biserica"
+        name={camp}
         value={valoare}
         defaultChecked={implicit}
         className="sr-only"

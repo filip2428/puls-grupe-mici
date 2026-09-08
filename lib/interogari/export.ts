@@ -12,7 +12,12 @@ import {
   prezente,
 } from "@/lib/db/schema";
 import { prieteniiMaiMultora } from "@/lib/interogari/prietenii";
-import { bisericaPeLarg, etichetaClasa, etichetaSex } from "@/lib/util/etichete";
+import {
+  bisericaPeLarg,
+  etichetaBotez,
+  etichetaClasa,
+  etichetaSex,
+} from "@/lib/util/etichete";
 
 export type FiltruExport = {
   grupaIds?: number[];
@@ -81,6 +86,7 @@ export type RandPulsist = {
   sex: string;
   clasa: string;
   biserica: string;
+  botez: string;
   telefon: string | null;
   dataNasterii: string | null;
   parinte1Nume: string | null;
@@ -115,6 +121,7 @@ export async function randuriPulsisti(
       status: membri.status,
       biserica: membri.biserica,
       bisericaNume: biserici.nume,
+      botez: membri.botez,
       parinte1Nume: membri.parinte1Nume,
       parinte1Telefon: membri.parinte1Telefon,
       parinte2Nume: membri.parinte2Nume,
@@ -172,6 +179,7 @@ export async function randuriPulsisti(
       sex: etichetaSex(m.sex),
       clasa: etichetaClasa(m.clasa),
       biserica: bisericaPeLarg(m.biserica, m.bisericaNume),
+      botez: m.botez ? etichetaBotez(m.botez) : "",
       telefon: m.telefon,
       dataNasterii: m.dataNasterii,
       parinte1Nume: m.parinte1Nume,

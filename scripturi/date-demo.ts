@@ -99,6 +99,14 @@ function deUndeVine(idBiserici: number[]): {
   return { biserica: null, bisericaId: null };
 }
 
+/** Botezat sau nu, tot la sorți - cu destui la care nu s-a apucat nimeni. */
+function botezat(): "botezat" | "nebotezat" | null {
+  const zar = Math.random();
+  if (zar < 0.35) return "botezat";
+  if (zar < 0.8) return "nebotezat";
+  return null;
+}
+
 function alege<T>(lista: T[]): T {
   return lista[Math.floor(Math.random() * lista.length)];
 }
@@ -172,6 +180,7 @@ async function main() {
           clasa,
           status: "membru",
           ...deUndeVine(idBiserici),
+          botez: botezat(),
           telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
           dataNasterii: `${anNasterii}-0${1 + Math.floor(Math.random() * 9)}-1${Math.floor(Math.random() * 9)}`,
           parinte1Nume: `${alege(NUME_PARINTI)} ${persoana.nume.split(" ")[1]}`,

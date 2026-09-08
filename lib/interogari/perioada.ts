@@ -57,6 +57,9 @@ export type RandBiserica = {
 /** Aceeași formă, dar cheia e chiar denominațiunea („baptistă", „nescrisă"). */
 export type RandDenominatiune = RandBiserica;
 
+/** Aceeași formă: cheia e „botezat", „nebotezat" sau „nescris". */
+export type RandBotez = RandBiserica;
+
 export type RandLuna = {
   luna: string;
   nume: string;
@@ -105,6 +108,7 @@ export type StatisticiPerioada = {
   peBiserici: RandBiserica[];
   /** Gol dacă nu s-a scris nicio denominațiune - un tabel de nimic nu ajută. */
   peDenominatiuni: RandDenominatiune[];
+  peBotez: RandBotez[];
   peLuni: RandLuna[];
   peClase: RandClasa[];
   fidelitate: { prag: string; pulsisti: number }[];
@@ -127,6 +131,7 @@ type Bifa = {
   bisericaNume: string | null;
   bisericaLocalitate: string | null;
   bisericaDenominatiune: string | null;
+  botez: "botezat" | "nebotezat" | null;
 };
 
 /** Numărătoarea de bază, din care ies toate procentele. */
@@ -193,6 +198,7 @@ export async function statisticiPerioada(
             bisericaNume: biserici.nume,
             bisericaLocalitate: biserici.localitate,
             bisericaDenominatiune: biserici.denominatiune,
+            botez: membri.botez,
           })
           .from(prezente)
           .innerJoin(membri, eq(membri.id, prezente.membruId))
@@ -234,6 +240,7 @@ export async function statisticiPerioada(
     peGrupe: peGrupe(listaIntalniri, bife, numeGrupe, intalnireaGrupei),
     peBiserici: peBiserici(alMembrilor),
     peDenominatiuni: peDenominatiuni(alMembrilor),
+    peBotez: peBotez(alMembrilor),
     peLuni: peLuni(listaIntalniri, alMembrilor, lunaIntalnirii),
     peClase: peClase(alMembrilor),
     ...fidelitatea(alMembrilor, numeGrupe),
@@ -263,6 +270,7 @@ function goale(deLa: string, panaLa: string): StatisticiPerioada {
     peGrupe: [],
     peBiserici: [],
     peDenominatiuni: [],
+    peBotez: [],
     peLuni: [],
     peClase: [],
     fidelitate: [],
@@ -502,6 +510,41 @@ function peDenominatiuni(alMembrilor: Bifa[]): RandDenominatiune[] {
       procent: procent(n),
     }))
     .sort((a, b) => b.pulsisti - a.pulsisti || a.nume.localeCompare(b.nume, "ro"));
+}
+
+/**
+ * Câți sunt botezați și câți nu - și cât de des vin unii și alții.
+ *
+ * Rândurile sunt mereu toate trei, chiar și goale: un zero la „nebotezați" e
+ * o cifră adevărată, iar „fără răspuns încă" e chiar lucrul care se cere pus
+ * la punct, deci n-are rost să dispară când e mare.
+ */
+function peBotez(alMembrilor: Bifa[]): RandBotez[] {
+  const FELURI = [
+    { cheie: "botezat", nume: "Botezați" },
+    { cheie: "nebotezat", nume: "Nebotezați" },
+    { cheie: "nescris", nume: "Fără răspuns încă" },
+  ];
+
+  const numere = new Map<string, Numere>();
+  const oameni = new Map<string, Set<number>>();
+
+  for (const b of alMembrilor) {
+    const cheie = b.botez ?? "nescris";
+    const n = numere.get(cheie) ?? numereGoale();
+    adauga(n, b.stare);
+    numere.set(cheie, n);
+    const set = oameni.get(cheie) ?? new Set<number>();
+    set.add(b.membruId);
+    oameni.set(cheie, set);
+  }
+
+  return FELURI.map((f) => ({
+    cheie: f.cheie,
+    nume: f.nume,
+    pulsisti: oameni.get(f.cheie)?.size ?? 0,
+    procent: procent(numere.get(f.cheie) ?? numereGoale()),
+  }));
 }
 
 function peLuni(

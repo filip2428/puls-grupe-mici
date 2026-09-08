@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { InsignaBiserica } from "@/componente/InsignaBiserica";
+import { InsignaBotez } from "@/componente/InsignaBotez";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import {
@@ -8,7 +9,13 @@ import {
   filtruDinParametri,
   type FiltruPulsisti,
 } from "@/lib/interogari/pulsisti";
-import { BISERICI, CLASE, etichetaClasa, etichetaSex } from "@/lib/util/etichete";
+import {
+  BISERICI,
+  BOTEZ,
+  CLASE,
+  etichetaClasa,
+  etichetaSex,
+} from "@/lib/util/etichete";
 
 export const metadata = { title: "Pulsiști · Puls" };
 
@@ -36,6 +43,7 @@ export default async function PaginaPulsisti({
     !!filtru.sex ||
     !!filtru.clasa ||
     !!filtru.biserica ||
+    !!filtru.botez ||
     filtru.varstaMin !== undefined ||
     filtru.varstaMax !== undefined ||
     (filtru.activi ?? "activi") !== "activi";
@@ -103,6 +111,26 @@ export default async function PaginaPulsisti({
               >
                 <option value="">toți</option>
                 {BISERICI.map((b) => (
+                  <option key={b.valoare} value={b.valoare}>
+                    {b.titlu}
+                  </option>
+                ))}
+                <option value="nescris">fără răspuns încă</option>
+              </select>
+            </div>
+
+            <div className="col-span-2">
+              <label className="eticheta" htmlFor="botez">
+                Botez
+              </label>
+              <select
+                id="botez"
+                name="botez"
+                className="camp"
+                defaultValue={filtru.botez ?? ""}
+              >
+                <option value="">toți</option>
+                {BOTEZ.map((b) => (
                   <option key={b.valoare} value={b.valoare}>
                     {b.titlu}
                   </option>
@@ -257,6 +285,7 @@ export default async function PaginaPulsisti({
                       biserica={a.biserica}
                       bisericaNume={a.bisericaNume}
                     />
+                    <InsignaBotez botez={a.botez} />
                   </span>
                   <span className="mt-0.5 block text-xs text-cenusiu">
                     {a.grupaNume}
@@ -317,6 +346,7 @@ function sirDeParametri(filtru: FiltruPulsisti): string {
   if (filtru.sex) p.set("sex", filtru.sex);
   if (filtru.clasa) p.set("clasa", String(filtru.clasa));
   if (filtru.biserica) p.set("biserica", filtru.biserica);
+  if (filtru.botez) p.set("botez", filtru.botez);
   if (filtru.varstaMin !== undefined) p.set("varstaMin", String(filtru.varstaMin));
   if (filtru.varstaMax !== undefined) p.set("varstaMax", String(filtru.varstaMax));
   if (filtru.activi) p.set("activi", filtru.activi);

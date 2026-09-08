@@ -74,6 +74,28 @@ export function etichetaBiserica(
   return "biserica ?";
 }
 
+/** Dacă e botezat. Vezi coloana `botez` din schemă. */
+export type Botez = "botezat" | "nebotezat";
+
+/** Cele două răspunsuri, în ordinea în care se aleg în formular. */
+export const BOTEZ: { valoare: Botez; titlu: string; explicatie: string }[] = [
+  { valoare: "botezat", titlu: "Botezat", explicatie: "a făcut pasul" },
+  { valoare: "nebotezat", titlu: "Nebotezat", explicatie: "încă nu" },
+];
+
+/**
+ * Ce scrie pe insigna din liste.
+ *
+ * Ca la biserică: gol nu înseamnă „nu", înseamnă că n-a întrebat nimeni.
+ * Diferența contează - de cei nebotezați te apropii altfel decât de cei
+ * despre care pur și simplu nu știi.
+ */
+export function etichetaBotez(botez: Botez | null): string {
+  if (botez === "botezat") return "botezat";
+  if (botez === "nebotezat") return "nebotezat";
+  return "botez ?";
+}
+
 /** Varianta lungă, pentru Excel: „altă biserică: Betel". */
 export function bisericaPeLarg(
   biserica: Biserica | null,

@@ -113,6 +113,10 @@ const schemaMembru = z.object({
     .optional()
     .transform((v) => (v ? Number(v) : null))
     .refine((v) => v === null || Number.isInteger(v), "Biserica nu e validă."),
+  botez: z
+    .string()
+    .optional()
+    .transform((v) => (v === "botezat" || v === "nebotezat" ? v : null)),
   /* Biserica scrisă pe loc, când nu era în listă. Are prioritate. */
   bisericaNouaNume: textOptional(80),
   bisericaNouaLocalitate: textOptional(60),
@@ -150,6 +154,7 @@ export async function salveazaMembru(
     // Radio nebifat ar da `null`, iar zod l-ar citi ca valoare greșită.
     biserica: formData.get("biserica") ?? undefined,
     bisericaId: formData.get("bisericaId"),
+    botez: formData.get("botez") ?? undefined,
     bisericaNouaNume: formData.get("bisericaNouaNume"),
     bisericaNouaLocalitate: formData.get("bisericaNouaLocalitate"),
     bisericaNouaDenominatiune: formData.get("bisericaNouaDenominatiune"),

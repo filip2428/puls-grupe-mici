@@ -44,10 +44,11 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - mută pulsiști dintr-o grupă în alta, fără să piardă istoricul;
 - **șterge definitiv** un lider sau un pulsist, când chiar e nevoie;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
-- vede din ce biserică e fiecare pulsist și cine cu cine e prieten, și ține
-  lista bisericilor lucrării;
+- vede din ce biserică e fiecare pulsist, dacă e botezat și cine cu cine e
+  prieten, și ține lista bisericilor lucrării;
 - vede **statisticile pe o perioadă** (anul bisericesc, de exemplu): pe grupe,
-  pe biserici, pe denominațiuni, pe luni, pe clase - și le descarcă în Excel;
+  pe biserici, pe denominațiuni, pe botez, pe luni, pe clase - și le descarcă în
+  Excel;
 - descarcă totul în Excel (prezențe, pulsiști, întâlniri), într-un fișier
   colorat, cu antet care stă pe loc și cu o foaie care spune ce e în el;
 - vede jurnalul: cine, ce și când a modificat.
@@ -108,6 +109,23 @@ alte biserici, sau pe cei la care încă n-ai completat. Coloana vine și în Ex
 
 ---
 
+## Botezat sau nu
+
+A doua insignă de lângă nume: **botezat**, **nebotezat** sau, dacă n-a întrebat
+nimeni încă, aceeași insignă palidă cu semn de întrebare. Se vede pe fișă și în
+lista de pulsiști, se filtrează la fel ca biserica, intră în Excel și se poate
+umple din import (merge și *da* / *nu*).
+
+Botezul stă separat de biserică, nu sub ea, fiindcă nu se deduce unul din altul:
+sunt botezați care nu mai merg nicăieri și pulsiști de la noi, veniți de ani de
+zile, care încă n-au făcut pasul.
+
+„Nebotezat" nu e o problemă de rezolvat, e doar unde e omul acum - de-aia
+amândouă răspunsurile stau potolit, și singurul care iese în evidență e cel
+necompletat.
+
+---
+
 ## Prieteni apropiați
 
 Pe fișa unui pulsist poți lega alți pulsiști despre care știi că se au bine.
@@ -141,6 +159,8 @@ Ies șapte feluri de a privi aceleași seri:
   din afara bisericii rămân sau doar trec;
 - **pe denominațiuni**: din ce lume bisericească vin cei care nu sunt de la noi
   (tabelul apare doar dacă ai scris denominațiuni la biserici);
+- **pe botez**: câți au făcut pasul, câți nu încă, câți n-au fost întrebați -
+  și cât de des vin unii și alții;
 - **pe luni**: unde a urcat și unde a căzut prezența;
 - **pe clase**: ce vârste ține lucrarea și pe care le pierde;
 - **cât de statornic vin**: câți sunt peste 90%, câți sub 50%, plus lista celor
@@ -315,7 +335,7 @@ arate la fel.
 de exemplu și o foaie cu explicații), îl completezi și îl încarci înapoi.
 
 Obligatorii sunt doar **Nume** și **Grupa**; restul (statut, sex, clasă, data
-nașterii, telefon, cei doi părinți) se completează dacă le ai. Ordinea coloanelor
+nașterii, biserica, botezul, telefon, cei doi părinți) se completează dacă le ai. Ordinea coloanelor
 nu contează, iar cele în plus se ignoră.
 
 Înainte să scrie ceva, aplicația îți arată ce a înțeles: cine intră, cine e deja

@@ -85,6 +85,7 @@ export async function GET(cerere: Request) {
       { antet: "Sex", cheie: "sex", latime: 8 },
       { antet: "Clasa", cheie: "clasa", latime: 12 },
       { antet: "Biserica", cheie: "biserica", latime: 22 },
+      { antet: "Botez", cheie: "botez", latime: 12 },
       { antet: "Telefon", cheie: "telefon", latime: 14 },
       {
         antet: "Data nașterii",

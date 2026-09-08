@@ -167,6 +167,14 @@ export const membri = sqliteTable(
     bisericaId: integer("biserica_id").references(() => biserici.id, {
       onDelete: "set null",
     }),
+    /**
+     * Dacă e botezat sau nu. Gol înseamnă că nu s-a întrebat încă.
+     *
+     * Stă separat de `biserica`, pentru că nu se deduce una din alta: sunt
+     * botezați care nu mai merg nicăieri și pulsiști de la noi, veniți de
+     * ani de zile, care încă n-au făcut pasul.
+     */
+    botez: text("botez", { enum: ["botezat", "nebotezat"] }),
     /** Datele părinților, pentru contact rapid. */
     parinte1Nume: text("parinte1_nume"),
     parinte1Telefon: text("parinte1_telefon"),
