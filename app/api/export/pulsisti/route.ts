@@ -5,13 +5,19 @@ import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { TON, adaugaFoaie, adaugaFoaieDespre } from "@/lib/excel";
 import { grupeAccesibile } from "@/lib/interogari/acces";
+import { prieteniiMaiMultora } from "@/lib/interogari/prietenii";
 import {
   cautaPulsisti,
   filtruDinParametri,
   type FiltruPulsisti,
 } from "@/lib/interogari/pulsisti";
 import { dataAzi, momentLizibil } from "@/lib/util/date";
-import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
+import {
+  BISERICI,
+  bisericaPeLarg,
+  etichetaClasa,
+  etichetaSex,
+} from "@/lib/util/etichete";
 
 /**
  * Tabelul cu pulsiști, în Excel, cu aceleași filtre ca pe pagina
@@ -28,6 +34,7 @@ export async function GET(cerere: Request) {
   }
 
   const lista = await cautaPulsisti(filtru);
+  const prieteni = await prieteniiMaiMultora(lista.map((a) => a.id));
 
   const registru = new ExcelJS.Workbook();
   registru.creator = "Puls · Grupe mici";
@@ -39,6 +46,7 @@ export async function GET(cerere: Request) {
     statut: a.status === "musafir" ? "musafir" : "membru",
     sex: etichetaSex(a.sex),
     clasa: etichetaClasa(a.clasa),
+    biserica: bisericaPeLarg(a.biserica, a.bisericaNume),
     varsta: a.varsta,
     dataNasterii: a.dataNasterii,
     telefon: a.telefon,
@@ -51,6 +59,7 @@ export async function GET(cerere: Request) {
     prezente: a.prezente,
     procent: a.procent,
     devenitMembruLa: a.devenitMembruLa,
+    prieteni: (prieteni.get(a.id) ?? []).join(", "),
   }));
 
   adaugaFoaie(registru, {
@@ -62,6 +71,7 @@ export async function GET(cerere: Request) {
       { antet: "Statut", cheie: "statut", latime: 10, ton: TON.statut },
       { antet: "Sex", cheie: "sex", latime: 8 },
       { antet: "Clasa", cheie: "clasa", latime: 12 },
+      { antet: "Biserica", cheie: "biserica", latime: 22 },
       { antet: "Vârstă", cheie: "varsta", latime: 8 },
       {
         antet: "Data nașterii",
@@ -89,6 +99,12 @@ export async function GET(cerere: Request) {
         cheie: "devenitMembruLa",
         latime: 18,
         format: "data",
+      },
+      {
+        antet: "Prieteni apropiați",
+        cheie: "prieteni",
+        latime: 34,
+        rupeTextul: true,
       },
     ],
     randuri,
@@ -146,6 +162,13 @@ function descrieFiltrul(
     bucati.push(filtru.status === "membru" ? "doar membri" : "doar musafiri");
   }
   if (filtru.sex) bucati.push(filtru.sex === "baiat" ? "doar băieți" : "doar fete");
+  if (filtru.biserica) {
+    bucati.push(
+      filtru.biserica === "nescris"
+        ? "doar cei fără biserica scrisă"
+        : `biserica: ${BISERICI.find((b) => b.valoare === filtru.biserica)?.titlu ?? filtru.biserica}`,
+    );
+  }
   if (filtru.clasa !== undefined) bucati.push(`clasa ${filtru.clasa}`);
   if (filtru.varstaMin !== undefined) bucati.push(`de la ${filtru.varstaMin} ani`);
   if (filtru.varstaMax !== undefined) bucati.push(`până la ${filtru.varstaMax} ani`);

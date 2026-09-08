@@ -1,10 +1,11 @@
 import "server-only";
 
-import { and, eq, inArray, like, or, type SQL } from "drizzle-orm";
+import { and, eq, inArray, isNull, like, or, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { grupe, intalniri, membri, prezente } from "@/lib/db/schema";
 import { varsta } from "@/lib/util/date";
+import type { Biserica } from "@/lib/util/etichete";
 
 /** Filtrele listei de pulsiști (vin din adresa paginii). */
 export type FiltruPulsisti = {
@@ -14,6 +15,8 @@ export type FiltruPulsisti = {
   status?: "membru" | "musafir";
   sex?: "baiat" | "fata";
   clasa?: number;
+  /** De unde vine; „nescris" îi scoate pe cei la care încă n-am răspuns. */
+  biserica?: Biserica | "nescris";
   varstaMin?: number;
   varstaMax?: number;
   /** "activi" (implicit), "inactivi" sau "toti". */
@@ -33,6 +36,8 @@ export type PulsistDinLista = {
   status: "membru" | "musafir";
   activ: boolean;
   devenitMembruLa: string | null;
+  biserica: Biserica | null;
+  bisericaNume: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
   parinte2Nume: string | null;
@@ -62,6 +67,8 @@ export async function cautaPulsisti(
   if (filtru.status) conditii.push(eq(membri.status, filtru.status));
   if (filtru.sex) conditii.push(eq(membri.sex, filtru.sex));
   if (filtru.clasa) conditii.push(eq(membri.clasa, filtru.clasa));
+  if (filtru.biserica === "nescris") conditii.push(isNull(membri.biserica));
+  else if (filtru.biserica) conditii.push(eq(membri.biserica, filtru.biserica));
 
   const activi = filtru.activi ?? "activi";
   if (activi === "activi") conditii.push(eq(membri.activ, true));
@@ -120,6 +127,8 @@ export async function cautaPulsisti(
       status: m.status,
       activ: m.activ,
       devenitMembruLa: m.devenitMembruLa,
+      biserica: m.biserica,
+      bisericaNume: m.bisericaNume,
       parinte1Nume: m.parinte1Nume,
       parinte1Telefon: m.parinte1Telefon,
       parinte2Nume: m.parinte2Nume,
@@ -168,6 +177,7 @@ export function filtruDinParametri(
   const status = ia("status");
   const sex = ia("sex");
   const activi = ia("activi");
+  const biserica = ia("biserica");
 
   return {
     q: ia("q") || undefined,
@@ -175,6 +185,13 @@ export function filtruDinParametri(
     status: status === "membru" || status === "musafir" ? status : undefined,
     sex: sex === "baiat" || sex === "fata" ? sex : undefined,
     clasa: numar("clasa"),
+    biserica:
+      biserica === "harvest" ||
+      biserica === "alta" ||
+      biserica === "fara" ||
+      biserica === "nescris"
+        ? biserica
+        : undefined,
     varstaMin: numar("varstaMin"),
     varstaMax: numar("varstaMax"),
     activi:

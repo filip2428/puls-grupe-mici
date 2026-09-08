@@ -84,6 +84,7 @@ export async function GET(cerere: Request) {
       { antet: "Statut", cheie: "statut", latime: 10, ton: TON.statut },
       { antet: "Sex", cheie: "sex", latime: 8 },
       { antet: "Clasa", cheie: "clasa", latime: 12 },
+      { antet: "Biserica", cheie: "biserica", latime: 22 },
       { antet: "Telefon", cheie: "telefon", latime: 14 },
       {
         antet: "Data nașterii",
@@ -105,6 +106,12 @@ export async function GET(cerere: Request) {
         latime: 12,
         format: "procent",
         ton: TON.procent,
+      },
+      {
+        antet: "Prieteni apropiați",
+        cheie: "prieteni",
+        latime: 34,
+        rupeTextul: true,
       },
     ],
     randuri: pulsisti,

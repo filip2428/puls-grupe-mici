@@ -7,7 +7,12 @@ import {
   salveazaMembru,
   type StareFormular,
 } from "@/app/(aplicatie)/membri/[id]/actions";
-import { CLASE, etichetaClasa } from "@/lib/util/etichete";
+import {
+  BISERICI,
+  CLASE,
+  etichetaClasa,
+  type Biserica,
+} from "@/lib/util/etichete";
 
 /** Caseta în care liderul scrie o notă despre pulsist. */
 export function FormularNota({ membruId }: { membruId: number }) {
@@ -48,6 +53,8 @@ export type DateMembru = {
   dataNasterii: string | null;
   sex: "baiat" | "fata" | null;
   clasa: number | null;
+  biserica: Biserica | null;
+  bisericaNume: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
   parinte2Nume: string | null;
@@ -147,6 +154,50 @@ export function FormularEditareMembru({
         </div>
       </div>
 
+      {/*
+        De unde vine. Cartonașele nu sunt ținute în React: ce arată apăsat
+        se hotărăște din CSS, după `:checked`.
+      */}
+      <fieldset className="rounded-xl border border-[#e3e7f2] p-3">
+        <legend className="px-1 text-xs font-bold text-cenusiu uppercase">
+          Biserica
+        </legend>
+        <div className="grid grid-cols-2 gap-2">
+          {BISERICI.map((b) => (
+            <CartonasBiserica
+              key={b.valoare}
+              valoare={b.valoare}
+              implicit={initial.biserica === b.valoare}
+              titlu={b.titlu}
+              explicatie={b.explicatie}
+            />
+          ))}
+          <CartonasBiserica
+            valoare=""
+            implicit={initial.biserica === null}
+            titlu="Nu știm încă"
+            explicatie="nu s-a întrebat"
+          />
+        </div>
+        <div className="mt-3">
+          <label className="eticheta" htmlFor="bisericaNume">
+            Care biserică
+          </label>
+          <input
+            id="bisericaNume"
+            name="bisericaNume"
+            className="camp"
+            defaultValue={initial.bisericaNume ?? ""}
+            placeholder="ex. Betel Arad"
+            maxLength={80}
+          />
+          <p className="mt-1.5 text-xs text-cenusiu">
+            Se scrie doar pentru cei de la altă biserică. La celelalte
+            răspunsuri se golește singur.
+          </p>
+        </div>
+      </fieldset>
+
       <fieldset className="rounded-xl border border-[#e3e7f2] p-3">
         <legend className="px-1 text-xs font-bold text-cenusiu uppercase">
           Părinți
@@ -221,5 +272,32 @@ export function FormularEditareMembru({
         {seTrimite ? "Salvez..." : "Salvează"}
       </button>
     </form>
+  );
+}
+
+/** Unul din cartonașele de ales la „Biserica". */
+function CartonasBiserica({
+  valoare,
+  implicit,
+  titlu,
+  explicatie,
+}: {
+  valoare: Biserica | "";
+  implicit: boolean;
+  titlu: string;
+  explicatie: string;
+}) {
+  return (
+    <label className="flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-[#d7dced] bg-hartie px-3 py-2 has-[:checked]:border-albastru has-[:checked]:bg-albastru/10 has-[:checked]:text-albastru has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-albastru-deschis/40">
+      <input
+        type="radio"
+        name="biserica"
+        value={valoare}
+        defaultChecked={implicit}
+        className="sr-only"
+      />
+      <span className="text-sm font-semibold">{titlu}</span>
+      <span className="text-xs text-cenusiu">{explicatie}</span>
+    </label>
   );
 }

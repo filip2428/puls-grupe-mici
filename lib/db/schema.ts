@@ -125,6 +125,17 @@ export const membri = sqliteTable(
       .default("membru"),
     /** Când a fost primit în grupă (AAAA-LL-ZZ). */
     devenitMembruLa: text("devenit_membru_la"),
+    /**
+     * De unde vine:
+     *  - "harvest" = de la noi, din Harvest Arad;
+     *  - "alta"    = de la altă biserică - care, scrie în `bisericaNume`;
+     *  - "fara"    = nu vine dintr-o biserică.
+     *
+     * Gol înseamnă că nu s-a întrebat încă. Nu punem „harvest" din start:
+     * ar fi o presupunere despre om, scrisă ca și cum ar fi un fapt.
+     */
+    biserica: text("biserica", { enum: ["harvest", "alta", "fara"] }),
+    bisericaNume: text("biserica_nume"),
     /** Datele părinților, pentru contact rapid. */
     parinte1Nume: text("parinte1_nume"),
     parinte1Telefon: text("parinte1_telefon"),
@@ -137,6 +148,39 @@ export const membri = sqliteTable(
   (t) => [
     index("membri_grupa_idx").on(t.grupaId),
     index("membri_status_idx").on(t.status),
+  ],
+);
+
+/**
+ * Prieteniile dintre pulsiști: cine cu cine se are bine.
+ *
+ * Ne trebuie mai ales când se împart camerele în tabără - și, în general, ca
+ * să știm pe cine să nu despărțim.
+ *
+ * Prietenia merge în amândouă părțile: dacă Ana e prietenă cu Maria, atunci
+ * și Maria e prietenă cu Ana. Ca să nu ținem același lucru de două ori, un
+ * rând se scrie o singură dată, cu id-ul mai mic pus mereu în `membruAId`
+ * (vezi `perechea` din interogări). Cine caută prietenii cuiva trebuie deci
+ * să se uite în amândouă coloanele.
+ */
+export const prietenii = sqliteTable(
+  "prietenii",
+  {
+    membruAId: integer("membru_a_id")
+      .notNull()
+      .references(() => membri.id, { onDelete: "cascade" }),
+    membruBId: integer("membru_b_id")
+      .notNull()
+      .references(() => membri.id, { onDelete: "cascade" }),
+    /** Cine a scris legătura - util când cineva se întreabă de unde se știe. */
+    creatDeId: integer("creat_de_id").references(() => lideri.id, {
+      onDelete: "set null",
+    }),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+  },
+  (t) => [
+    primaryKey({ columns: [t.membruAId, t.membruBId] }),
+    index("prietenii_b_idx").on(t.membruBId),
   ],
 );
 
@@ -488,6 +532,8 @@ export const abonamentePush = sqliteTable(
 export type Lider = typeof lideri.$inferSelect;
 export type Grupa = typeof grupe.$inferSelect;
 export type Membru = typeof membri.$inferSelect;
+/** De unde vine pulsistul: de la noi, de la altă biserică sau de nicăieri. */
+export type Biserica = NonNullable<Membru["biserica"]>;
 export type Intalnire = typeof intalniri.$inferSelect;
 export type Prezenta = typeof prezente.$inferSelect;
 export type NotaMembru = typeof noteMembru.$inferSelect;

@@ -44,6 +44,7 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - mută pulsiști dintr-o grupă în alta, fără să piardă istoricul;
 - **șterge definitiv** un lider sau un pulsist, când chiar e nevoie;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
+- vede din ce biserică e fiecare pulsist și cine cu cine e prieten;
 - descarcă totul în Excel (prezențe, pulsiști, întâlniri), într-un fișier
   colorat, cu antet care stă pe loc și cu o foaie care spune ce e în el;
 - vede jurnalul: cine, ce și când a modificat.
@@ -64,6 +65,40 @@ de prezență, la secțiunea *Musafiri*, și de acolo:
   rămâne înregistrată.
 
 Merge și invers: „Trece-l înapoi la musafiri", dacă a fost primit din greșeală.
+
+---
+
+## Din ce biserică e
+
+Pe fiecare pulsist scrie de unde vine, cu trei răspunsuri: **Harvest Arad**
+(e de la noi), **altă biserică** - și care anume - sau **fără biserică**. Se
+vede ca o insignă lângă nume, și pe fișă, și în lista de pulsiști, ca să nu fie
+nevoie să deschizi pe fiecare.
+
+Al patrulea răspuns e „nu știm încă", și ăsta e cel din start: nimeni nu e
+trecut ca fiind de la noi doar pentru că a venit în grupă. Insigna palidă cu
+semn de întrebare e o întrebare nepusă, nu un răspuns - și se vede tocmai ca
+s-o pui.
+
+În lista de pulsiști e și filtru: poți scoate dintr-o mișcare pe toți cei de la
+alte biserici, sau pe cei la care încă n-ai completat. Coloana vine și în Excel,
+și se poate umple din import.
+
+---
+
+## Prieteni apropiați
+
+Pe fișa unui pulsist poți lega alți pulsiști despre care știi că se au bine.
+Prietenia merge în amândouă părțile: o scrii o dată și apare pe amândouă fișele.
+
+Ajută mai ales la tabără, când se împart camerele - prieteniile trec peste
+grupele mici, iar din liste nu se văd. Coloana *Prieteni apropiați* e și în
+exportul Excel, ca să poți face împărțirea pe hârtie.
+
+Cine ce poate lega ține de aceleași drepturi ca restul aplicației: un lider
+leagă pulsiști din grupele lui, coordonatorul îi leagă pe oricare - deci
+legăturile dintre grupe le face el. Numele unui prieten dintr-o grupă străină
+se vede, dar nu se poate deschide fișa lui.
 
 ---
 
@@ -203,6 +238,10 @@ Câteva coloane sunt colorate, ca să se vadă din fugă unde e o problemă:
 | roșu | absent · prezență sub 50% |
 | verde-lime | musafir - vine, dar nu e (încă) în grupă |
 | gri, cursiv | nu mai vine (inactiv) - rămâne în fișier, pentru istoric |
+
+În foaia cu pulsiști sunt și două coloane care nu se văd nicăieri altundeva
+laolaltă: **Biserica** și **Prieteni apropiați**. Pe a doua o vrei deschisă
+când împarți camerele în tabără.
 
 Ultima foaie, *Ce e în fișier*, scrie cine l-a descărcat și când, ce grupe și ce
 perioadă cuprinde, câte rânduri are și ce înseamnă culorile. Peste trei luni,

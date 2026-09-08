@@ -20,6 +20,7 @@ import {
   membri,
   membriEchipe,
   prezente,
+  prietenii,
   programariSlujire,
   type StarePrezenta,
 } from "../lib/db/schema";
@@ -73,6 +74,25 @@ const GRUPE = [
 
 /** În ce zi a săptămânii e Pulsul: 5 = vineri. */
 const ZIUA_PULSULUI = 5;
+
+/** Bisericile din care mai vin pulsiști pe la noi. */
+const ALTE_BISERICI = ["Betel Arad", "Emanuel Arad", "Speranța Arad"];
+
+/**
+ * De unde vine un pulsist, tras la sorți ca să semene cu realitatea: cei mai
+ * mulți sunt de la noi, câțiva vin de la alte biserici, câțiva de nicăieri,
+ * iar la câțiva n-a apucat nimeni să întrebe.
+ */
+function deUndeVine(): {
+  biserica: "harvest" | "alta" | "fara" | null;
+  bisericaNume: string | null;
+} {
+  const zar = Math.random();
+  if (zar < 0.6) return { biserica: "harvest", bisericaNume: null };
+  if (zar < 0.82) return { biserica: "alta", bisericaNume: alege(ALTE_BISERICI) };
+  if (zar < 0.93) return { biserica: "fara", bisericaNume: null };
+  return { biserica: null, bisericaNume: null };
+}
 
 function alege<T>(lista: T[]): T {
   return lista[Math.floor(Math.random() * lista.length)];
@@ -136,6 +156,7 @@ async function main() {
           sex: persoana.sex,
           clasa,
           status: "membru",
+          ...deUndeVine(),
           telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
           dataNasterii: `${anNasterii}-0${1 + Math.floor(Math.random() * 9)}-1${Math.floor(Math.random() * 9)}`,
           parinte1Nume: `${alege(NUME_PARINTI)} ${persoana.nume.split(" ")[1]}`,
@@ -166,10 +187,34 @@ async function main() {
         sex: index === 0 ? "baiat" : "fata",
         clasa: 10,
         status: "musafir",
+        ...deUndeVine(),
         telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
       })
       .returning({ id: membri.id });
     musafiri.push(creat.id);
+  }
+
+  /*
+    Câteva prietenii, ca să se vadă la ce folosesc: cele mai multe în aceeași
+    grupă, dar și două peste grupe - tocmai felul de legătură pe care nu-l
+    vezi din liste, dar de care ai nevoie când împarți camerele în tabără.
+  */
+  const legaturi: [number, number][] = [];
+  for (const ids of membriPeGrupa.values()) {
+    legaturi.push([ids[0], ids[1]], [ids[2], ids[3]]);
+  }
+  const primaGrupaIds = membriPeGrupa.get(idGrupe[0])!;
+  const treiaGrupaIds = membriPeGrupa.get(idGrupe[2])!;
+  legaturi.push(
+    [primaGrupaIds[4], treiaGrupaIds[4]],
+    [primaGrupaIds[5], treiaGrupaIds[5]],
+  );
+
+  for (const [unul, altul] of legaturi) {
+    const [a, b] = unul < altul ? [unul, altul] : [altul, unul];
+    await db
+      .insert(prietenii)
+      .values({ membruAId: a, membruBId: b, creatDeId: idLideri[0] });
   }
 
   // Calendarul: opt seri în urmă și încă patru înainte, în fiecare vineri.

@@ -3,6 +3,7 @@ import "server-only";
 import ExcelJS from "exceljs";
 
 import { esteDataValida } from "@/lib/util/date";
+import type { Biserica } from "@/lib/util/etichete";
 
 /**
  * Importul pulsiștilor dintr-un fișier Excel.
@@ -26,6 +27,12 @@ export const COLOANE = [
     titlu: "Data nașterii",
     obligatoriu: false,
     exemplu: "2011-04-23",
+  },
+  {
+    cheie: "biserica",
+    titlu: "Biserica",
+    obligatoriu: false,
+    exemplu: "Harvest Arad",
   },
   { cheie: "telefon", titlu: "Telefon", obligatoriu: false, exemplu: "0722000111" },
   { cheie: "parinte1Nume", titlu: "Părinte 1", obligatoriu: false, exemplu: "Maria Popa" },
@@ -56,6 +63,8 @@ export type RandPregatit = {
   sex: "baiat" | "fata" | null;
   clasa: number | null;
   dataNasterii: string | null;
+  biserica: Biserica | null;
+  bisericaNume: string | null;
   telefon: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
@@ -144,6 +153,28 @@ function clasaDinText(text: string): number | null {
 
   const roman = curat.replace(/^a\s+/, "").replace(/[^ivx]/g, "");
   return CLASE_ROMANE[roman] ?? null;
+}
+
+/** Cuvintele prin care cineva spune, într-un tabel, „nu ține de nicio biserică". */
+const FARA_BISERICA = ["fara", "fara biserica", "niciuna", "nicio", "nu", "-", "n/a"];
+
+/**
+ * „Harvest Arad", „Betel", „-" -> de unde vine.
+ *
+ * Un fișier scris de om n-are trei căsuțe de bifat: unii scriu numele
+ * bisericii, alții o liniuță, alții nimic. Luăm ce e scris - ce seamănă a
+ * Harvest e de la noi, ce spune limpede „fără" e fără, iar orice alt nume e
+ * altă biserică, cu numele păstrat exact cum a fost scris.
+ */
+function bisericaDinText(text: string): {
+  biserica: Biserica | null;
+  bisericaNume: string | null;
+} {
+  const curat = normalizeaza(text);
+  if (!curat) return { biserica: null, bisericaNume: null };
+  if (curat.includes("harvest")) return { biserica: "harvest", bisericaNume: null };
+  if (FARA_BISERICA.includes(curat)) return { biserica: "fara", bisericaNume: null };
+  return { biserica: "alta", bisericaNume: text.trim().slice(0, 80) };
 }
 
 function sexDinText(text: string): "baiat" | "fata" | null {
@@ -268,6 +299,7 @@ export async function analizeazaFisier(
 
     const statutText = normalizeaza(valoare(rand, "statut"));
     const status = statutText.startsWith("musafir") ? "musafir" : "membru";
+    const biserica = bisericaDinText(valoare(rand, "biserica"));
 
     deImportat.push({
       rand: nrRand,
@@ -278,6 +310,8 @@ export async function analizeazaFisier(
       sex: sexDinText(valoare(rand, "sex")),
       clasa: clasaDinText(valoare(rand, "clasa")),
       dataNasterii,
+      biserica: biserica.biserica,
+      bisericaNume: biserica.bisericaNume,
       telefon: valoare(rand, "telefon") || null,
       parinte1Nume: valoare(rand, "parinte1Nume") || null,
       parinte1Telefon: valoare(rand, "parinte1Telefon") || null,
@@ -337,6 +371,8 @@ export async function fisierModel(grupe: GrupaCunoscuta[]): Promise<Buffer> {
     sex: "băiat sau fată (merge și B / F).",
     clasa: "Un număr de la 5 la 13, sau a IX-a. 13 înseamnă după liceu.",
     dataNasterii: "2011-04-23 sau 23.04.2011.",
+    biserica:
+      "De unde vine: Harvest (Arad) pentru ai noștri, numele bisericii pentru ceilalți, o liniuță dacă nu ține de nicio biserică.",
     telefon: "Telefonul pulsistului.",
     parinte1Nume: "Cum îl salvezi în agendă, ex. mama, Maria.",
     parinte1Telefon: "Telefonul primului părinte.",

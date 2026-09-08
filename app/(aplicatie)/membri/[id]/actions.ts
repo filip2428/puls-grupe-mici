@@ -10,6 +10,7 @@ import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { membri, noteMembru } from "@/lib/db/schema";
 import { verificaAccesGrupa } from "@/lib/interogari/acces";
+import { desfaPrietenia, leagaPrietenii } from "@/lib/interogari/prietenii";
 import {
   numeConfirmat,
   pierderiMembru,
@@ -99,11 +100,26 @@ const schemaMembru = z.object({
     .optional()
     .transform((v) => (v ? Number(v) : null))
     .refine((v) => v === null || (v >= 1 && v <= 13), "Clasa nu e validă."),
+  biserica: z
+    .string()
+    .optional()
+    .transform((v) =>
+      v === "harvest" || v === "alta" || v === "fara" ? v : null,
+    ),
+  bisericaNume: textOptional(80),
   parinte1Nume: textOptional(80),
   parinte1Telefon: textOptional(30),
   parinte2Nume: textOptional(80),
   parinte2Telefon: textOptional(30),
-});
+}).transform((date) => ({
+  ...date,
+  /*
+    Numele bisericii are sens doar la „altă biserică". În rest îl golim, ca
+    să nu rămână agățat un „Betel" lângă un răspuns care spune „Harvest" -
+    câmpul din formular se vede oricum tot timpul.
+  */
+  bisericaNume: date.biserica === "alta" ? date.bisericaNume : null,
+}));
 
 /** Salvează datele unui pulsist. */
 export async function salveazaMembru(
@@ -120,6 +136,9 @@ export async function salveazaMembru(
     dataNasterii: formData.get("dataNasterii"),
     sex: formData.get("sex"),
     clasa: formData.get("clasa"),
+    // Radio nebifat ar da `null`, iar zod l-ar citi ca valoare greșită.
+    biserica: formData.get("biserica") ?? undefined,
+    bisericaNume: formData.get("bisericaNume"),
     parinte1Nume: formData.get("parinte1Nume"),
     parinte1Telefon: formData.get("parinte1Telefon"),
     parinte2Nume: formData.get("parinte2Nume"),
@@ -225,4 +244,41 @@ export async function treceLaMusafiri(membruId: number) {
 
   revalidatePath(`/membri/${membruId}`);
   revalidatePath(`/grupe/${acces.membru.grupaId}`);
+}
+
+/**
+ * Leagă doi pulsiști ca prieteni apropiați.
+ *
+ * Cerem acces la amândoi, nu doar la cel de pe a cărui fișă suntem: legătura
+ * se vede la fel de pe cealaltă fișă, deci n-ar fi cinstit s-o poată scrie
+ * cineva care n-are treabă cu celălalt. Coordonatorul are acces peste tot,
+ * deci el e cel care poate lega pulsiști din grupe diferite.
+ */
+export async function adaugaPrieten(membruId: number, formData: FormData) {
+  const acces = await accesLaMembru(membruId);
+  if (!acces) return;
+
+  const prietenId = Number(formData.get("prietenId"));
+  if (!Number.isInteger(prietenId) || prietenId === membruId) return;
+
+  const accesLaPrieten = await accesLaMembru(prietenId);
+  if (!accesLaPrieten) return;
+
+  await leagaPrietenii(membruId, prietenId, acces.lider.id);
+  await scrieAudit(acces.lider.id, "prieteni:legati", { membruId, prietenId });
+
+  revalidatePath(`/membri/${membruId}`);
+  revalidatePath(`/membri/${prietenId}`);
+}
+
+/** Desface o prietenie. Ajunge accesul la unul dintre cei doi. */
+export async function scoatePrieten(membruId: number, prietenId: number) {
+  const acces = await accesLaMembru(membruId);
+  if (!acces) return;
+
+  await desfaPrietenia(membruId, prietenId);
+  await scrieAudit(acces.lider.id, "prieteni:dezlegati", { membruId, prietenId });
+
+  revalidatePath(`/membri/${membruId}`);
+  revalidatePath(`/membri/${prietenId}`);
 }

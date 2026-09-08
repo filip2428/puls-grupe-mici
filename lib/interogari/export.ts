@@ -4,7 +4,8 @@ import { and, asc, eq, gte, inArray, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { grupe, intalniri, lideri, membri, prezente } from "@/lib/db/schema";
-import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
+import { prieteniiMaiMultora } from "@/lib/interogari/prietenii";
+import { bisericaPeLarg, etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 
 export type FiltruExport = {
   grupaIds?: number[];
@@ -72,6 +73,7 @@ export type RandPulsist = {
   statut: string;
   sex: string;
   clasa: string;
+  biserica: string;
   telefon: string | null;
   dataNasterii: string | null;
   parinte1Nume: string | null;
@@ -83,6 +85,8 @@ export type RandPulsist = {
   anuntate: number;
   absente: number;
   procent: number | null;
+  /** Prietenii apropiați, scriși unul după altul. */
+  prieteni: string;
 };
 
 /** Câte o linie pentru fiecare pulsist, cu totalurile lui. */
@@ -102,6 +106,8 @@ export async function randuriPulsisti(
       sex: membri.sex,
       clasa: membri.clasa,
       status: membri.status,
+      biserica: membri.biserica,
+      bisericaNume: membri.bisericaNume,
       parinte1Nume: membri.parinte1Nume,
       parinte1Telefon: membri.parinte1Telefon,
       parinte2Nume: membri.parinte2Nume,
@@ -131,6 +137,8 @@ export async function randuriPulsisti(
     .innerJoin(intalniri, eq(intalniri.id, prezente.intalnireId))
     .where(and(...conditiiPrezente));
 
+  const prieteni = await prieteniiMaiMultora(lista.map((m) => m.id));
+
   const totaluri = new Map<
     number,
     { prezente: number; anuntate: number; absente: number }
@@ -155,6 +163,7 @@ export async function randuriPulsisti(
       statut: m.status === "musafir" ? "musafir" : "membru",
       sex: etichetaSex(m.sex),
       clasa: etichetaClasa(m.clasa),
+      biserica: bisericaPeLarg(m.biserica, m.bisericaNume),
       telefon: m.telefon,
       dataNasterii: m.dataNasterii,
       parinte1Nume: m.parinte1Nume,
@@ -166,6 +175,7 @@ export async function randuriPulsisti(
       anuntate: t.anuntate,
       absente: t.absente,
       procent: total ? Math.round((t.prezente / total) * 100) : null,
+      prieteni: (prieteni.get(m.id) ?? []).join(", "),
     };
   });
 }

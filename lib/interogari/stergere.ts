@@ -1,6 +1,6 @@
 import "server-only";
 
-import { count, eq, inArray } from "drizzle-orm";
+import { count, eq, inArray, or } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -19,6 +19,7 @@ import {
   notificari,
   prezente,
   prezenteSlujire,
+  prietenii,
   programariSlujire,
 } from "@/lib/db/schema";
 
@@ -123,6 +124,7 @@ export type PierderiMembru = {
   prezente: number;
   note: number;
   echipe: number;
+  prieteni: number;
 };
 
 /** Ce se pierde dacă ștergem un pulsist. */
@@ -132,7 +134,7 @@ export async function pierderiMembru(
   const [m] = await db.select().from(membri).where(eq(membri.id, membruId));
   if (!m) return null;
 
-  const [[p], [n], [e]] = await Promise.all([
+  const [[p], [n], [e], [pr]] = await Promise.all([
     db.select({ c: count() }).from(prezente).where(eq(prezente.membruId, membruId)),
     db
       .select({ c: count() })
@@ -142,6 +144,15 @@ export async function pierderiMembru(
       .select({ c: count() })
       .from(membriEchipe)
       .where(eq(membriEchipe.membruId, membruId)),
+    db
+      .select({ c: count() })
+      .from(prietenii)
+      .where(
+        or(
+          eq(prietenii.membruAId, membruId),
+          eq(prietenii.membruBId, membruId),
+        ),
+      ),
   ]);
 
   return {
@@ -150,6 +161,7 @@ export async function pierderiMembru(
     prezente: Number(p?.c ?? 0),
     note: Number(n?.c ?? 0),
     echipe: Number(e?.c ?? 0),
+    prieteni: Number(pr?.c ?? 0),
   };
 }
 
@@ -162,6 +174,15 @@ export async function stergeMembruDefinitiv(membruId: number) {
       .where(eq(prezenteSlujire.membruId, membruId));
     await tx.delete(noteMembru).where(eq(noteMembru.membruId, membruId));
     await tx.delete(membriEchipe).where(eq(membriEchipe.membruId, membruId));
+    // Prietenia poate fi scrisă în oricare din cele două coloane.
+    await tx
+      .delete(prietenii)
+      .where(
+        or(
+          eq(prietenii.membruAId, membruId),
+          eq(prietenii.membruBId, membruId),
+        ),
+      );
     await tx.delete(membri).where(eq(membri.id, membruId));
   });
 }
@@ -269,6 +290,14 @@ export async function stergeGrupaDefinitiv(grupaId: number) {
         .where(inArray(prezenteSlujire.membruId, idMembri));
       await tx.delete(noteMembru).where(inArray(noteMembru.membruId, idMembri));
       await tx.delete(membriEchipe).where(inArray(membriEchipe.membruId, idMembri));
+      await tx
+        .delete(prietenii)
+        .where(
+          or(
+            inArray(prietenii.membruAId, idMembri),
+            inArray(prietenii.membruBId, idMembri),
+          ),
+        );
     }
     await tx.delete(intalniri).where(eq(intalniri.grupaId, grupaId));
     await tx.delete(membri).where(eq(membri.grupaId, grupaId));

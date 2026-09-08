@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { InsignaBiserica } from "@/componente/InsignaBiserica";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import {
@@ -7,7 +8,7 @@ import {
   filtruDinParametri,
   type FiltruPulsisti,
 } from "@/lib/interogari/pulsisti";
-import { CLASE, etichetaClasa, etichetaSex } from "@/lib/util/etichete";
+import { BISERICI, CLASE, etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 
 export const metadata = { title: "Pulsiști · Puls" };
 
@@ -34,6 +35,7 @@ export default async function PaginaPulsisti({
     !!filtru.status ||
     !!filtru.sex ||
     !!filtru.clasa ||
+    !!filtru.biserica ||
     filtru.varstaMin !== undefined ||
     filtru.varstaMax !== undefined ||
     (filtru.activi ?? "activi") !== "activi";
@@ -86,6 +88,26 @@ export default async function PaginaPulsisti({
                     {g.nume}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            <div className="col-span-2">
+              <label className="eticheta" htmlFor="biserica">
+                Biserica
+              </label>
+              <select
+                id="biserica"
+                name="biserica"
+                className="camp"
+                defaultValue={filtru.biserica ?? ""}
+              >
+                <option value="">toți</option>
+                {BISERICI.map((b) => (
+                  <option key={b.valoare} value={b.valoare}>
+                    {b.titlu}
+                  </option>
+                ))}
+                <option value="nescris">fără răspuns încă</option>
               </select>
             </div>
 
@@ -231,6 +253,10 @@ export default async function PaginaPulsisti({
                         inactiv
                       </span>
                     )}
+                    <InsignaBiserica
+                      biserica={a.biserica}
+                      bisericaNume={a.bisericaNume}
+                    />
                   </span>
                   <span className="mt-0.5 block text-xs text-cenusiu">
                     {a.grupaNume}
@@ -290,6 +316,7 @@ function sirDeParametri(filtru: FiltruPulsisti): string {
   if (filtru.status) p.set("status", filtru.status);
   if (filtru.sex) p.set("sex", filtru.sex);
   if (filtru.clasa) p.set("clasa", String(filtru.clasa));
+  if (filtru.biserica) p.set("biserica", filtru.biserica);
   if (filtru.varstaMin !== undefined) p.set("varstaMin", String(filtru.varstaMin));
   if (filtru.varstaMax !== undefined) p.set("varstaMax", String(filtru.varstaMax));
   if (filtru.activi) p.set("activi", filtru.activi);

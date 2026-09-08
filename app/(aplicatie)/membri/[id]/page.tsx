@@ -5,12 +5,18 @@ import {
   FormularEditareMembru,
   FormularNota,
 } from "@/componente/MembruFormulare";
+import { InsignaBiserica } from "@/componente/InsignaBiserica";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import {
+  grupeAccesibile,
   inlocuiriGrupa,
   liderilGrupei,
   verificaAccesGrupa,
 } from "@/lib/interogari/acces";
+import {
+  prieteniiMembrului,
+  pulsistiDeLegat,
+} from "@/lib/interogari/prietenii";
 import {
   istoricMembru,
   membru as iaMembru,
@@ -36,8 +42,10 @@ import {
 } from "@/lib/util/date";
 import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 import {
+  adaugaPrieten,
   primesteInGrupa,
   schimbaActiv,
+  scoatePrieten,
   stergeMembru,
   stergeNota,
   treceLaMusafiri,
@@ -67,6 +75,17 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   const acces = await verificaAccesGrupa(lider, date.grupa.id);
   if (!acces.permis) notFound();
 
+  /*
+    Cu cine poate fi legat ca prieten: liderul alege dintre pulsiștii grupelor
+    lui, coordonatorul dintre toți. Prieteniile trec peste grupe - de-aia și
+    ajută la împărțirea pe camere - dar cine le scrie rămâne cel care are
+    treabă cu amândoi.
+  */
+  const grupePermise =
+    lider.rol === "admin"
+      ? undefined
+      : (await grupeAccesibile(lider)).map((g) => g.id);
+
   const [
     istoric,
     note,
@@ -76,6 +95,8 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     pierderi,
     lideriiGrupei,
     inlocuiri,
+    prieteni,
+    deLegat,
   ] = await Promise.all([
     istoricMembru(membruId, 16),
     noteleMembrului(membruId),
@@ -85,6 +106,8 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     pierderiMembru(membruId),
     liderilGrupei(date.grupa.id),
     inlocuiriGrupa(date.grupa.id),
+    prieteniiMembrului(membruId),
+    pulsistiDeLegat(membruId, grupePermise),
   ]);
   const azi = dataAzi();
 
@@ -97,6 +120,10 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   ]
     .filter(Boolean)
     .join(" · ");
+
+  /* `undefined` la coordonator înseamnă „vede tot", nu „nu vede nimic". */
+  const potVedea = (grupaId: number) =>
+    grupePermise === undefined || grupePermise.includes(grupaId);
 
   const m = date.membru;
   const ani = varsta(m.dataNasterii);
@@ -123,6 +150,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
               musafir
             </span>
           )}
+          <InsignaBiserica biserica={m.biserica} bisericaNume={m.bisericaNume} />
         </h1>
         <p className="text-sm text-cenusiu">
           {detalii.join(" · ")}
@@ -250,6 +278,97 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           </ul>
         </section>
       )}
+
+      {/* Prietenii apropiați - de ei ținem cont când împărțim camerele */}
+      <section className="card p-4">
+        <h2 className="text-sm font-bold">Prieteni apropiați</h2>
+        <p className="mb-3 text-xs text-cenusiu">
+          Cu cine se are bine. Prietenia merge în amândouă părțile: apare și pe
+          fișa celuilalt.
+        </p>
+
+        {prieteni.length === 0 ? (
+          <p className="text-sm text-cenusiu">
+            Nu e legat încă de nimeni.
+          </p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+            {prieteni.map((p) => {
+              const detaliiPrieten = [
+                p.grupaNume,
+                etichetaClasa(p.clasa),
+                p.status === "musafir" ? "musafir" : "",
+                p.activ ? "" : "nu mai vine",
+              ]
+                .filter(Boolean)
+                .join(" · ");
+
+              return (
+                <li key={p.id} className="flex items-center gap-2 py-2.5">
+                  <div className="min-w-0 flex-1">
+                    {/*
+                      Numele e link doar dacă cel care se uită are acces la
+                      grupa prietenului. Altfel rămâne text: se vede cu cine
+                      se are bine, fără să se deschidă o fișă străină.
+                    */}
+                    {potVedea(p.grupaId) ? (
+                      <Link
+                        href={`/membri/${p.id}`}
+                        className="text-sm font-medium text-albastru"
+                      >
+                        {p.nume}
+                      </Link>
+                    ) : (
+                      <span className="text-sm font-medium">{p.nume}</span>
+                    )}
+                    <span className="block text-xs text-cenusiu">
+                      {detaliiPrieten}
+                    </span>
+                  </div>
+                  <form action={scoatePrieten.bind(null, membruId, p.id)}>
+                    <button
+                      type="submit"
+                      className="buton buton-secundar buton-mic"
+                    >
+                      Scoate
+                    </button>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {deLegat.length > 0 ? (
+          <form
+            action={adaugaPrieten.bind(null, membruId)}
+            className="mt-3 flex items-end gap-2 border-t border-[#eef1f7] pt-3"
+          >
+            <div className="min-w-0 flex-1">
+              <label className="eticheta" htmlFor="prietenId">
+                Adaugă un prieten
+              </label>
+              <select id="prietenId" name="prietenId" className="camp" required>
+                <option value="">Alege</option>
+                {deLegat.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nume} - {p.grupaNume}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button type="submit" className="buton buton-secundar shrink-0">
+              Adaugă
+            </button>
+          </form>
+        ) : (
+          <p className="mt-3 border-t border-[#eef1f7] pt-3 text-xs text-cenusiu">
+            {lider.rol === "admin"
+              ? "Nu mai e nimeni de legat."
+              : "Poți lega doar pulsiști din grupele tale. Pentru prietenii din alte grupe, cere-i coordonatorului."}
+          </p>
+        )}
+      </section>
 
       {/* Unde slujește */}
       <section className="card p-4">
@@ -423,6 +542,8 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 dataNasterii: m.dataNasterii,
                 sex: m.sex,
                 clasa: m.clasa,
+                biserica: m.biserica,
+                bisericaNume: m.bisericaNume,
                 parinte1Nume: m.parinte1Nume,
                 parinte1Telefon: m.parinte1Telefon,
                 parinte2Nume: m.parinte2Nume,
@@ -466,6 +587,7 @@ function pierderiText(p: {
   prezente: number;
   note: number;
   echipe: number;
+  prieteni: number;
 }): string {
   const bucati = [
     p.prezente === 0
@@ -479,6 +601,11 @@ function pierderiText(p: {
       : p.echipe === 1
         ? "o echipă de slujire"
         : `${p.echipe} echipe de slujire`,
+    p.prieteni === 0
+      ? ""
+      : p.prieteni === 1
+        ? "o prietenie"
+        : `${p.prieteni} prietenii`,
   ].filter(Boolean);
 
   if (bucati.length === 0) {
