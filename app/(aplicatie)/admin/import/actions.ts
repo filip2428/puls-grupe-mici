@@ -8,6 +8,7 @@ import { scrieAudit } from "@/lib/audit";
 import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { db } from "@/lib/db";
 import { grupe, membri } from "@/lib/db/schema";
+import { gasesteSauCreeaza } from "@/lib/interogari/biserici";
 import {
   analizeazaFisier,
   type RezultatAnaliza,
@@ -111,6 +112,16 @@ export async function importa(
     return { eroare: "Grupele din fișier nu mai există. Încarcă fișierul din nou." };
   }
 
+  /*
+    Bisericile scrise în fișier devin rânduri în tabelul de biserici. Le
+    rezolvăm o dată pe nume distinct, nu o dată pe rând: un fișier cu o sută
+    de pulsiști are, de obicei, patru-cinci biserici.
+  */
+  const idBiserici = new Map<string, number | null>();
+  for (const nume of new Set(deScris.map((r) => r.bisericaNume).filter(Boolean))) {
+    idBiserici.set(nume!, await gasesteSauCreeaza(nume!));
+  }
+
   const azi = dataAzi();
   await db.insert(membri).values(
     deScris.map((r) => ({
@@ -123,7 +134,7 @@ export async function importa(
       status: r.status,
       devenitMembruLa: r.status === "membru" ? azi : null,
       biserica: r.biserica,
-      bisericaNume: r.bisericaNume,
+      bisericaId: r.bisericaNume ? (idBiserici.get(r.bisericaNume) ?? null) : null,
       parinte1Nume: r.parinte1Nume,
       parinte1Telefon: r.parinte1Telefon,
       parinte2Nume: r.parinte2Nume,

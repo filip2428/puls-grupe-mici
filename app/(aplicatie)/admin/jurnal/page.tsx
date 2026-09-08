@@ -19,6 +19,7 @@ const TEXTE: Record<string, string> = {
   "membru:inactivat": "a marcat un pulsist ca inactiv",
   "membru:reactivat": "a readus un pulsist în grupă",
   "membru:mutat": "a mutat un pulsist în altă grupă",
+  "export:statistici": "a descărcat statisticile",
   "prieteni:legati": "a legat doi pulsiști ca prieteni",
   "prieteni:dezlegati": "a desfăcut o prietenie",
   "nota:adaugata": "a scris o notă",

@@ -97,6 +97,27 @@ export const lideriGrupe = sqliteTable(
 );
 
 /**
+ * Bisericile din care ne vin pulsiști.
+ *
+ * N-au pagină de administrare și nici nu le creează cineva dinainte: un rând
+ * apare singur când se scrie o biserică nouă pe fișa unui pulsist și dispare
+ * singur când nu mai rămâne nimeni din ea.
+ *
+ * Există totuși ca tabel, nu ca text liber pe fiecare pulsist, dintr-un motiv
+ * simplu: „Betel", „betel" și „Betel " ar fi fost trei biserici diferite în
+ * statistici. Aici sunt una singură.
+ */
+export const biserici = sqliteTable(
+  "biserici",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    nume: text("nume").notNull(),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+  },
+  (t) => [uniqueIndex("biserici_nume_uq").on(t.nume)],
+);
+
+/**
  * Pulsiștii.
  *
  * `status` face diferența dintre cineva care e cu adevărat parte din grupă și
@@ -128,14 +149,19 @@ export const membri = sqliteTable(
     /**
      * De unde vine:
      *  - "harvest" = de la noi, din Harvest Arad;
-     *  - "alta"    = de la altă biserică - care, scrie în `bisericaNume`;
+     *  - "alta"    = de la altă biserică - care, arată `bisericaId`;
      *  - "fara"    = nu vine dintr-o biserică.
      *
      * Gol înseamnă că nu s-a întrebat încă. Nu punem „harvest" din start:
      * ar fi o presupunere despre om, scrisă ca și cum ar fi un fapt.
+     *
+     * `bisericaId` are sens doar la „alta", și nici acolo nu e obligatoriu:
+     * se poate ști că vine de altundeva fără să se știe de unde.
      */
     biserica: text("biserica", { enum: ["harvest", "alta", "fara"] }),
-    bisericaNume: text("biserica_nume"),
+    bisericaId: integer("biserica_id").references(() => biserici.id, {
+      onDelete: "set null",
+    }),
     /** Datele părinților, pentru contact rapid. */
     parinte1Nume: text("parinte1_nume"),
     parinte1Telefon: text("parinte1_telefon"),

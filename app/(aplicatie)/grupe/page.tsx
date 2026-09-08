@@ -44,13 +44,22 @@ export default async function PaginaGrupe() {
             ? "Grupa mea"
             : "Grupele mele"}
       </h1>
-      <p className="mb-5 text-sm text-cenusiu">
+      <p className="mb-3 text-sm text-cenusiu">
         {esteAdmin
           ? "Alege grupa ca să faci prezența sau să vezi istoricul."
           : aleMele.length === 0 && inlocuiri.length > 0
             ? "Deocamdată ții doar locul altcuiva."
             : "Alege grupa ca să faci prezența sau să vezi istoricul."}
       </p>
+
+      {/* Drumul scurt către cifrele pe o perioadă - un an bisericesc, de obicei. */}
+      {grupe.length > 0 && (
+        <p className="mb-5">
+          <Link href="/statistici" className="text-sm text-albastru underline">
+            Statistici pe o perioadă
+          </Link>
+        </p>
+      )}
 
       {grupe.length === 0 && (
         <div className="card p-6 text-center text-sm text-cenusiu">

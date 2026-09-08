@@ -45,6 +45,8 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - **șterge definitiv** un lider sau un pulsist, când chiar e nevoie;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
 - vede din ce biserică e fiecare pulsist și cine cu cine e prieten;
+- vede **statisticile pe o perioadă** (anul bisericesc, de exemplu): pe grupe,
+  pe biserici, pe luni, pe clase - și le descarcă în Excel;
 - descarcă totul în Excel (prezențe, pulsiști, întâlniri), într-un fișier
   colorat, cu antet care stă pe loc și cu o foaie care spune ce e în el;
 - vede jurnalul: cine, ce și când a modificat.
@@ -80,6 +82,15 @@ trecut ca fiind de la noi doar pentru că a venit în grupă. Insigna palidă cu
 semn de întrebare e o întrebare nepusă, nu un răspuns - și se vede tocmai ca
 s-o pui.
 
+Bisericile din care ne vin pulsiști se țin minte. Când scrii „altă biserică",
+câmpul îți propune bisericile pe care le ai deja - alegi una sau scrii una nouă,
+care de atunci se propune și ea. Nu e nicio pagină de administrat biserici:
+lista crește singură și se curăță singură când ultimul pulsist dintr-o biserică
+pleacă sau își schimbă răspunsul.
+
+Rostul listei e ca „Betel", „betel" și „Betel Arad" să fie o singură biserică,
+nu trei, atunci când te uiți la statistici.
+
 În lista de pulsiști e și filtru: poți scoate dintr-o mișcare pe toți cei de la
 alte biserici, sau pe cei la care încă n-ai completat. Coloana vine și în Excel,
 și se poate umple din import.
@@ -99,6 +110,38 @@ Cine ce poate lega ține de aceleași drepturi ca restul aplicației: un lider
 leagă pulsiști din grupele lui, coordonatorul îi leagă pe oricare - deci
 legăturile dintre grupe le face el. Numele unui prieten dintr-o grupă străină
 se vede, dar nu se poate deschide fișa lui.
+
+---
+
+## Statistici pe o perioadă
+
+Pagina *Statistici* răspunde la întrebarea de la sfârșit de an: **cum a mers
+lucrarea?** Alegi o perioadă - implicit anul bisericesc, 1 septembrie - 30 iunie,
+dar datele se schimbă cum vrei - și, dacă vrei, o singură grupă.
+
+Ies șapte feluri de a privi aceleași seri:
+
+- **rezumatul**: câte întâlniri s-au ținut, prezența medie, câți vin în medie
+  la o seară, câți pulsiști au fost pe foaie;
+- **ce s-a mai întâmplat**: musafiri care au trecut pragul, pulsiști noi,
+  primiți în grupă, slujiri programate, câți au slujit;
+- **pe grupe**: care grupă s-a strâns cel mai des și care ține oamenii;
+- **pe biserici**: de unde vin și cât de statornic vin - aici se vede dacă cei
+  din afara bisericii rămân sau doar trec;
+- **pe luni**: unde a urcat și unde a căzut prezența;
+- **pe clase**: ce vârste ține lucrarea și pe care le pierde;
+- **cât de statornic vin**: câți sunt peste 90%, câți sub 50%, plus lista celor
+  de căutat și lista celor care n-au lipsit deloc.
+
+O regulă ține peste tot, aceeași ca în restul aplicației: **procentele se
+socotesc doar pe membri.** Musafirii n-au promis nimănui nimic, iar dacă i-am
+pune la medie ar trage-o în jos fără să spună nimic adevărat - sunt numărați
+separat, unde chiar contează câți au trecut pragul. Ca să nu iasă procente din
+coincidențe, în cele două liste de nume intră doar cine a fost așteptat la cel
+puțin trei întâlniri.
+
+Liderul vede statisticile grupelor lui, coordonatorul pe toate. Totul se
+descarcă în Excel, cu câte o foaie pentru fiecare tabel.
 
 ---
 
@@ -221,8 +264,9 @@ regenerezi doar dacă schimbi logo-ul.
 
 ## Fișierele Excel
 
-Se descarcă din *Administrare → Export* (prezențe, pulsiști și întâlniri) sau
-de pe pagina *Pulsiști* (lista, exact cu filtrele de pe ecran).
+Se descarcă din trei locuri: *Administrare → Export* (prezențe, pulsiști și
+întâlniri), pagina *Pulsiști* (lista, exact cu filtrele de pe ecran) și pagina
+*Statistici* (câte o foaie pentru fiecare tabel de acolo).
 
 Nu sunt tabele seci: antetul e albastru și rămâne pe loc când derulezi, primele
 coloane la fel, rândurile sunt în dungi, iar filtrele Excel sunt puse deja.

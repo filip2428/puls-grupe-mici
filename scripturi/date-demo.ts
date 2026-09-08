@@ -11,6 +11,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { genereazaCod, hashCod } from "../lib/auth/cod";
 import { db } from "../lib/db";
 import {
+  biserici,
   echipeSlujire,
   evenimente,
   grupe,
@@ -83,15 +84,15 @@ const ALTE_BISERICI = ["Betel Arad", "Emanuel Arad", "Speranța Arad"];
  * mulți sunt de la noi, câțiva vin de la alte biserici, câțiva de nicăieri,
  * iar la câțiva n-a apucat nimeni să întrebe.
  */
-function deUndeVine(): {
+function deUndeVine(idBiserici: number[]): {
   biserica: "harvest" | "alta" | "fara" | null;
-  bisericaNume: string | null;
+  bisericaId: number | null;
 } {
   const zar = Math.random();
-  if (zar < 0.6) return { biserica: "harvest", bisericaNume: null };
-  if (zar < 0.82) return { biserica: "alta", bisericaNume: alege(ALTE_BISERICI) };
-  if (zar < 0.93) return { biserica: "fara", bisericaNume: null };
-  return { biserica: null, bisericaNume: null };
+  if (zar < 0.6) return { biserica: "harvest", bisericaId: null };
+  if (zar < 0.82) return { biserica: "alta", bisericaId: alege(idBiserici) };
+  if (zar < 0.93) return { biserica: "fara", bisericaId: null };
+  return { biserica: null, bisericaId: null };
 }
 
 function alege<T>(lista: T[]): T {
@@ -122,6 +123,16 @@ async function main() {
       .returning({ id: lideri.id });
     idLideri.push(creat.id);
     coduri.push(`${nume.padEnd(18)} ${cod.codIntreg}`);
+  }
+
+  // Bisericile din care ne mai vin pulsiști.
+  const idBiserici: number[] = [];
+  for (const nume of ALTE_BISERICI) {
+    const [creata] = await db
+      .insert(biserici)
+      .values({ nume })
+      .returning({ id: biserici.id });
+    idBiserici.push(creata.id);
   }
 
   // Grupe + repartizare (primele două grupe au câte doi lideri)
@@ -156,7 +167,7 @@ async function main() {
           sex: persoana.sex,
           clasa,
           status: "membru",
-          ...deUndeVine(),
+          ...deUndeVine(idBiserici),
           telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
           dataNasterii: `${anNasterii}-0${1 + Math.floor(Math.random() * 9)}-1${Math.floor(Math.random() * 9)}`,
           parinte1Nume: `${alege(NUME_PARINTI)} ${persoana.nume.split(" ")[1]}`,
@@ -187,7 +198,7 @@ async function main() {
         sex: index === 0 ? "baiat" : "fata",
         clasa: 10,
         status: "musafir",
-        ...deUndeVine(),
+        ...deUndeVine(idBiserici),
         telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
       })
       .returning({ id: membri.id });

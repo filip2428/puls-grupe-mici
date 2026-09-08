@@ -53,6 +53,7 @@ export default async function PaginaAdmin() {
         <Buton href="/admin/lideri" text="Lideri" />
         <Buton href="/admin/grupe" text="Grupe" />
         <Buton href="/slujiri" text="Slujiri" />
+        <Buton href="/statistici" text="Statistici" />
         <Buton href="/admin/import" text="Import Excel" />
         <Buton href="/admin/export" text="Export" />
         <Buton href="/admin/jurnal" text="Jurnal" />

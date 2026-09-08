@@ -4,6 +4,7 @@ import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
+  biserici,
   grupe,
   intalniri,
   lideri,
@@ -180,9 +181,10 @@ export async function grupeCuPrezentaLa(
 /** Un membru împreună cu grupa lui. */
 export async function membru(membruId: number) {
   const [rezultat] = await db
-    .select({ membru: membri, grupa: grupe })
+    .select({ membru: membri, grupa: grupe, bisericaNume: biserici.nume })
     .from(membri)
     .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(biserici, eq(biserici.id, membri.bisericaId))
     .where(eq(membri.id, membruId));
   return rezultat ?? null;
 }

@@ -1,0 +1,1 @@
+ALTER TABLE `membri` DROP COLUMN `biserica_nume`;

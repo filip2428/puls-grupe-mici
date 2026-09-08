@@ -13,6 +13,7 @@ import {
   liderilGrupei,
   verificaAccesGrupa,
 } from "@/lib/interogari/acces";
+import { bisericileCunoscute } from "@/lib/interogari/biserici";
 import {
   prieteniiMembrului,
   pulsistiDeLegat,
@@ -97,6 +98,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     inlocuiri,
     prieteni,
     deLegat,
+    biserici,
   ] = await Promise.all([
     istoricMembru(membruId, 16),
     noteleMembrului(membruId),
@@ -108,6 +110,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     inlocuiriGrupa(date.grupa.id),
     prieteniiMembrului(membruId),
     pulsistiDeLegat(membruId, grupePermise),
+    bisericileCunoscute(),
   ]);
   const azi = dataAzi();
 
@@ -150,7 +153,10 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
               musafir
             </span>
           )}
-          <InsignaBiserica biserica={m.biserica} bisericaNume={m.bisericaNume} />
+          <InsignaBiserica
+            biserica={m.biserica}
+            bisericaNume={date.bisericaNume}
+          />
         </h1>
         <p className="text-sm text-cenusiu">
           {detalii.join(" · ")}
@@ -535,6 +541,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           </summary>
           <div className="pt-2">
             <FormularEditareMembru
+              bisericiCunoscute={biserici.map((b) => b.nume)}
               membruId={membruId}
               initial={{
                 nume: m.nume,
@@ -543,7 +550,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 sex: m.sex,
                 clasa: m.clasa,
                 biserica: m.biserica,
-                bisericaNume: m.bisericaNume,
+                bisericaNume: date.bisericaNume,
                 parinte1Nume: m.parinte1Nume,
                 parinte1Telefon: m.parinte1Telefon,
                 parinte2Nume: m.parinte2Nume,

@@ -65,9 +65,12 @@ export type DateMembru = {
 export function FormularEditareMembru({
   membruId,
   initial,
+  bisericiCunoscute,
 }: {
   membruId: number;
   initial: DateMembru;
+  /** Bisericile din care avem deja pulsiști - se propun la scris. */
+  bisericiCunoscute: string[];
 }) {
   const [stare, actiune, seTrimite] = useActionState<StareFormular, FormData>(
     salveazaMembru.bind(null, membruId),
@@ -179,6 +182,11 @@ export function FormularEditareMembru({
             explicatie="nu s-a întrebat"
           />
         </div>
+        {/*
+          Un singur câmp, cu sugestii: alegi o biserică din care avem deja
+          pulsiști sau scrii una nouă, care de atunci se propune și ea. Fără
+          ecran de administrat biserici și fără trei feluri de a scrie „Betel".
+        */}
         <div className="mt-3">
           <label className="eticheta" htmlFor="bisericaNume">
             Care biserică
@@ -187,10 +195,17 @@ export function FormularEditareMembru({
             id="bisericaNume"
             name="bisericaNume"
             className="camp"
+            list="biserici-cunoscute"
             defaultValue={initial.bisericaNume ?? ""}
-            placeholder="ex. Betel Arad"
+            placeholder="alege sau scrie una nouă"
             maxLength={80}
+            autoComplete="off"
           />
+          <datalist id="biserici-cunoscute">
+            {bisericiCunoscute.map((nume) => (
+              <option key={nume} value={nume} />
+            ))}
+          </datalist>
           <p className="mt-1.5 text-xs text-cenusiu">
             Se scrie doar pentru cei de la altă biserică. La celelalte
             răspunsuri se golește singur.

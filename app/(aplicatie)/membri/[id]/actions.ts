@@ -10,6 +10,10 @@ import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { membri, noteMembru } from "@/lib/db/schema";
 import { verificaAccesGrupa } from "@/lib/interogari/acces";
+import {
+  curataBisericileGoale,
+  gasesteSauCreeaza,
+} from "@/lib/interogari/biserici";
 import { desfaPrietenia, leagaPrietenii } from "@/lib/interogari/prietenii";
 import {
   numeConfirmat,
@@ -106,6 +110,8 @@ const schemaMembru = z.object({
     .transform((v) =>
       v === "harvest" || v === "alta" || v === "fara" ? v : null,
     ),
+  /* Numele bisericii, așa cum a fost scris. În `bisericaId` îl transformăm
+     abia la salvare, când putem întreba baza de date. */
   bisericaNume: textOptional(80),
   parinte1Nume: textOptional(80),
   parinte1Telefon: textOptional(30),
@@ -148,8 +154,21 @@ export async function salveazaMembru(
     return { eroare: rezultat.error.issues[0]?.message ?? "Date invalide." };
   }
 
-  await db.update(membri).set(rezultat.data).where(eq(membri.id, membruId));
+  const { bisericaNume, ...date } = rezultat.data;
+  const bisericaId = bisericaNume ? await gasesteSauCreeaza(bisericaNume) : null;
+
+  await db
+    .update(membri)
+    .set({ ...date, bisericaId })
+    .where(eq(membri.id, membruId));
   await scrieAudit(acces.lider.id, "membru:modificat", { membruId });
+
+  /*
+    Dacă ăsta era ultimul pulsist dintr-o biserică, biserica n-are de ce să
+    mai stea în lista de sugestii. Se face aici, nu printr-o curățenie de
+    noapte: e o ștergere de un rând, iar lista rămâne mereu adevărată.
+  */
+  await curataBisericileGoale();
 
   revalidatePath(`/membri/${membruId}`);
   return { reusit: true };
@@ -217,6 +236,7 @@ export async function stergeMembru(
   }
 
   await stergeMembruDefinitiv(membruId);
+  await curataBisericileGoale();
   await scrieAudit(acces.lider.id, "membru:sters", {
     membruId,
     nume: pierderi.nume,

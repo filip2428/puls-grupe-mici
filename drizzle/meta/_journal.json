@@ -64,6 +64,20 @@
       "when": 1788845431679,
       "tag": "0008_curvy_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1788848334704,
+      "tag": "0009_chubby_glorian",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1788848348269,
+      "tag": "0010_nervous_spencer_smythe",
+      "breakpoints": true
     }
   ]
 }

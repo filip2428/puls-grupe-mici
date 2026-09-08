@@ -162,3 +162,34 @@ export function zileleGrilei(luna: string): string[] {
   const start = adaugaZile(prima, -decalaj);
   return Array.from({ length: total }, (_, i) => adaugaZile(start, i));
 }
+
+/*
+  Anul bisericesc.
+
+  Lucrarea nu merge pe ani calendaristici, ci pe „stagiuni": începe toamna,
+  odată cu școala, și se încheie în iunie, când toată lumea pleacă în vacanță.
+  Statisticile pe an calendaristic ar tăia stagiunea fix la mijloc, în
+  decembrie, unde nu se termină nimic.
+
+  Luăm 1 septembrie - 30 iunie ca margini rotunde; datele exacte se pot
+  oricum schimba de mână în pagină.
+*/
+const INCEPUT_AN_BISERICESC = 9; // septembrie
+
+/** Anul bisericesc în care ne aflăm la data dată. */
+export function anulBisericesc(azi = dataAzi()): {
+  deLa: string;
+  panaLa: string;
+} {
+  const an = Number(azi.slice(0, 4));
+  const luna = Number(azi.slice(5, 7));
+  const primul = luna >= INCEPUT_AN_BISERICESC ? an : an - 1;
+  return { deLa: `${primul}-09-01`, panaLa: `${primul + 1}-06-30` };
+}
+
+/** „septembrie 2026 - iunie 2027", pentru titluri. */
+export function perioadaLizibila(deLa: string, panaLa: string): string {
+  const inceput = lunaLizibila(deLa.slice(0, 7));
+  const sfarsit = lunaLizibila(panaLa.slice(0, 7));
+  return inceput === sfarsit ? inceput : `${inceput} - ${sfarsit}`;
+}

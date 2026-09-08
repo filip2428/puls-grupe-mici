@@ -3,7 +3,14 @@ import "server-only";
 import { and, asc, eq, gte, inArray, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { grupe, intalniri, lideri, membri, prezente } from "@/lib/db/schema";
+import {
+  biserici,
+  grupe,
+  intalniri,
+  lideri,
+  membri,
+  prezente,
+} from "@/lib/db/schema";
 import { prieteniiMaiMultora } from "@/lib/interogari/prietenii";
 import { bisericaPeLarg, etichetaClasa, etichetaSex } from "@/lib/util/etichete";
 
@@ -107,7 +114,7 @@ export async function randuriPulsisti(
       clasa: membri.clasa,
       status: membri.status,
       biserica: membri.biserica,
-      bisericaNume: membri.bisericaNume,
+      bisericaNume: biserici.nume,
       parinte1Nume: membri.parinte1Nume,
       parinte1Telefon: membri.parinte1Telefon,
       parinte2Nume: membri.parinte2Nume,
@@ -117,6 +124,7 @@ export async function randuriPulsisti(
     })
     .from(membri)
     .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(biserici, eq(biserici.id, membri.bisericaId))
     .where(conditiiMembri)
     .orderBy(asc(grupe.nume), asc(membri.nume));
 

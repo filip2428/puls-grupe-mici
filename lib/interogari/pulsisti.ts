@@ -3,7 +3,7 @@ import "server-only";
 import { and, eq, inArray, isNull, like, or, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { grupe, intalniri, membri, prezente } from "@/lib/db/schema";
+import { biserici, grupe, intalniri, membri, prezente } from "@/lib/db/schema";
 import { varsta } from "@/lib/util/date";
 import type { Biserica } from "@/lib/util/etichete";
 
@@ -87,9 +87,10 @@ export async function cautaPulsisti(
   }
 
   const lista = await db
-    .select({ membru: membri, grupaNume: grupe.nume })
+    .select({ membru: membri, grupaNume: grupe.nume, bisericaNume: biserici.nume })
     .from(membri)
     .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(biserici, eq(biserici.id, membri.bisericaId))
     .where(conditii.length ? and(...conditii) : undefined);
 
   if (lista.length === 0) return [];
@@ -114,7 +115,7 @@ export async function cautaPulsisti(
     totaluri.set(s.membruId, t);
   }
 
-  const rezultat = lista.map(({ membru: m, grupaNume }) => {
+  const rezultat = lista.map(({ membru: m, grupaNume, bisericaNume }) => {
     const t = totaluri.get(m.id) ?? { total: 0, prezente: 0 };
     return {
       id: m.id,
@@ -128,7 +129,7 @@ export async function cautaPulsisti(
       activ: m.activ,
       devenitMembruLa: m.devenitMembruLa,
       biserica: m.biserica,
-      bisericaNume: m.bisericaNume,
+      bisericaNume,
       parinte1Nume: m.parinte1Nume,
       parinte1Telefon: m.parinte1Telefon,
       parinte2Nume: m.parinte2Nume,
