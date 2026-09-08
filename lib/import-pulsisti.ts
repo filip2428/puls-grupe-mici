@@ -35,6 +35,12 @@ export const COLOANE = [
     exemplu: "Harvest Arad",
   },
   { cheie: "botez", titlu: "Botez", obligatoriu: false, exemplu: "botezat" },
+  {
+    cheie: "botezatLa",
+    titlu: "Data botezului",
+    obligatoriu: false,
+    exemplu: "2024-05-12",
+  },
   { cheie: "telefon", titlu: "Telefon", obligatoriu: false, exemplu: "0722000111" },
   { cheie: "parinte1Nume", titlu: "Părinte 1", obligatoriu: false, exemplu: "Maria Popa" },
   {
@@ -67,6 +73,7 @@ export type RandPregatit = {
   biserica: Biserica | null;
   bisericaNume: string | null;
   botez: Botez | null;
+  botezatLa: string | null;
   telefon: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
@@ -317,6 +324,17 @@ export async function analizeazaFisier(
       continue;
     }
 
+    /*
+      Data botezului nu oprește importul dacă nu se înțelege: e un amănunt,
+      spre deosebire de data nașterii, care se folosește peste tot. O lăsăm
+      goală și mergem mai departe - se poate scrie oricând de pe fișă.
+    */
+    const botez = botezDinText(valoare(rand, "botez"));
+    const botezatLa =
+      botez === "botezat" && valoare(rand, "botezatLa")
+        ? dataDinValoare(rand.getCell(pozitii.get("botezatLa")!).value)
+        : null;
+
     const statutText = normalizeaza(valoare(rand, "statut"));
     const status = statutText.startsWith("musafir") ? "musafir" : "membru";
     const biserica = bisericaDinText(valoare(rand, "biserica"));
@@ -332,7 +350,8 @@ export async function analizeazaFisier(
       dataNasterii,
       biserica: biserica.biserica,
       bisericaNume: biserica.bisericaNume,
-      botez: botezDinText(valoare(rand, "botez")),
+      botez,
+      botezatLa,
       telefon: valoare(rand, "telefon") || null,
       parinte1Nume: valoare(rand, "parinte1Nume") || null,
       parinte1Telefon: valoare(rand, "parinte1Telefon") || null,
@@ -395,6 +414,7 @@ export async function fisierModel(grupe: GrupaCunoscuta[]): Promise<Buffer> {
     biserica:
       "De unde vine: Harvest (Arad) pentru ai noștri, numele bisericii pentru ceilalți, o liniuță dacă nu ține de nicio biserică.",
     botez: "botezat sau nebotezat (merge și da / nu). Gol = nu știm încă.",
+    botezatLa: "Când s-a botezat, dacă știi: 2024-05-12. Se ia doar la botezat.",
     telefon: "Telefonul pulsistului.",
     parinte1Nume: "Cum îl salvezi în agendă, ex. mama, Maria.",
     parinte1Telefon: "Telefonul primului părinte.",

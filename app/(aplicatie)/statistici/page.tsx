@@ -177,6 +177,7 @@ export default async function PaginaStatistici({
                 cheie="Primiți în grupă"
                 valoare={s.rezumat.primitiInGrupa}
               />
+              <Rand cheie="Botezuri" valoare={s.rezumat.botezuri} />
               <Rand cheie="Slujiri programate" valoare={s.rezumat.slujiri} />
               <Rand
                 cheie="Pulsiști care au slujit"
@@ -186,6 +187,15 @@ export default async function PaginaStatistici({
               <Rand cheie="Bife „a anunțat”" valoare={s.rezumat.anuntate} />
               <Rand cheie="Bife „absent”" valoare={s.rezumat.absente} />
             </dl>
+            {/*
+              Spunem limpede de unde vine cifra: „0 botezuri" ar fi înșelător
+              dacă de fapt sunt trei botezați cărora nu le-a scris nimeni data.
+            */}
+            <p className="mt-3 text-xs text-cenusiu">
+              La botezuri intră doar cei cu data botezului scrisă pe fișă. Cine
+              e trecut „botezat&rdquo; fără dată s-a botezat cândva, nu neapărat în
+              perioada asta.
+            </p>
           </section>
 
           <Tabel

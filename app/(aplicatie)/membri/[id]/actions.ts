@@ -117,6 +117,12 @@ const schemaMembru = z.object({
     .string()
     .optional()
     .transform((v) => (v === "botezat" || v === "nebotezat" ? v : null)),
+  botezatLa: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : null))
+    .refine((v) => v === null || esteDataValida(v), "Data botezului nu e validă."),
   /* Biserica scrisă pe loc, când nu era în listă. Are prioritate. */
   bisericaNouaNume: textOptional(80),
   bisericaNouaLocalitate: textOptional(60),
@@ -134,6 +140,8 @@ const schemaMembru = z.object({
   */
   bisericaId: date.biserica === "alta" ? date.bisericaId : null,
   bisericaNouaNume: date.biserica === "alta" ? date.bisericaNouaNume : null,
+  // Data botezului n-are ce căuta lângă „nebotezat" sau lângă un răspuns nedat.
+  botezatLa: date.botez === "botezat" ? date.botezatLa : null,
 }));
 
 /** Salvează datele unui pulsist. */
@@ -155,6 +163,7 @@ export async function salveazaMembru(
     biserica: formData.get("biserica") ?? undefined,
     bisericaId: formData.get("bisericaId"),
     botez: formData.get("botez") ?? undefined,
+    botezatLa: formData.get("botezatLa"),
     bisericaNouaNume: formData.get("bisericaNouaNume"),
     bisericaNouaLocalitate: formData.get("bisericaNouaLocalitate"),
     bisericaNouaDenominatiune: formData.get("bisericaNouaDenominatiune"),

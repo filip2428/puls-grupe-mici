@@ -72,6 +72,10 @@ const schemaRand = z.object({
   biserica: z.enum(["harvest", "alta", "fara"]).nullable(),
   bisericaNume: z.string().max(80).nullable(),
   botez: z.enum(["botezat", "nebotezat"]).nullable(),
+  botezatLa: z
+    .string()
+    .nullable()
+    .refine((v) => v === null || esteDataValida(v), "Dată invalidă."),
   telefon: z.string().max(30).nullable(),
   parinte1Nume: z.string().max(80).nullable(),
   parinte1Telefon: z.string().max(30).nullable(),
@@ -137,6 +141,7 @@ export async function importa(
       biserica: r.biserica,
       bisericaId: r.bisericaNume ? (idBiserici.get(r.bisericaNume) ?? null) : null,
       botez: r.botez,
+      botezatLa: r.botezatLa,
       parinte1Nume: r.parinte1Nume,
       parinte1Telefon: r.parinte1Telefon,
       parinte2Nume: r.parinte2Nume,

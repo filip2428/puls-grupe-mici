@@ -116,6 +116,16 @@ nimeni încă, aceeași insignă palidă cu semn de întrebare. Se vede pe fiș�
 lista de pulsiști, se filtrează la fel ca biserica, intră în Excel și se poate
 umple din import (merge și *da* / *nu*).
 
+La cei botezați se poate scrie și **data botezului**, dacă o știi - apare pe
+fișă lângă vârstă („botezat 12 mai 2024") și e o dată adevărată în Excel, deci
+se poate sorta și filtra pe interval. La celelalte răspunsuri se golește
+singură, ca să nu rămână agățată o dată lângă un „nebotezat".
+
+Cu ea, statisticile știu să numere **botezurile dintr-o perioadă**. Se numără
+doar cei cu data scrisă: cine e trecut „botezat" fără dată s-a botezat cândva,
+nu neapărat anul ăsta. Cifra e un minim, și pe pagină scrie asta - mai bine
+decât un total umflat.
+
 Botezul stă separat de biserică, nu sub ea, fiindcă nu se deduce unul din altul:
 sunt botezați care nu mai merg nicăieri și pulsiști de la noi, veniți de ani de
 zile, care încă n-au făcut pasul.
@@ -160,7 +170,8 @@ Ies șapte feluri de a privi aceleași seri:
 - **pe denominațiuni**: din ce lume bisericească vin cei care nu sunt de la noi
   (tabelul apare doar dacă ai scris denominațiuni la biserici);
 - **pe botez**: câți au făcut pasul, câți nu încă, câți n-au fost întrebați -
-  și cât de des vin unii și alții;
+  și cât de des vin unii și alții; la „ce s-a mai întâmplat" e și numărul
+  botezurilor din perioadă;
 - **pe luni**: unde a urcat și unde a căzut prezența;
 - **pe clase**: ce vârste ține lucrarea și pe care le pierde;
 - **cât de statornic vin**: câți sunt peste 90%, câți sub 50%, plus lista celor
@@ -335,7 +346,8 @@ arate la fel.
 de exemplu și o foaie cu explicații), îl completezi și îl încarci înapoi.
 
 Obligatorii sunt doar **Nume** și **Grupa**; restul (statut, sex, clasă, data
-nașterii, biserica, botezul, telefon, cei doi părinți) se completează dacă le ai. Ordinea coloanelor
+nașterii, biserica, botezul și data lui, telefon, cei doi părinți) se
+completează dacă le ai. Ordinea coloanelor
 nu contează, iar cele în plus se ignoră.
 
 Înainte să scrie ceva, aplicația îți arată ce a înțeles: cine intră, cine e deja

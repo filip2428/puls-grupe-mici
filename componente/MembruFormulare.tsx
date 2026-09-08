@@ -65,6 +65,7 @@ export type DateMembru = {
   biserica: Biserica | null;
   bisericaId: number | null;
   botez: Botez | null;
+  botezatLa: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
   parinte2Nume: string | null;
@@ -310,6 +311,22 @@ export function FormularEditareMembru({
             titlu="Nu știm încă"
             explicatie="nu s-a întrebat"
           />
+        </div>
+        <div className="mt-3">
+          <label className="eticheta" htmlFor="botezatLa">
+            Când s-a botezat
+          </label>
+          <input
+            id="botezatLa"
+            name="botezatLa"
+            type="date"
+            className="camp"
+            defaultValue={initial.botezatLa ?? ""}
+          />
+          <p className="mt-1.5 text-xs text-cenusiu">
+            Dacă o știi. Se scrie doar la „botezat&rdquo; - la celelalte răspunsuri se
+            golește singură. Cu ea se pot număra botezurile dintr-un an.
+          </p>
         </div>
       </fieldset>
 

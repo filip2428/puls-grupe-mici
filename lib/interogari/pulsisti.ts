@@ -41,6 +41,7 @@ export type PulsistDinLista = {
   biserica: Biserica | null;
   bisericaNume: string | null;
   botez: Botez | null;
+  botezatLa: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
   parinte2Nume: string | null;
@@ -136,6 +137,7 @@ export async function cautaPulsisti(
       biserica: m.biserica,
       bisericaNume,
       botez: m.botez,
+      botezatLa: m.botezatLa,
       parinte1Nume: m.parinte1Nume,
       parinte1Telefon: m.parinte1Telefon,
       parinte2Nume: m.parinte2Nume,

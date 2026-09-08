@@ -67,6 +67,7 @@ export async function GET(cerere: Request) {
       { ce: "Bife „absent”", cat: s.rezumat.absente },
       { ce: "Pulsiști noi adăugați", cat: s.rezumat.pulsistiNoi },
       { ce: "Primiți în grupă", cat: s.rezumat.primitiInGrupa },
+      { ce: "Botezuri", cat: s.rezumat.botezuri },
       { ce: "Slujiri programate", cat: s.rezumat.slujiri },
       { ce: "Pulsiști care au slujit", cat: s.rezumat.auSlujit },
     ],

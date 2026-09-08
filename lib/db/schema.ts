@@ -175,6 +175,14 @@ export const membri = sqliteTable(
      * ani de zile, care încă n-au făcut pasul.
      */
     botez: text("botez", { enum: ["botezat", "nebotezat"] }),
+    /**
+     * Când s-a botezat (AAAA-LL-ZZ), dacă se știe.
+     *
+     * Are sens doar la „botezat", și nici acolo nu e obligatoriu: de multe ori
+     * se știe că s-a botezat, dar nu și când. Când e scrisă, botezul se poate
+     * număra pe o perioadă - câți au făcut pasul anul ăsta.
+     */
+    botezatLa: text("botezat_la"),
     /** Datele părinților, pentru contact rapid. */
     parinte1Nume: text("parinte1_nume"),
     parinte1Telefon: text("parinte1_telefon"),

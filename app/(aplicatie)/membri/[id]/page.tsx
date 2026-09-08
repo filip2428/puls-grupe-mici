@@ -38,6 +38,7 @@ import {
 import { pierderiMembru } from "@/lib/interogari/stergere";
 import {
   dataAzi,
+  dataCuAn,
   dataScurta,
   momentLizibil,
   varsta,
@@ -138,6 +139,8 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     etichetaClasa(m.clasa),
     ani !== null ? `${ani} ani` : "",
     etichetaSex(m.sex),
+    // Insigna spune deja „botezat"; aici adăugăm doar când, dacă se știe.
+    m.botezatLa ? `botezat ${dataCuAn(m.botezatLa)}` : "",
     m.activ ? "" : "inactiv",
   ].filter(Boolean);
 
@@ -554,6 +557,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 biserica: m.biserica,
                 bisericaId: m.bisericaId,
                 botez: m.botez,
+                botezatLa: m.botezatLa,
                 parinte1Nume: m.parinte1Nume,
                 parinte1Telefon: m.parinte1Telefon,
                 parinte2Nume: m.parinte2Nume,

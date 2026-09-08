@@ -101,6 +101,8 @@ export type StatisticiPerioada = {
     absente: number;
     pulsistiNoi: number;
     primitiInGrupa: number;
+    /** Câți s-au botezat în perioadă - se numără doar cei cu data scrisă. */
+    botezuri: number;
     slujiri: number;
     auSlujit: number;
   };
@@ -212,13 +214,15 @@ export async function statisticiPerioada(
 
   const alMembrilor = bife.filter((b) => b.status === "membru");
 
-  const [numeGrupe, pulsistiNoi, primiti, slujiri, auSlujit] = await Promise.all([
-    numeleGrupelor(grupaIds),
-    catiPulsistiNoi(filtru),
-    catiPrimitiInGrupa(filtru),
-    cateSlujiri(filtru),
-    catiAuSlujit(filtru),
-  ]);
+  const [numeGrupe, pulsistiNoi, primiti, botezuri, slujiri, auSlujit] =
+    await Promise.all([
+      numeleGrupelor(grupaIds),
+      catiPulsistiNoi(filtru),
+      catiPrimitiInGrupa(filtru),
+      cateBotezuri(filtru),
+      cateSlujiri(filtru),
+      catiAuSlujit(filtru),
+    ]);
 
   const intalnireaGrupei = new Map(listaIntalniri.map((i) => [i.id, i.grupaId]));
   const lunaIntalnirii = new Map(
@@ -234,6 +238,7 @@ export async function statisticiPerioada(
       alMembrilor,
       pulsistiNoi,
       primiti,
+      botezuri,
       slujiri,
       auSlujit,
     ),
@@ -264,6 +269,7 @@ function goale(deLa: string, panaLa: string): StatisticiPerioada {
       absente: 0,
       pulsistiNoi: 0,
       primitiInGrupa: 0,
+      botezuri: 0,
       slujiri: 0,
       auSlujit: 0,
     },
@@ -319,6 +325,26 @@ async function catiPrimitiInGrupa(filtru: FiltruPerioada): Promise<number> {
   return lista.length;
 }
 
+/**
+ * Câți s-au botezat în perioadă.
+ *
+ * Se numără doar cei cu data botezului scrisă - cine e trecut „botezat" fără
+ * dată s-a botezat cândva, nu neapărat acum. Cifra e deci un minim, iar asta
+ * e de preferat unui număr umflat.
+ */
+async function cateBotezuri(filtru: FiltruPerioada): Promise<number> {
+  const conditii: SQL[] = [
+    gte(membri.botezatLa, filtru.deLa),
+    lte(membri.botezatLa, filtru.panaLa),
+  ];
+  if (filtru.grupaIds) conditii.push(inArray(membri.grupaId, filtru.grupaIds));
+  const lista = await db
+    .select({ id: membri.id })
+    .from(membri)
+    .where(and(...conditii));
+  return lista.length;
+}
+
 async function cateSlujiri(filtru: FiltruPerioada): Promise<number> {
   const conditii: SQL[] = [
     gte(programariSlujire.data, filtru.deLa),
@@ -361,6 +387,7 @@ function rezumatul(
   alMembrilor: Bifa[],
   pulsistiNoi: number,
   primitiInGrupa: number,
+  botezuri: number,
   slujiri: number,
   auSlujit: number,
 ): StatisticiPerioada["rezumat"] {
@@ -381,6 +408,7 @@ function rezumatul(
     absente: n.absente,
     pulsistiNoi,
     primitiInGrupa,
+    botezuri,
     slujiri,
     auSlujit,
   };

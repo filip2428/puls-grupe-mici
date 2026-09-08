@@ -50,6 +50,7 @@ export async function GET(cerere: Request) {
     clasa: etichetaClasa(a.clasa),
     biserica: bisericaPeLarg(a.biserica, a.bisericaNume),
     botez: a.botez ? etichetaBotez(a.botez) : "",
+    botezatLa: a.botezatLa,
     varsta: a.varsta,
     dataNasterii: a.dataNasterii,
     telefon: a.telefon,
@@ -76,6 +77,12 @@ export async function GET(cerere: Request) {
       { antet: "Clasa", cheie: "clasa", latime: 12 },
       { antet: "Biserica", cheie: "biserica", latime: 22 },
       { antet: "Botez", cheie: "botez", latime: 12 },
+      {
+        antet: "Data botezului",
+        cheie: "botezatLa",
+        latime: 14,
+        format: "data",
+      },
       { antet: "Vârstă", cheie: "varsta", latime: 8 },
       {
         antet: "Data nașterii",

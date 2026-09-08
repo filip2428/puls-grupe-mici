@@ -1,0 +1,1 @@
+ALTER TABLE `membri` ADD `botezat_la` text;

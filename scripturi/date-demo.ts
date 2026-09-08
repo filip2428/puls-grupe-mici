@@ -99,12 +99,26 @@ function deUndeVine(idBiserici: number[]): {
   return { biserica: null, bisericaId: null };
 }
 
-/** Botezat sau nu, tot la sorți - cu destui la care nu s-a apucat nimeni. */
-function botezat(): "botezat" | "nebotezat" | null {
+/**
+ * Botezat sau nu, tot la sorți - cu destui la care nu s-a apucat nimeni.
+ *
+ * La unii botezați lăsăm data goală dinadins: așa arată realitatea, și așa se
+ * vede că numărul de botezuri dintr-o perioadă e un minim, nu un total.
+ */
+function botezat(): {
+  botez: "botezat" | "nebotezat" | null;
+  botezatLa: string | null;
+} {
   const zar = Math.random();
-  if (zar < 0.35) return "botezat";
-  if (zar < 0.8) return "nebotezat";
-  return null;
+  if (zar < 0.35) {
+    const cuData = Math.random() < 0.7;
+    const an = 2024 + Math.floor(Math.random() * 3);
+    const luna = String(4 + Math.floor(Math.random() * 6)).padStart(2, "0");
+    const zi = String(1 + Math.floor(Math.random() * 28)).padStart(2, "0");
+    return { botez: "botezat", botezatLa: cuData ? `${an}-${luna}-${zi}` : null };
+  }
+  if (zar < 0.8) return { botez: "nebotezat", botezatLa: null };
+  return { botez: null, botezatLa: null };
 }
 
 function alege<T>(lista: T[]): T {
@@ -180,7 +194,7 @@ async function main() {
           clasa,
           status: "membru",
           ...deUndeVine(idBiserici),
-          botez: botezat(),
+          ...botezat(),
           telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
           dataNasterii: `${anNasterii}-0${1 + Math.floor(Math.random() * 9)}-1${Math.floor(Math.random() * 9)}`,
           parinte1Nume: `${alege(NUME_PARINTI)} ${persoana.nume.split(" ")[1]}`,

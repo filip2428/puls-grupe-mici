@@ -87,6 +87,7 @@ export type RandPulsist = {
   clasa: string;
   biserica: string;
   botez: string;
+  botezatLa: string | null;
   telefon: string | null;
   dataNasterii: string | null;
   parinte1Nume: string | null;
@@ -122,6 +123,7 @@ export async function randuriPulsisti(
       biserica: membri.biserica,
       bisericaNume: biserici.nume,
       botez: membri.botez,
+      botezatLa: membri.botezatLa,
       parinte1Nume: membri.parinte1Nume,
       parinte1Telefon: membri.parinte1Telefon,
       parinte2Nume: membri.parinte2Nume,
@@ -180,6 +182,7 @@ export async function randuriPulsisti(
       clasa: etichetaClasa(m.clasa),
       biserica: bisericaPeLarg(m.biserica, m.bisericaNume),
       botez: m.botez ? etichetaBotez(m.botez) : "",
+      botezatLa: m.botezatLa,
       telefon: m.telefon,
       dataNasterii: m.dataNasterii,
       parinte1Nume: m.parinte1Nume,

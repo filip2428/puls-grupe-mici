@@ -85,6 +85,17 @@ export function dataScurta(data: string): string {
   return `${zi} ${LUNI[luna - 1].slice(0, 3)}.`;
 }
 
+/**
+ * "2024-05-12" -> "12 mai 2024"
+ *
+ * Pentru lucruri de demult, unde anul e chiar partea importantă - un botez,
+ * de pildă. La întâlnirile din săptămâna asta e de prisos, acolo e `dataScurta`.
+ */
+export function dataCuAn(data: string): string {
+  const [an, luna, zi] = data.split("-").map(Number);
+  return `${zi} ${LUNI[luna - 1]} ${an}`;
+}
+
 /** Formatează un moment (creat la, modificat la) pentru afișare. */
 export function momentLizibil(moment: Date | null | undefined): string {
   if (!moment) return "-";
