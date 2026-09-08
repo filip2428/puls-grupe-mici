@@ -54,6 +54,9 @@ export type RandBiserica = {
   procent: number | null;
 };
 
+/** Aceeași formă, dar cheia e chiar denominațiunea („baptistă", „nescrisă"). */
+export type RandDenominatiune = RandBiserica;
+
 export type RandLuna = {
   luna: string;
   nume: string;
@@ -100,6 +103,8 @@ export type StatisticiPerioada = {
   };
   peGrupe: RandGrupa[];
   peBiserici: RandBiserica[];
+  /** Gol dacă nu s-a scris nicio denominațiune - un tabel de nimic nu ajută. */
+  peDenominatiuni: RandDenominatiune[];
   peLuni: RandLuna[];
   peClase: RandClasa[];
   fidelitate: { prag: string; pulsisti: number }[];
@@ -120,6 +125,8 @@ type Bifa = {
   biserica: "harvest" | "alta" | "fara" | null;
   bisericaId: number | null;
   bisericaNume: string | null;
+  bisericaLocalitate: string | null;
+  bisericaDenominatiune: string | null;
 };
 
 /** Numărătoarea de bază, din care ies toate procentele. */
@@ -184,6 +191,8 @@ export async function statisticiPerioada(
             biserica: membri.biserica,
             bisericaId: membri.bisericaId,
             bisericaNume: biserici.nume,
+            bisericaLocalitate: biserici.localitate,
+            bisericaDenominatiune: biserici.denominatiune,
           })
           .from(prezente)
           .innerJoin(membri, eq(membri.id, prezente.membruId))
@@ -224,6 +233,7 @@ export async function statisticiPerioada(
     ),
     peGrupe: peGrupe(listaIntalniri, bife, numeGrupe, intalnireaGrupei),
     peBiserici: peBiserici(alMembrilor),
+    peDenominatiuni: peDenominatiuni(alMembrilor),
     peLuni: peLuni(listaIntalniri, alMembrilor, lunaIntalnirii),
     peClase: peClase(alMembrilor),
     ...fidelitatea(alMembrilor, numeGrupe),
@@ -252,6 +262,7 @@ function goale(deLa: string, panaLa: string): StatisticiPerioada {
     },
     peGrupe: [],
     peBiserici: [],
+    peDenominatiuni: [],
     peLuni: [],
     peClase: [],
     fidelitate: [],
@@ -421,7 +432,13 @@ function feluluiBisericii(b: Bifa): { cheie: string; nume: string } {
   if (b.biserica === "fara") return { cheie: "fara", nume: "Fără biserică" };
   if (b.biserica === "alta") {
     return b.bisericaId !== null && b.bisericaNume
-      ? { cheie: `b:${b.bisericaId}`, nume: b.bisericaNume }
+      ? {
+          cheie: `b:${b.bisericaId}`,
+          // Două biserici se pot chema la fel; localitatea le desparte.
+          nume: b.bisericaLocalitate
+            ? `${b.bisericaNume} · ${b.bisericaLocalitate}`
+            : b.bisericaNume,
+        }
       : { cheie: "alta", nume: "Altă biserică (nescrisă)" };
   }
   return { cheie: "nescris", nume: "Fără răspuns încă" };
@@ -447,6 +464,40 @@ function peBiserici(alMembrilor: Bifa[]): RandBiserica[] {
     .map(([cheie, n]) => ({
       cheie,
       nume: nume.get(cheie)!,
+      pulsisti: oameni.get(cheie)?.size ?? 0,
+      procent: procent(n),
+    }))
+    .sort((a, b) => b.pulsisti - a.pulsisti || a.nume.localeCompare(b.nume, "ro"));
+}
+
+/**
+ * Din ce lume bisericească ne vin cei de la alte biserici.
+ *
+ * Numai ei: pentru cei de la noi denominațiunea se știe, iar pentru cei fără
+ * biserică n-are ce însemna. Dacă nu s-a scris nicio denominațiune, întoarcem
+ * o listă goală și tabelul nici nu se arată.
+ */
+function peDenominatiuni(alMembrilor: Bifa[]): RandDenominatiune[] {
+  const deLaAltii = alMembrilor.filter((b) => b.biserica === "alta");
+  if (!deLaAltii.some((b) => b.bisericaDenominatiune)) return [];
+
+  const numere = new Map<string, Numere>();
+  const oameni = new Map<string, Set<number>>();
+
+  for (const b of deLaAltii) {
+    const cheie = b.bisericaDenominatiune ?? "nescrisă";
+    const n = numere.get(cheie) ?? numereGoale();
+    adauga(n, b.stare);
+    numere.set(cheie, n);
+    const set = oameni.get(cheie) ?? new Set<number>();
+    set.add(b.membruId);
+    oameni.set(cheie, set);
+  }
+
+  return [...numere.entries()]
+    .map(([cheie, n]) => ({
+      cheie,
+      nume: cheie,
       pulsisti: oameni.get(cheie)?.size ?? 0,
       procent: procent(n),
     }))

@@ -99,19 +99,24 @@ export const lideriGrupe = sqliteTable(
 /**
  * Bisericile din care ne vin pulsiști.
  *
- * N-au pagină de administrare și nici nu le creează cineva dinainte: un rând
- * apare singur când se scrie o biserică nouă pe fișa unui pulsist și dispare
- * singur când nu mai rămâne nimeni din ea.
- *
- * Există totuși ca tabel, nu ca text liber pe fiecare pulsist, dintr-un motiv
- * simplu: „Betel", „betel" și „Betel " ar fi fost trei biserici diferite în
+ * Sunt un tabel, nu text liber pe fiecare pulsist, dintr-un motiv simplu:
+ * „Betel", „betel" și „Betel " ar fi fost trei biserici diferite în
  * statistici. Aici sunt una singură.
+ *
+ * Se țin din „Administrare · Biserici", dar se pot adăuga și de pe fișa unui
+ * pulsist, fără să pleci din ea. Localitatea și denominațiunea sunt opționale:
+ * de multe ori se știe doar numele, iar o biserică fără ele e mai bună decât
+ * una nescrisă.
  */
 export const biserici = sqliteTable(
   "biserici",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     nume: text("nume").notNull(),
+    /** Orașul sau satul - desparte două biserici cu același nume. */
+    localitate: text("localitate"),
+    /** Baptistă, penticostală, ortodoxă... așa cum se numesc ei. */
+    denominatiune: text("denominatiune"),
     creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
   },
   (t) => [uniqueIndex("biserici_nume_uq").on(t.nume)],

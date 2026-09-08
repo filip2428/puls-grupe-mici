@@ -47,6 +47,13 @@ export function FormularNota({ membruId }: { membruId: number }) {
   );
 }
 
+/** O biserică așa cum apare în lista de ales de pe fișă. */
+export type BisericaDinLista = {
+  id: number;
+  nume: string;
+  localitate: string | null;
+};
+
 export type DateMembru = {
   nume: string;
   telefon: string | null;
@@ -54,7 +61,7 @@ export type DateMembru = {
   sex: "baiat" | "fata" | null;
   clasa: number | null;
   biserica: Biserica | null;
-  bisericaNume: string | null;
+  bisericaId: number | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
   parinte2Nume: string | null;
@@ -69,8 +76,8 @@ export function FormularEditareMembru({
 }: {
   membruId: number;
   initial: DateMembru;
-  /** Bisericile din care avem deja pulsiști - se propun la scris. */
-  bisericiCunoscute: string[];
+  /** Bisericile scrise până acum - din ele se alege. */
+  bisericiCunoscute: BisericaDinLista[];
 }) {
   const [stare, actiune, seTrimite] = useActionState<StareFormular, FormData>(
     salveazaMembru.bind(null, membruId),
@@ -183,34 +190,92 @@ export function FormularEditareMembru({
           />
         </div>
         {/*
-          Un singur câmp, cu sugestii: alegi o biserică din care avem deja
-          pulsiști sau scrii una nouă, care de atunci se propune și ea. Fără
-          ecran de administrat biserici și fără trei feluri de a scrie „Betel".
+          Biserica se alege dintr-o listă, nu se scrie de mână: altfel „Betel",
+          „betel" și „Betel Arad" ajung trei biserici în statistici. Cine
+          lipsește din listă se adaugă mai jos, fără să pleci de pe fișă.
+
+          `key` face selectul să se remonteze după ce s-a salvat o biserică
+          nouă - altfel ar rămâne pe ce arăta înainte, deși omul e deja mutat.
         */}
         <div className="mt-3">
-          <label className="eticheta" htmlFor="bisericaNume">
+          <label className="eticheta" htmlFor="bisericaId">
             Care biserică
           </label>
-          <input
-            id="bisericaNume"
-            name="bisericaNume"
+          <select
+            key={`aleasa-${initial.bisericaId ?? "gol"}`}
+            id="bisericaId"
+            name="bisericaId"
             className="camp"
-            list="biserici-cunoscute"
-            defaultValue={initial.bisericaNume ?? ""}
-            placeholder="alege sau scrie una nouă"
-            maxLength={80}
-            autoComplete="off"
-          />
-          <datalist id="biserici-cunoscute">
-            {bisericiCunoscute.map((nume) => (
-              <option key={nume} value={nume} />
+            defaultValue={initial.bisericaId ?? ""}
+          >
+            <option value="">- alege din listă -</option>
+            {bisericiCunoscute.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.localitate ? `${b.nume} · ${b.localitate}` : b.nume}
+              </option>
             ))}
-          </datalist>
+          </select>
           <p className="mt-1.5 text-xs text-cenusiu">
-            Se scrie doar pentru cei de la altă biserică. La celelalte
+            Se alege doar pentru cei de la altă biserică. La celelalte
             răspunsuri se golește singur.
           </p>
         </div>
+
+        <details
+          key={`noua-${initial.bisericaId ?? "gol"}`}
+          className="mt-2 rounded-xl bg-fundal px-3"
+        >
+          <summary className="min-h-11 cursor-pointer py-3 text-sm font-medium text-albastru">
+            Nu e în listă? Adaugă o biserică
+          </summary>
+          <div className="flex flex-col gap-3 pb-3">
+            <div>
+              <label className="eticheta" htmlFor="bisericaNouaNume">
+                Numele bisericii
+              </label>
+              <input
+                id="bisericaNouaNume"
+                name="bisericaNouaNume"
+                className="camp"
+                placeholder="ex. Betel"
+                maxLength={80}
+                autoComplete="off"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="eticheta" htmlFor="bisericaNouaLocalitate">
+                  Localitatea
+                </label>
+                <input
+                  id="bisericaNouaLocalitate"
+                  name="bisericaNouaLocalitate"
+                  className="camp"
+                  placeholder="ex. Arad"
+                  maxLength={60}
+                  autoComplete="off"
+                />
+              </div>
+              <div>
+                <label className="eticheta" htmlFor="bisericaNouaDenominatiune">
+                  Denominațiunea
+                </label>
+                <input
+                  id="bisericaNouaDenominatiune"
+                  name="bisericaNouaDenominatiune"
+                  className="camp"
+                  placeholder="ex. penticostală"
+                  maxLength={60}
+                  autoComplete="off"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-cenusiu">
+              Localitatea și denominațiunea sunt opționale. Biserica se adaugă
+              la salvare și rămâne apoi în listă pentru toată lucrarea.
+            </p>
+          </div>
+        </details>
       </fieldset>
 
       <fieldset className="rounded-xl border border-[#e3e7f2] p-3">

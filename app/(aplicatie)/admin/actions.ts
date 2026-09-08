@@ -15,7 +15,6 @@ import {
   genereazaNotificari,
   trimiteNotificariNetrimise,
 } from "@/lib/notificari";
-import { curataBisericileGoale } from "@/lib/interogari/biserici";
 import { creeazaLiderCuCod, regenereazaCodLider } from "@/lib/interogari/lideri";
 import {
   numeConfirmat,
@@ -348,8 +347,6 @@ export async function stergeGrupa(
   }
 
   await stergeGrupaDefinitiv(grupaId);
-  // Grupa dusă poate lăsa în urmă biserici din care nu mai e nimeni.
-  await curataBisericileGoale();
   await scrieAudit(admin.id, "grupa:stearsa", {
     grupaId,
     nume: pierderi.nume,

@@ -77,7 +77,11 @@ const GRUPE = [
 const ZIUA_PULSULUI = 5;
 
 /** Bisericile din care mai vin pulsiști pe la noi. */
-const ALTE_BISERICI = ["Betel Arad", "Emanuel Arad", "Speranța Arad"];
+const ALTE_BISERICI = [
+  { nume: "Betel", localitate: "Arad", denominatiune: "penticostală" },
+  { nume: "Emanuel", localitate: "Arad", denominatiune: "baptistă" },
+  { nume: "Speranța", localitate: "Vladimirescu", denominatiune: "penticostală" },
+];
 
 /**
  * De unde vine un pulsist, tras la sorți ca să semene cu realitatea: cei mai
@@ -127,10 +131,10 @@ async function main() {
 
   // Bisericile din care ne mai vin pulsiști.
   const idBiserici: number[] = [];
-  for (const nume of ALTE_BISERICI) {
+  for (const b of ALTE_BISERICI) {
     const [creata] = await db
       .insert(biserici)
-      .values({ nume })
+      .values(b)
       .returning({ id: biserici.id });
     idBiserici.push(creata.id);
   }

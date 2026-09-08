@@ -541,7 +541,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           </summary>
           <div className="pt-2">
             <FormularEditareMembru
-              bisericiCunoscute={biserici.map((b) => b.nume)}
+              bisericiCunoscute={biserici}
               membruId={membruId}
               initial={{
                 nume: m.nume,
@@ -550,7 +550,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 sex: m.sex,
                 clasa: m.clasa,
                 biserica: m.biserica,
-                bisericaNume: date.bisericaNume,
+                bisericaId: m.bisericaId,
                 parinte1Nume: m.parinte1Nume,
                 parinte1Telefon: m.parinte1Telefon,
                 parinte2Nume: m.parinte2Nume,

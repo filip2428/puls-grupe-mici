@@ -10,10 +10,7 @@ import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { membri, noteMembru } from "@/lib/db/schema";
 import { verificaAccesGrupa } from "@/lib/interogari/acces";
-import {
-  curataBisericileGoale,
-  gasesteSauCreeaza,
-} from "@/lib/interogari/biserici";
+import { creeazaBiserica, iaBiserica } from "@/lib/interogari/biserici";
 import { desfaPrietenia, leagaPrietenii } from "@/lib/interogari/prietenii";
 import {
   numeConfirmat,
@@ -110,9 +107,16 @@ const schemaMembru = z.object({
     .transform((v) =>
       v === "harvest" || v === "alta" || v === "fara" ? v : null,
     ),
-  /* Numele bisericii, așa cum a fost scris. În `bisericaId` îl transformăm
-     abia la salvare, când putem întreba baza de date. */
-  bisericaNume: textOptional(80),
+  /* Biserica aleasă din listă. Gol = niciuna. */
+  bisericaId: z
+    .string()
+    .optional()
+    .transform((v) => (v ? Number(v) : null))
+    .refine((v) => v === null || Number.isInteger(v), "Biserica nu e validă."),
+  /* Biserica scrisă pe loc, când nu era în listă. Are prioritate. */
+  bisericaNouaNume: textOptional(80),
+  bisericaNouaLocalitate: textOptional(60),
+  bisericaNouaDenominatiune: textOptional(60),
   parinte1Nume: textOptional(80),
   parinte1Telefon: textOptional(30),
   parinte2Nume: textOptional(80),
@@ -120,11 +124,12 @@ const schemaMembru = z.object({
 }).transform((date) => ({
   ...date,
   /*
-    Numele bisericii are sens doar la „altă biserică". În rest îl golim, ca
-    să nu rămână agățat un „Betel" lângă un răspuns care spune „Harvest" -
-    câmpul din formular se vede oricum tot timpul.
+    Biserica anume are sens doar la „altă biserică". În rest o golim, ca să
+    nu rămână agățat un „Betel" lângă un răspuns care spune „Harvest" -
+    câmpurile din formular se văd oricum tot timpul.
   */
-  bisericaNume: date.biserica === "alta" ? date.bisericaNume : null,
+  bisericaId: date.biserica === "alta" ? date.bisericaId : null,
+  bisericaNouaNume: date.biserica === "alta" ? date.bisericaNouaNume : null,
 }));
 
 /** Salvează datele unui pulsist. */
@@ -144,7 +149,10 @@ export async function salveazaMembru(
     clasa: formData.get("clasa"),
     // Radio nebifat ar da `null`, iar zod l-ar citi ca valoare greșită.
     biserica: formData.get("biserica") ?? undefined,
-    bisericaNume: formData.get("bisericaNume"),
+    bisericaId: formData.get("bisericaId"),
+    bisericaNouaNume: formData.get("bisericaNouaNume"),
+    bisericaNouaLocalitate: formData.get("bisericaNouaLocalitate"),
+    bisericaNouaDenominatiune: formData.get("bisericaNouaDenominatiune"),
     parinte1Nume: formData.get("parinte1Nume"),
     parinte1Telefon: formData.get("parinte1Telefon"),
     parinte2Nume: formData.get("parinte2Nume"),
@@ -154,22 +162,36 @@ export async function salveazaMembru(
     return { eroare: rezultat.error.issues[0]?.message ?? "Date invalide." };
   }
 
-  const { bisericaNume, ...date } = rezultat.data;
-  const bisericaId = bisericaNume ? await gasesteSauCreeaza(bisericaNume) : null;
-
-  await db
-    .update(membri)
-    .set({ ...date, bisericaId })
-    .where(eq(membri.id, membruId));
-  await scrieAudit(acces.lider.id, "membru:modificat", { membruId });
+  const {
+    bisericaNouaNume,
+    bisericaNouaLocalitate,
+    bisericaNouaDenominatiune,
+    ...date
+  } = rezultat.data;
 
   /*
-    Dacă ăsta era ultimul pulsist dintr-o biserică, biserica n-are de ce să
-    mai stea în lista de sugestii. Se face aici, nu printr-o curățenie de
-    noapte: e o ștergere de un rând, iar lista rămâne mereu adevărată.
+    Dacă a scris o biserică nouă, ea bate ce era ales în listă: omul tocmai
+    ne-a spus că niciuna din listă nu era bună. O creăm aici, ca să nu fie
+    nevoit să plece de pe fișă și să se întoarcă.
   */
-  await curataBisericileGoale();
+  if (bisericaNouaNume) {
+    const creata = await creeazaBiserica({
+      nume: bisericaNouaNume,
+      localitate: bisericaNouaLocalitate,
+      denominatiune: bisericaNouaDenominatiune,
+    });
+    if ("eroare" in creata) return { eroare: creata.eroare };
+    date.bisericaId = creata.id;
+  } else if (date.bisericaId !== null && !(await iaBiserica(date.bisericaId))) {
+    // Cineva a șters biserica între timp, din administrare.
+    return { eroare: "Biserica aleasă nu mai există. Alege alta din listă." };
+  }
 
+  await db.update(membri).set(date).where(eq(membri.id, membruId));
+  await scrieAudit(acces.lider.id, "membru:modificat", { membruId });
+
+  // Lista de biserici s-a putut lungi - se vede și în administrare.
+  revalidatePath("/admin/biserici");
   revalidatePath(`/membri/${membruId}`);
   return { reusit: true };
 }
@@ -236,7 +258,6 @@ export async function stergeMembru(
   }
 
   await stergeMembruDefinitiv(membruId);
-  await curataBisericileGoale();
   await scrieAudit(acces.lider.id, "membru:sters", {
     membruId,
     nume: pierderi.nume,

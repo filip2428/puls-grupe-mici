@@ -44,9 +44,10 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - mută pulsiști dintr-o grupă în alta, fără să piardă istoricul;
 - **șterge definitiv** un lider sau un pulsist, când chiar e nevoie;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
-- vede din ce biserică e fiecare pulsist și cine cu cine e prieten;
+- vede din ce biserică e fiecare pulsist și cine cu cine e prieten, și ține
+  lista bisericilor lucrării;
 - vede **statisticile pe o perioadă** (anul bisericesc, de exemplu): pe grupe,
-  pe biserici, pe luni, pe clase - și le descarcă în Excel;
+  pe biserici, pe denominațiuni, pe luni, pe clase - și le descarcă în Excel;
 - descarcă totul în Excel (prezențe, pulsiști, întâlniri), într-un fișier
   colorat, cu antet care stă pe loc și cu o foaie care spune ce e în el;
 - vede jurnalul: cine, ce și când a modificat.
@@ -82,14 +83,24 @@ trecut ca fiind de la noi doar pentru că a venit în grupă. Insigna palidă cu
 semn de întrebare e o întrebare nepusă, nu un răspuns - și se vede tocmai ca
 s-o pui.
 
-Bisericile din care ne vin pulsiști se țin minte. Când scrii „altă biserică",
-câmpul îți propune bisericile pe care le ai deja - alegi una sau scrii una nouă,
-care de atunci se propune și ea. Nu e nicio pagină de administrat biserici:
-lista crește singură și se curăță singură când ultimul pulsist dintr-o biserică
-pleacă sau își schimbă răspunsul.
+Bisericile din care ne vin pulsiști se țin minte, într-o listă a lucrării. Când
+zici „altă biserică", o alegi de acolo - nu se scrie de mână, tocmai ca „Betel",
+„betel" și „Betel Arad" să fie o singură biserică, nu trei, atunci când te uiți
+la statistici.
 
-Rostul listei e ca „Betel", „betel" și „Betel Arad" să fie o singură biserică,
-nu trei, atunci când te uiți la statistici.
+Dacă biserica omului nu e în listă, o adaugi pe loc, de pe fișa lui, din „Nu e
+în listă? Adaugă o biserică" - nu trebuie să pleci și să te întorci. Se scrie la
+salvare și rămâne apoi în listă pentru toată lucrarea.
+
+Lista întreagă se ține din **Administrare · Biserici**: acolo adaugi biserici
+dinainte, îndrepți un nume scris greșit (se schimbă la toți pulsiștii deodată)
+sau scoți una din listă. O biserică are nume și, dacă le știi, **localitatea** și
+**denominațiunea** - amândouă opționale, dar localitatea desparte două biserici
+care se cheamă la fel, iar denominațiunea deschide un tabel în plus la
+statistici.
+
+Bisericile nu se șterg singure când pleacă ultimul om din ele: poate le-ai scris
+tocmai fiindcă urmează să vină cineva de acolo.
 
 În lista de pulsiști e și filtru: poți scoate dintr-o mișcare pe toți cei de la
 alte biserici, sau pe cei la care încă n-ai completat. Coloana vine și în Excel,
@@ -128,6 +139,8 @@ Ies șapte feluri de a privi aceleași seri:
 - **pe grupe**: care grupă s-a strâns cel mai des și care ține oamenii;
 - **pe biserici**: de unde vin și cât de statornic vin - aici se vede dacă cei
   din afara bisericii rămân sau doar trec;
+- **pe denominațiuni**: din ce lume bisericească vin cei care nu sunt de la noi
+  (tabelul apare doar dacă ai scris denominațiuni la biserici);
 - **pe luni**: unde a urcat și unde a căzut prezența;
 - **pe clase**: ce vârste ține lucrarea și pe care le pierde;
 - **cât de statornic vin**: câți sunt peste 90%, câți sub 50%, plus lista celor
@@ -328,6 +341,7 @@ confirmi se scrie în baza de date.
 | o **notă** despre un pulsist | fișa lui | un buton |
 | cineva **dintr-o slujire** | fișa lui sau pagina slujirii | un buton |
 | un lider **dintr-o grupă** | Administrare → Grupe | un buton |
+| o **biserică** din listă | Administrare → Biserici | un buton, sub un capac |
 | **notificările** tale | Setări | un buton |
 | **jurnalul** | Administrare → Jurnal | scrii cuvântul *golește* |
 

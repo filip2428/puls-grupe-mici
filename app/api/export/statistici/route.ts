@@ -109,6 +109,26 @@ export async function GET(cerere: Request) {
     randuri: s.peBiserici,
   });
 
+  // Foaia asta lipsește dacă nu s-a scris nicio denominațiune - la fel ca pe ecran.
+  if (s.peDenominatiuni.length > 0) {
+    adaugaFoaie(registru, {
+      nume: "Pe denominațiuni",
+      inghetate: 1,
+      coloane: [
+        { antet: "Denominațiunea", cheie: "nume", latime: 30 },
+        { antet: "Pulsiști", cheie: "pulsisti", latime: 11 },
+        {
+          antet: "% prezență",
+          cheie: "procent",
+          latime: 12,
+          format: "procent",
+          ton: TON.procent,
+        },
+      ],
+      randuri: s.peDenominatiuni,
+    });
+  }
+
   adaugaFoaie(registru, {
     nume: "Pe luni",
     inghetate: 1,

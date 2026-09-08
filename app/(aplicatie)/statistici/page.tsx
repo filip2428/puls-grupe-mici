@@ -213,6 +213,19 @@ export default async function PaginaStatistici({
             ])}
           />
 
+          {s.peDenominatiuni.length > 0 && (
+            <Tabel
+              titlu="Pe denominațiuni"
+              explicatie="Din ce lume bisericească vin cei care nu sunt de la noi."
+              capete={["Denominațiunea", "Pulsiști", "%"]}
+              randuri={s.peDenominatiuni.map((d) => [
+                d.nume,
+                d.pulsisti,
+                d.procent !== null ? `${d.procent}%` : "-",
+              ])}
+            />
+          )}
+
           <Tabel
             titlu="Pe luni"
             explicatie="Unde a urcat și unde a căzut prezența de-a lungul perioadei."
