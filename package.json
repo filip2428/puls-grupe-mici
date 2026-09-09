@@ -13,6 +13,7 @@
     "lider:nou": "tsx --env-file-if-exists=.env.local scripturi/lider-nou.ts",
     "cod:nou": "tsx --env-file-if-exists=.env.local scripturi/cod-nou.ts",
     "date:demo": "tsx --env-file-if-exists=.env.local scripturi/date-demo.ts",
+    "formular": "tsx scripturi/formular.ts",
     "icoane": "tsx scripturi/icoane.ts",
     "chei:push": "tsx scripturi/chei-push.ts"
   },

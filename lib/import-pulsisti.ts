@@ -2,6 +2,7 @@ import "server-only";
 
 import ExcelJS from "exceljs";
 
+import { COLOANE, type CheieColoana } from "@/lib/import-coloane";
 import { esteDataValida } from "@/lib/util/date";
 import type { Biserica, Botez } from "@/lib/util/etichete";
 
@@ -16,49 +17,7 @@ import type { Biserica, Botez } from "@/lib/util/etichete";
  * și ce n-a mers, abia apoi scriem în baza de date.
  */
 
-export const COLOANE = [
-  { cheie: "nume", titlu: "Nume", obligatoriu: true, exemplu: "Andrei Popa" },
-  { cheie: "grupa", titlu: "Grupa", obligatoriu: true, exemplu: "Băieți 14-16" },
-  { cheie: "statut", titlu: "Statut", obligatoriu: false, exemplu: "membru" },
-  { cheie: "sex", titlu: "Sex", obligatoriu: false, exemplu: "băiat" },
-  { cheie: "clasa", titlu: "Clasa", obligatoriu: false, exemplu: "9" },
-  {
-    cheie: "dataNasterii",
-    titlu: "Data nașterii",
-    obligatoriu: false,
-    exemplu: "2011-04-23",
-  },
-  {
-    cheie: "biserica",
-    titlu: "Biserica",
-    obligatoriu: false,
-    exemplu: "Harvest Arad",
-  },
-  { cheie: "botez", titlu: "Botez", obligatoriu: false, exemplu: "botezat" },
-  {
-    cheie: "botezatLa",
-    titlu: "Data botezului",
-    obligatoriu: false,
-    exemplu: "2024-05-12",
-  },
-  { cheie: "telefon", titlu: "Telefon", obligatoriu: false, exemplu: "0722000111" },
-  { cheie: "parinte1Nume", titlu: "Părinte 1", obligatoriu: false, exemplu: "Maria Popa" },
-  {
-    cheie: "parinte1Telefon",
-    titlu: "Telefon părinte 1",
-    obligatoriu: false,
-    exemplu: "0722000112",
-  },
-  { cheie: "parinte2Nume", titlu: "Părinte 2", obligatoriu: false, exemplu: "Ion Popa" },
-  {
-    cheie: "parinte2Telefon",
-    titlu: "Telefon părinte 2",
-    obligatoriu: false,
-    exemplu: "0722000113",
-  },
-] as const;
-
-type CheieColoana = (typeof COLOANE)[number]["cheie"];
+export { COLOANE };
 
 export type RandPregatit = {
   /** Rândul din fișier, ca să știi unde să te uiți dacă e o problemă. */

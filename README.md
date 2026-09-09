@@ -355,6 +355,34 @@ nu contează, iar cele în plus se ignoră.
 dublezi pe nimeni) și ce rânduri n-a putut citi, cu motivul. Abia după ce
 confirmi se scrie în baza de date.
 
+### Din formularul de înscriere
+
+Înscrierile se strâng pe un formular Google, iar răspunsurile de acolo n-au forma
+modelului: numele e rupt în două coloane, clasa scrie *Clasa a VIII-a*,
+telefoanele sunt în șapte formate și aceeași biserică apare scrisă în trei
+feluri. Convertorul le pune în ordine:
+
+```
+npm run formular -- "C:/Users/.../Downloads/PULS 2026-2027 (Responses).xlsx"
+```
+
+Iese, lângă fișierul dat, un `pulsisti-pentru-import.xlsx` gata de urcat. Ce
+face: lipește *Prenume Nume*, aduce numele scrise cu Caps Lock la forma
+celorlalte, scoate clasa ca număr, unește telefoanele la `07xxxxxxxx`, unește
+scrierile aceleiași biserici și formează părinții ca *Mama, Maria Popa*.
+
+Două coloane rămân de completat de mână, pentru că formularul nu le întreabă:
+**Grupa** (rândurile ies sortate pe clase și pe băieți/fete, ca să se completeze
+pe blocuri) și **Botezul**. Ce nu se înnoadă nu se ghicește: ajunge într-o
+coloană *De verificat*, pe rândul lui - ani de naștere care nu se potrivesc cu
+clasa, biserici nou apărute, părinți lăsați pe jumătate. Coloanele acelea de la
+capăt sunt galbene, iar importul le ignoră.
+
+Sexul se ghicește din prenume, după o listă de nume, nu după cum se termină
+numele - *Iosua* și *Luca* ar strica regula. Prenumele care nu e în listă rămâne
+gol și ajunge în *De verificat*; lista se completează în `scripturi/formular.ts`,
+la fel și cea a bisericilor.
+
 ---
 
 ## Ștergerea definitivă
@@ -434,6 +462,7 @@ Scriptul afișează codurile liderilor de test. Rulează-l **doar** pe baza loca
 | `npm run lider:nou -- --nume "Ana Popescu"` | creează un lider din linia de comandă |
 | `npm run cod:nou -- --id 3` | generează un cod nou pentru liderul cu id-ul 3 |
 | `npm run date:demo` | umple baza locală cu date de test |
+| `npm run formular -- "cale/răspunsuri.xlsx"` | face din răspunsurile formularului Google fișierul de import |
 | `npm run chei:push` | generează cheile pentru notificările pe telefon |
 | `npm run icoane` | regenerează icoanele aplicației din logo |
 
