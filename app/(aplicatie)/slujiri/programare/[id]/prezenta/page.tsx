@@ -30,14 +30,21 @@ export default async function PaginaPrezentaSlujire({
   const foaie = await foaiaSlujirii(p);
   const inViitor = p.data > dataAzi();
 
-  const cine = [p.grupaNume, p.echipaNume].filter(Boolean).join(" + ");
-  const inapoi = p.grupaId !== null ? `/grupe/${p.grupaId}` : "/slujiri";
+  const cine = [...p.grupe.map((g) => g.nume), p.echipaNume]
+    .filter(Boolean)
+    .join(" + ");
+  /*
+    Înapoi la grupă doar când slujește una singură. La mai multe n-am ști pe
+    care s-o alegem, iar „Slujiri" e locul de unde se vede tot.
+  */
+  const singuraGrupa = p.grupe.length === 1 ? p.grupe[0] : null;
+  const inapoi = singuraGrupa ? `/grupe/${singuraGrupa.id}` : "/slujiri";
 
   return (
     <div className="flex flex-col gap-4">
       <div>
         <Link href={inapoi} className="text-sm text-cenusiu">
-          ← {p.grupaNume ?? "Slujiri"}
+          ← {singuraGrupa?.nume ?? "Slujiri"}
         </Link>
         <h1 className="mt-2 text-xl font-bold">Prezența la slujire</h1>
         <p className="text-sm text-cenusiu">

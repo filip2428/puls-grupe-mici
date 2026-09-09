@@ -32,6 +32,7 @@ export default async function PaginaCalendar({
   const zile = zileleGrilei(luna);
   const elemente = await calendarul({
     esteAdmin,
+    liderId: lider.id,
     grupaIds: grupele.map((g) => g.id),
     deLa: zile[0],
     panaLa: zile[zile.length - 1],

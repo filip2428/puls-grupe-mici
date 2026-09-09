@@ -83,9 +83,7 @@ export async function salveazaFoaiaSlujirii(
 
   revalidatePath(`/slujiri/programare/${programareId}/prezenta`);
   revalidatePath("/slujiri");
-  if (programare.grupaId !== null) {
-    revalidatePath(`/grupe/${programare.grupaId}`);
-  }
+  for (const g of programare.grupe) revalidatePath(`/grupe/${g.id}`);
   revalidatePath("/grupe");
 
   return {

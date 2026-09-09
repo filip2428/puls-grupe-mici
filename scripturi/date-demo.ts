@@ -17,11 +17,13 @@ import {
   grupe,
   intalniri,
   lideri,
+  lideriEchipe,
   lideriGrupe,
   membri,
   membriEchipe,
   prezente,
   prietenii,
+  programariGrupe,
   programariSlujire,
   type StarePrezenta,
 } from "../lib/db/schema";
@@ -403,13 +405,17 @@ async function main() {
   for (const [index, e] of ECHIPE.entries()) {
     const [creata] = await db
       .insert(echipeSlujire)
-      .values({
-        nume: e.nume,
-        descriere: e.descriere,
-        responsabilId: idLideri[index],
-      })
+      .values({ nume: e.nume, descriere: e.descriere })
       .returning({ id: echipeSlujire.id });
     idEchipe.push(creata.id);
+
+    // Fiecare slujire e ținută de doi lideri, ca să se vadă că merge cu mai mulți.
+    for (const liderId of [idLideri[index], idLideri[(index + 1) % idLideri.length]]) {
+      await db
+        .insert(lideriEchipe)
+        .values({ echipaId: creata.id, liderId })
+        .onConflictDoNothing();
+    }
 
     for (const rol of e.roluri) {
       const membruId = totiMembrii[cursorEchipa++ % totiMembrii.length];
@@ -429,15 +435,35 @@ async function main() {
   ];
   for (const [index, grupaId] of idGrupe.entries()) {
     const s = SLUJIRI[index];
-    await db.insert(programariSlujire).values({
-      data: adaugaZile(azi, 4 + index * 7),
-      titlu: s.titlu,
-      ora: s.ora,
-      locatie: s.locatie,
-      grupaId,
-      detalii: index === 0 ? "Venim cu 30 de minute înainte." : null,
-    });
+    const [creata] = await db
+      .insert(programariSlujire)
+      .values({
+        data: adaugaZile(azi, 4 + index * 7),
+        titlu: s.titlu,
+        ora: s.ora,
+        locatie: s.locatie,
+        detalii: index === 0 ? "Venim cu 30 de minute înainte." : null,
+      })
+      .returning({ id: programariSlujire.id });
+    await db.insert(programariGrupe).values({ programareId: creata.id, grupaId });
   }
+
+  // O zi mare, la care slujesc toate grupele deodată.
+  const [impreuna] = await db
+    .insert(programariSlujire)
+    .values({
+      data: adaugaZile(azi, 12),
+      titlu: "Sărbătoarea de Crăciun a bisericii",
+      ora: "17:00",
+      locatie: "Sala mare",
+      detalii: "Toate grupele, împreună.",
+    })
+    .returning({ id: programariSlujire.id });
+  await db
+    .insert(programariGrupe)
+    .values(
+      idGrupe.map((grupaId) => ({ programareId: impreuna.id, grupaId })),
+    );
   // Și o slujire a unei echipe, nu a unei grupe.
   await db.insert(programariSlujire).values({
     data: adaugaZile(azi, 9),

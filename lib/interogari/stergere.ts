@@ -1,6 +1,6 @@
 import "server-only";
 
-import { count, eq, inArray, or } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, ne, or } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -12,6 +12,7 @@ import {
   grupe,
   intalniri,
   lideri,
+  lideriEchipe,
   lideriGrupe,
   membri,
   membriEchipe,
@@ -20,8 +21,10 @@ import {
   prezente,
   prezenteSlujire,
   prietenii,
+  programariGrupe,
   programariSlujire,
 } from "@/lib/db/schema";
+import { acelasiNume } from "@/lib/util/text";
 
 /**
  * Ștergerea definitivă a unui lider sau a unui pulsist.
@@ -100,10 +103,7 @@ export async function stergeLiderDefinitiv(liderId: number) {
       .update(noteMembru)
       .set({ autorId: null })
       .where(eq(noteMembru.autorId, liderId));
-    await tx
-      .update(echipeSlujire)
-      .set({ responsabilId: null })
-      .where(eq(echipeSlujire.responsabilId, liderId));
+    await tx.delete(lideriEchipe).where(eq(lideriEchipe.liderId, liderId));
     await tx
       .update(programariSlujire)
       .set({ creatDeId: null })
@@ -194,7 +194,15 @@ export type PierderiGrupa = {
   prezente: number;
   note: number;
   lideri: number;
+  /** În câte slujiri din calendar e trecută grupa. */
   programari: number;
+  /**
+   * Câte dintre ele rămân fără nimeni și se șterg.
+   *
+   * O slujire la care mai slujesc și alții nu dispare - grupa doar iese din
+   * ea. Dispare doar cea care rămâne goală, fiindcă n-ar mai avea ce spune.
+   */
+  programariGoale: number;
 };
 
 /** Ce se pierde dacă ștergem o grupă. E cea mai grea ștergere din aplicație. */
@@ -235,9 +243,11 @@ export async function pierderiGrupa(
       .where(eq(lideriGrupe.grupaId, grupaId)),
     db
       .select({ c: count() })
-      .from(programariSlujire)
-      .where(eq(programariSlujire.grupaId, grupaId)),
+      .from(programariGrupe)
+      .where(eq(programariGrupe.grupaId, grupaId)),
   ]);
+
+  const goale = await programariRamaseGoale(grupaId);
 
   return {
     nume: g.nume,
@@ -247,7 +257,45 @@ export async function pierderiGrupa(
     note: Number(n?.c ?? 0),
     lideri: Number(l?.c ?? 0),
     programari: Number(pr?.c ?? 0),
+    programariGoale: goale.length,
   };
+}
+
+/**
+ * Programările care ar rămâne fără nimeni dacă grupa asta iese din ele:
+ * n-au altă grupă și nici echipă.
+ */
+async function programariRamaseGoale(grupaId: number): Promise<number[]> {
+  const aleGrupei = await db
+    .select({ id: programariGrupe.programareId })
+    .from(programariGrupe)
+    .where(eq(programariGrupe.grupaId, grupaId));
+  if (aleGrupei.length === 0) return [];
+  const ids = aleGrupei.map((p) => p.id);
+
+  const [altele, cuEchipa] = await Promise.all([
+    db
+      .select({ id: programariGrupe.programareId })
+      .from(programariGrupe)
+      .where(
+        and(
+          inArray(programariGrupe.programareId, ids),
+          ne(programariGrupe.grupaId, grupaId),
+        ),
+      ),
+    db
+      .select({ id: programariSlujire.id })
+      .from(programariSlujire)
+      .where(
+        and(
+          inArray(programariSlujire.id, ids),
+          isNotNull(programariSlujire.echipaId),
+        ),
+      ),
+  ]);
+
+  const ramane = new Set([...altele, ...cuEchipa].map((r) => r.id));
+  return ids.filter((id) => !ramane.has(id));
 }
 
 /**
@@ -269,13 +317,8 @@ export async function stergeGrupaDefinitiv(grupaId: number) {
     .from(intalniri)
     .where(eq(intalniri.grupaId, grupaId));
 
-  const aleSlujirii = await db
-    .select({ id: programariSlujire.id })
-    .from(programariSlujire)
-    .where(eq(programariSlujire.grupaId, grupaId));
-
   const idIntalniri = aleGrupei.map((i) => i.id);
-  const idProgramari = aleSlujirii.map((p) => p.id);
+  const idProgramari = await programariRamaseGoale(grupaId);
 
   await db.transaction(async (tx) => {
     if (idIntalniri.length > 0) {
@@ -294,9 +337,16 @@ export async function stergeGrupaDefinitiv(grupaId: number) {
       .where(eq(membri.grupaId, grupaId));
     await tx.delete(lideriGrupe).where(eq(lideriGrupe.grupaId, grupaId));
     await tx.delete(delegari).where(eq(delegari.grupaId, grupaId));
-    await tx
-      .delete(programariSlujire)
-      .where(eq(programariSlujire.grupaId, grupaId));
+    /*
+      Din calendar iese doar grupa. Slujirile la care mai slujește cineva
+      rămân în picioare; se șterg doar cele care ar rămâne goale.
+    */
+    await tx.delete(programariGrupe).where(eq(programariGrupe.grupaId, grupaId));
+    if (idProgramari.length > 0) {
+      await tx
+        .delete(programariSlujire)
+        .where(inArray(programariSlujire.id, idProgramari));
+    }
     await tx.delete(grupe).where(eq(grupe.id, grupaId));
   });
 }
@@ -342,7 +392,10 @@ export async function stergeIntalnireDefinitiv(intalnireId: number) {
 export type PierderiEchipa = {
   nume: string;
   pulsisti: number;
+  /** În câte slujiri din calendar e trecută echipa. */
   programari: number;
+  /** Câte dintre ele n-au nicio grupă și deci se șterg cu totul. */
+  programariGoale: number;
 };
 
 /** Ce se pierde dacă ștergem un loc de slujire. */
@@ -355,7 +408,7 @@ export async function pierderiEchipa(
     .where(eq(echipeSlujire.id, echipaId));
   if (!e) return null;
 
-  const [[m], [p]] = await Promise.all([
+  const [[m], [p], goale] = await Promise.all([
     db
       .select({ c: count() })
       .from(membriEchipe)
@@ -364,32 +417,57 @@ export async function pierderiEchipa(
       .select({ c: count() })
       .from(programariSlujire)
       .where(eq(programariSlujire.echipaId, echipaId)),
+    programariFaraGrupe(echipaId),
   ]);
 
   return {
     nume: e.nume,
     pulsisti: Number(m?.c ?? 0),
     programari: Number(p?.c ?? 0),
+    programariGoale: goale.length,
   };
 }
 
-/** Șterge un loc de slujire. Pulsiștii rămân, doar nu mai slujesc acolo. */
-export async function stergeEchipaDefinitiv(echipaId: number) {
+/** Programările echipei la care nu slujește nicio grupă. */
+async function programariFaraGrupe(echipaId: number): Promise<number[]> {
   const aleEchipei = await db
     .select({ id: programariSlujire.id })
     .from(programariSlujire)
     .where(eq(programariSlujire.echipaId, echipaId));
-  const idProgramari = aleEchipei.map((p) => p.id);
+  if (aleEchipei.length === 0) return [];
+  const ids = aleEchipei.map((p) => p.id);
+
+  const cuGrupe = await db
+    .selectDistinct({ id: programariGrupe.programareId })
+    .from(programariGrupe)
+    .where(inArray(programariGrupe.programareId, ids));
+
+  const ramane = new Set(cuGrupe.map((r) => r.id));
+  return ids.filter((id) => !ramane.has(id));
+}
+
+/** Șterge un loc de slujire. Pulsiștii rămân, doar nu mai slujesc acolo. */
+export async function stergeEchipaDefinitiv(echipaId: number) {
+  const idProgramari = await programariFaraGrupe(echipaId);
 
   await db.transaction(async (tx) => {
     await tx.delete(membriEchipe).where(eq(membriEchipe.echipaId, echipaId));
+    await tx.delete(lideriEchipe).where(eq(lideriEchipe.echipaId, echipaId));
     if (idProgramari.length > 0) {
       await tx
         .delete(prezenteSlujire)
         .where(inArray(prezenteSlujire.programareId, idProgramari));
+      await tx
+        .delete(programariSlujire)
+        .where(inArray(programariSlujire.id, idProgramari));
     }
+    /*
+      Slujirile la care erau trecute și grupe rămân în calendar - grupele
+      slujesc mai departe în ziua aia, doar că nu mai e nimeni deasupra lor.
+    */
     await tx
-      .delete(programariSlujire)
+      .update(programariSlujire)
+      .set({ echipaId: null })
       .where(eq(programariSlujire.echipaId, echipaId));
     await tx.delete(echipeSlujire).where(eq(echipeSlujire.id, echipaId));
   });
@@ -400,16 +478,5 @@ export async function stergeEchipaDefinitiv(echipaId: number) {
  * Ignorăm diacriticele și spațiile în plus - contează intenția, nu tastatura.
  */
 export function numeConfirmat(scris: string, real: string): boolean {
-  const asteptat = faraDiacritice(real);
-  return asteptat !== "" && faraDiacritice(scris) === asteptat;
-}
-
-/** "Ștefan  Ioneț" -> "stefan ionet" */
-function faraDiacritice(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
+  return acelasiNume(scris, real);
 }

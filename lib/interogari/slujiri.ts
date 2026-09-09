@@ -19,9 +19,11 @@ import {
   echipeSlujire,
   grupe,
   lideri,
+  lideriEchipe,
   lideriGrupe,
   membri,
   membriEchipe,
+  programariGrupe,
   programariSlujire,
 } from "@/lib/db/schema";
 import { adaugaZile, dataAzi } from "@/lib/util/date";
@@ -32,19 +34,53 @@ import { adaugaZile, dataAzi } from "@/lib/util/date";
  * Sunt două lucruri diferite, legate între ele:
  *  - ECHIPELE de slujire (Laudă, Media, Protocol...) - cine e implicat pe
  *    termen lung, indiferent de grupa mică din care face parte;
- *  - PROGRAMĂRILE - calendarul: „pe 12 octombrie slujește grupa X" sau
+ *  - PROGRAMĂRILE - calendarul: „pe 12 octombrie slujesc grupele X și Y" sau
  *    „pe 19 octombrie e de serviciu echipa de protocol".
+ *
+ * Și una și alta se țin cu mai mulți: o slujire are liderii ei, iar la o
+ * programare pot fi trecute oricâte grupe.
  */
+
+export type LiderScurt = { id: number; nume: string };
+export type GrupaScurta = { id: number; nume: string };
 
 export type EchipaCuNumere = {
   id: number;
   nume: string;
   descriere: string | null;
   activa: boolean;
-  responsabilId: number | null;
-  responsabilNume: string | null;
+  /** Liderii care o coordonează. Poate fi și goală - se vede și așa. */
+  lideri: LiderScurt[];
   cati: number;
 };
+
+/** Liderii fiecărei echipe din listă, strânși într-un singur drum la bază. */
+async function liderilEchipelor(
+  echipaIds: number[],
+): Promise<Map<number, LiderScurt[]>> {
+  const peEchipa = new Map<number, LiderScurt[]>();
+  if (echipaIds.length === 0) return peEchipa;
+
+  const randuri = await db
+    .select({
+      echipaId: lideriEchipe.echipaId,
+      id: lideri.id,
+      nume: lideri.nume,
+    })
+    .from(lideriEchipe)
+    .innerJoin(lideri, eq(lideri.id, lideriEchipe.liderId))
+    .where(inArray(lideriEchipe.echipaId, echipaIds));
+
+  for (const r of randuri) {
+    const lista = peEchipa.get(r.echipaId) ?? [];
+    lista.push({ id: r.id, nume: r.nume });
+    peEchipa.set(r.echipaId, lista);
+  }
+  for (const lista of peEchipa.values()) {
+    lista.sort((a, b) => a.nume.localeCompare(b.nume, "ro"));
+  }
+  return peEchipa;
+}
 
 /** Toate echipele de slujire, cu câți pulsiști sunt în fiecare. */
 export async function listaEchipe(doarActive = false): Promise<EchipaCuNumere[]> {
@@ -54,30 +90,34 @@ export async function listaEchipe(doarActive = false): Promise<EchipaCuNumere[]>
       nume: echipeSlujire.nume,
       descriere: echipeSlujire.descriere,
       activa: echipeSlujire.activa,
-      responsabilId: echipeSlujire.responsabilId,
-      responsabilNume: lideri.nume,
     })
     .from(echipeSlujire)
-    .leftJoin(lideri, eq(lideri.id, echipeSlujire.responsabilId))
     .where(doarActive ? eq(echipeSlujire.activa, true) : undefined)
     .orderBy(asc(echipeSlujire.nume));
 
   if (lista.length === 0) return [];
 
-  const numere = await db
-    .select({
-      echipaId: membriEchipe.echipaId,
-      cati: sql<number>`count(*)`,
-    })
-    .from(membriEchipe)
-    .innerJoin(membri, eq(membri.id, membriEchipe.membruId))
-    .where(eq(membri.activ, true))
-    .groupBy(membriEchipe.echipaId);
+  const [numere, aiLor] = await Promise.all([
+    db
+      .select({
+        echipaId: membriEchipe.echipaId,
+        cati: sql<number>`count(*)`,
+      })
+      .from(membriEchipe)
+      .innerJoin(membri, eq(membri.id, membriEchipe.membruId))
+      .where(eq(membri.activ, true))
+      .groupBy(membriEchipe.echipaId),
+    liderilEchipelor(lista.map((e) => e.id)),
+  ]);
 
   const peEchipa = new Map(numere.map((n) => [n.echipaId, Number(n.cati)]));
 
   return lista
-    .map((e) => ({ ...e, cati: peEchipa.get(e.id) ?? 0 }))
+    .map((e) => ({
+      ...e,
+      lideri: aiLor.get(e.id) ?? [],
+      cati: peEchipa.get(e.id) ?? 0,
+    }))
     .sort(
       (a, b) =>
         Number(b.activa) - Number(a.activa) || a.nume.localeCompare(b.nume, "ro"),
@@ -92,32 +132,32 @@ export async function echipa(echipaId: number) {
       nume: echipeSlujire.nume,
       descriere: echipeSlujire.descriere,
       activa: echipeSlujire.activa,
-      responsabilId: echipeSlujire.responsabilId,
-      responsabilNume: lideri.nume,
     })
     .from(echipeSlujire)
-    .leftJoin(lideri, eq(lideri.id, echipeSlujire.responsabilId))
     .where(eq(echipeSlujire.id, echipaId));
   if (!e) return null;
 
-  const implicati = await db
-    .select({
-      membruId: membri.id,
-      nume: membri.nume,
-      telefon: membri.telefon,
-      activ: membri.activ,
-      status: membri.status,
-      rol: membriEchipe.rol,
-      grupaId: grupe.id,
-      grupaNume: grupe.nume,
-    })
-    .from(membriEchipe)
-    .innerJoin(membri, eq(membri.id, membriEchipe.membruId))
-    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
-    .where(eq(membriEchipe.echipaId, echipaId));
+  const [implicati, aiLor] = await Promise.all([
+    db
+      .select({
+        membruId: membri.id,
+        nume: membri.nume,
+        telefon: membri.telefon,
+        activ: membri.activ,
+        status: membri.status,
+        rol: membriEchipe.rol,
+        grupaId: grupe.id,
+        grupaNume: grupe.nume,
+      })
+      .from(membriEchipe)
+      .innerJoin(membri, eq(membri.id, membriEchipe.membruId))
+      .leftJoin(grupe, eq(grupe.id, membri.grupaId))
+      .where(eq(membriEchipe.echipaId, echipaId)),
+    liderilEchipelor([echipaId]),
+  ]);
 
   return {
-    echipa: e,
+    echipa: { ...e, lideri: aiLor.get(echipaId) ?? [] },
     membri: implicati.sort(
       (a, b) =>
         Number(b.activ) - Number(a.activ) || a.nume.localeCompare(b.nume, "ro"),
@@ -140,6 +180,29 @@ export async function echipeleMembrului(membruId: number) {
     .orderBy(asc(echipeSlujire.nume));
 }
 
+/** Slujirile pe care le coordonează un lider. */
+export async function echipeleLiderului(liderId: number): Promise<number[]> {
+  const randuri = await db
+    .select({ echipaId: lideriEchipe.echipaId })
+    .from(lideriEchipe)
+    .where(eq(lideriEchipe.liderId, liderId));
+  return randuri.map((r) => r.echipaId);
+}
+
+/** Coordonează liderul slujirea asta? */
+export async function esteLiderulEchipei(
+  liderId: number,
+  echipaId: number,
+): Promise<boolean> {
+  const [r] = await db
+    .select({ liderId: lideriEchipe.liderId })
+    .from(lideriEchipe)
+    .where(
+      and(eq(lideriEchipe.echipaId, echipaId), eq(lideriEchipe.liderId, liderId)),
+    );
+  return r !== undefined;
+}
+
 export type ProgramareAfisata = {
   id: number;
   data: string;
@@ -147,8 +210,8 @@ export type ProgramareAfisata = {
   detalii: string | null;
   ora: string | null;
   locatie: string | null;
-  grupaId: number | null;
-  grupaNume: string | null;
+  /** Grupele programate. Pot fi mai multe, sau niciuna. */
+  grupe: GrupaScurta[];
   echipaId: number | null;
   echipaNume: string | null;
   /** Null cât timp nu s-a făcut prezența la slujirea asta. */
@@ -162,38 +225,87 @@ const campuriProgramare = {
   detalii: programariSlujire.detalii,
   ora: programariSlujire.ora,
   locatie: programariSlujire.locatie,
-  grupaId: programariSlujire.grupaId,
-  grupaNume: grupe.nume,
   echipaId: programariSlujire.echipaId,
   echipaNume: echipeSlujire.nume,
   prezentaMarcataLa: programariSlujire.prezentaMarcataLa,
 };
+
+/**
+ * Lipește grupele pe programările deja citite.
+ *
+ * Le luăm într-un al doilea drum, nu printr-un join: cu join-ul, o programare
+ * cu trei grupe ar veni pe trei rânduri, iar orice „primele 20" ar tăia
+ * aiurea, în mijlocul aceleiași slujiri.
+ */
+async function cuGrupele<T extends { id: number }>(
+  randuri: T[],
+): Promise<(T & { grupe: GrupaScurta[] })[]> {
+  if (randuri.length === 0) return [];
+
+  const legaturi = await db
+    .select({
+      programareId: programariGrupe.programareId,
+      id: grupe.id,
+      nume: grupe.nume,
+    })
+    .from(programariGrupe)
+    .innerJoin(grupe, eq(grupe.id, programariGrupe.grupaId))
+    .where(
+      inArray(
+        programariGrupe.programareId,
+        randuri.map((r) => r.id),
+      ),
+    );
+
+  const peProgramare = new Map<number, GrupaScurta[]>();
+  for (const l of legaturi) {
+    const lista = peProgramare.get(l.programareId) ?? [];
+    lista.push({ id: l.id, nume: l.nume });
+    peProgramare.set(l.programareId, lista);
+  }
+  for (const lista of peProgramare.values()) {
+    lista.sort((a, b) => a.nume.localeCompare(b.nume, "ro"));
+  }
+
+  return randuri.map((r) => ({ ...r, grupe: peProgramare.get(r.id) ?? [] }));
+}
+
+/** Condiția „programarea are măcar una dintre grupele astea". */
+export function programariAleGrupelor(grupaIds: number[]) {
+  return inArray(
+    programariSlujire.id,
+    db
+      .select({ id: programariGrupe.programareId })
+      .from(programariGrupe)
+      .where(inArray(programariGrupe.grupaId, grupaIds)),
+  );
+}
 
 /** Programările care urmează (implicit de azi înainte). */
 export async function programariViitoare(
   limita = 30,
   deLa = dataAzi(),
 ): Promise<ProgramareAfisata[]> {
-  return db
+  const randuri = await db
     .select(campuriProgramare)
     .from(programariSlujire)
-    .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
     .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
     .where(gte(programariSlujire.data, deLa))
     .orderBy(asc(programariSlujire.data))
     .limit(limita);
+  return cuGrupele(randuri);
 }
 
 /** Programările care au trecut deja, cele mai recente întâi. */
 export async function programariTrecute(limita = 20): Promise<ProgramareAfisata[]> {
-  return db
+  const randuri = await db
     .select(campuriProgramare)
     .from(programariSlujire)
-    .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
     .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
     .where(lt(programariSlujire.data, dataAzi()))
     .orderBy(desc(programariSlujire.data))
     .limit(limita);
+  return cuGrupele(randuri);
 }
 
 /** Echipele în care e implicat cel puțin un pulsist din grupele date. */
@@ -208,36 +320,42 @@ export async function echipeleGrupelor(grupaIds: number[]): Promise<number[]> {
 }
 
 /**
- * Ce urmează pentru un lider anume: programările grupelor lui, plus cele ale
- * echipelor în care are pulsiști. Adminul le vede pe toate.
+ * Ce urmează pentru un lider anume: programările grupelor lui, ale slujirilor
+ * pe care le coordonează și ale echipelor în care are pulsiști. Adminul le
+ * vede pe toate.
  */
 export async function programariPentruLider(optiuni: {
   esteAdmin: boolean;
+  liderId: number;
   grupaIds: number[];
   limita?: number;
 }): Promise<ProgramareAfisata[]> {
   const limita = optiuni.limita ?? 20;
   if (optiuni.esteAdmin) return programariViitoare(limita);
 
-  const echipaIds = await echipeleGrupelor(optiuni.grupaIds);
+  const [prinPulsisti, aleLui] = await Promise.all([
+    echipeleGrupelor(optiuni.grupaIds),
+    echipeleLiderului(optiuni.liderId),
+  ]);
+  const echipaIds = [...new Set([...prinPulsisti, ...aleLui])];
   if (optiuni.grupaIds.length === 0 && echipaIds.length === 0) return [];
 
   const conditii = [];
   if (optiuni.grupaIds.length > 0) {
-    conditii.push(inArray(programariSlujire.grupaId, optiuni.grupaIds));
+    conditii.push(programariAleGrupelor(optiuni.grupaIds));
   }
   if (echipaIds.length > 0) {
     conditii.push(inArray(programariSlujire.echipaId, echipaIds));
   }
 
-  return db
+  const randuri = await db
     .select(campuriProgramare)
     .from(programariSlujire)
-    .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
     .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
     .where(and(gte(programariSlujire.data, dataAzi()), or(...conditii)))
     .orderBy(asc(programariSlujire.data))
     .limit(limita);
+  return cuGrupele(randuri);
 }
 
 /** Programările unei grupe care urmează - se arată pe pagina grupei. */
@@ -252,15 +370,14 @@ export async function programariGrupei(
   zileInUrma = 21,
 ): Promise<ProgramareAfisata[]> {
   const echipaIds = await echipeleGrupelor([grupaId]);
-  const conditii = [eq(programariSlujire.grupaId, grupaId)];
+  const conditii = [programariAleGrupelor([grupaId])];
   if (echipaIds.length > 0) {
     conditii.push(inArray(programariSlujire.echipaId, echipaIds));
   }
 
-  return db
+  const randuri = await db
     .select(campuriProgramare)
     .from(programariSlujire)
-    .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
     .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
     .where(
       and(
@@ -270,6 +387,7 @@ export async function programariGrupei(
     )
     .orderBy(asc(programariSlujire.data))
     .limit(limita);
+  return cuGrupele(randuri);
 }
 
 /**
@@ -285,16 +403,15 @@ export async function slujiriDeCompletat(
   zileInUrma = 21,
 ): Promise<ProgramareAfisata[]> {
   const echipaIds = await echipeleGrupelor([grupaId]);
-  const conditii = [eq(programariSlujire.grupaId, grupaId)];
+  const conditii = [programariAleGrupelor([grupaId])];
   if (echipaIds.length > 0) {
     conditii.push(inArray(programariSlujire.echipaId, echipaIds));
   }
 
   const azi = dataAzi();
-  return db
+  const randuri = await db
     .select(campuriProgramare)
     .from(programariSlujire)
-    .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
     .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
     .where(
       and(
@@ -305,6 +422,7 @@ export async function slujiriDeCompletat(
       ),
     )
     .orderBy(desc(programariSlujire.data));
+  return cuGrupele(randuri);
 }
 
 /** Programările care urmează pentru un pulsist (prin echipele lui). */
@@ -315,10 +433,9 @@ export async function programariMembrului(
   const echipe = await echipeleMembrului(membruId);
   if (echipe.length === 0) return [];
 
-  return db
+  const randuri = await db
     .select(campuriProgramare)
     .from(programariSlujire)
-    .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
     .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
     .where(
       and(
@@ -331,6 +448,7 @@ export async function programariMembrului(
     )
     .orderBy(asc(programariSlujire.data))
     .limit(limita);
+  return cuGrupele(randuri);
 }
 
 /**
@@ -376,8 +494,8 @@ export async function pulsistiInAfaraEchipei(echipaId: number) {
 }
 
 /**
- * Liderii care trebuie anunțați de o programare: liderii grupei programate,
- * liderii grupelor din care fac parte pulsiștii echipei, plus responsabilul.
+ * Liderii care trebuie anunțați de o programare: liderii grupelor programate,
+ * liderii slujirii, plus liderii grupelor din care fac parte pulsiștii ei.
  */
 export async function liderilDeAnuntat(programareId: number): Promise<number[]> {
   const [p] = await db
@@ -386,17 +504,21 @@ export async function liderilDeAnuntat(programareId: number): Promise<number[]> 
     .where(eq(programariSlujire.id, programareId));
   if (!p) return [];
 
-  const grupaIds = new Set<number>();
-  if (p.grupaId) grupaIds.add(p.grupaId);
+  const aleProgramarii = await db
+    .select({ grupaId: programariGrupe.grupaId })
+    .from(programariGrupe)
+    .where(eq(programariGrupe.programareId, programareId));
+  const grupaIds = new Set(aleProgramarii.map((g) => g.grupaId));
 
   const deAnuntat = new Set<number>();
 
   if (p.echipaId) {
-    const [e] = await db
-      .select({ responsabilId: echipeSlujire.responsabilId })
-      .from(echipeSlujire)
-      .where(eq(echipeSlujire.id, p.echipaId));
-    if (e?.responsabilId) deAnuntat.add(e.responsabilId);
+    const aiEchipei = await db
+      .select({ liderId: lideriEchipe.liderId })
+      .from(lideriEchipe)
+      .innerJoin(lideri, eq(lideri.id, lideriEchipe.liderId))
+      .where(and(eq(lideriEchipe.echipaId, p.echipaId), eq(lideri.activ, true)));
+    for (const l of aiEchipei) deAnuntat.add(l.liderId);
 
     const dinEchipa = await db
       .select({ grupaId: membri.grupaId })
@@ -423,13 +545,15 @@ export async function liderilDeAnuntat(programareId: number): Promise<number[]> 
 export async function grupeFaraProgramare() {
   const azi = dataAzi();
   const cuProgramare = await db
-    .selectDistinct({ grupaId: programariSlujire.grupaId })
-    .from(programariSlujire)
+    .selectDistinct({ grupaId: programariGrupe.grupaId })
+    .from(programariGrupe)
+    .innerJoin(
+      programariSlujire,
+      eq(programariSlujire.id, programariGrupe.programareId),
+    )
     .where(gte(programariSlujire.data, azi));
 
-  const ids = new Set(
-    cuProgramare.map((c) => c.grupaId).filter((id): id is number => id !== null),
-  );
+  const ids = new Set(cuProgramare.map((c) => c.grupaId));
 
   const active = await db
     .select({ id: grupe.id, nume: grupe.nume })

@@ -10,11 +10,13 @@ import {
   membri,
   membriEchipe,
   prezenteSlujire,
+  programariGrupe,
   programariSlujire,
   type Lider,
   type StarePrezenta,
 } from "@/lib/db/schema";
 import { verificaAccesGrupa } from "./acces";
+import { esteLiderulEchipei, type GrupaScurta } from "./slujiri";
 
 /**
  * Prezența la slujire.
@@ -34,8 +36,7 @@ export type ProgramareCuPrezenta = {
   detalii: string | null;
   ora: string | null;
   locatie: string | null;
-  grupaId: number | null;
-  grupaNume: string | null;
+  grupe: GrupaScurta[];
   echipaId: number | null;
   echipaNume: string | null;
   prezentaMarcataLa: Date | null;
@@ -55,8 +56,6 @@ export async function programareCuPrezenta(
       detalii: programariSlujire.detalii,
       ora: programariSlujire.ora,
       locatie: programariSlujire.locatie,
-      grupaId: programariSlujire.grupaId,
-      grupaNume: grupe.nume,
       echipaId: programariSlujire.echipaId,
       echipaNume: echipeSlujire.nume,
       prezentaMarcataLa: programariSlujire.prezentaMarcataLa,
@@ -64,12 +63,21 @@ export async function programareCuPrezenta(
       prezentaNota: programariSlujire.prezentaNota,
     })
     .from(programariSlujire)
-    .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
     .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
     .leftJoin(lideri, eq(lideri.id, programariSlujire.prezentaMarcataDeId))
     .where(eq(programariSlujire.id, programareId));
+  if (!p) return null;
 
-  return p ?? null;
+  const aleEi = await db
+    .select({ id: grupe.id, nume: grupe.nume })
+    .from(programariGrupe)
+    .innerJoin(grupe, eq(grupe.id, programariGrupe.grupaId))
+    .where(eq(programariGrupe.programareId, programareId));
+
+  return {
+    ...p,
+    grupe: aleEi.sort((a, b) => a.nume.localeCompare(b.nume, "ro")),
+  };
 }
 
 export type AccesProgramare = {
@@ -80,29 +88,25 @@ export type AccesProgramare = {
 /**
  * Cine are voie să facă prezența la o slujire.
  *
- * Dacă slujește o grupă, hotărăsc aceleași reguli ca la grupa mică - inclusiv
- * înlocuitorii. Dacă e programată doar o echipă, are voie responsabilul ei.
- * Adminul, peste tot.
+ * Dacă slujesc grupe, hotărăsc aceleași reguli ca la grupa mică - inclusiv
+ * înlocuitorii - și e destul să fii liderul uneia dintre ele. Dacă e
+ * programată o echipă, au voie liderii ei. Adminul, peste tot.
  */
 export async function verificaAccesProgramare(
   lider: Lider,
-  programare: { grupaId: number | null; echipaId: number | null },
+  programare: { grupe: GrupaScurta[]; echipaId: number | null },
 ): Promise<AccesProgramare> {
   if (lider.rol === "admin") return { permis: true, prinInlocuire: false };
 
-  if (programare.grupaId !== null) {
-    const acces = await verificaAccesGrupa(lider, programare.grupaId);
+  for (const g of programare.grupe) {
+    const acces = await verificaAccesGrupa(lider, g.id);
     if (acces.permis) {
       return { permis: true, prinInlocuire: acces.prinInlocuire };
     }
   }
 
   if (programare.echipaId !== null) {
-    const [e] = await db
-      .select({ responsabilId: echipeSlujire.responsabilId })
-      .from(echipeSlujire)
-      .where(eq(echipeSlujire.id, programare.echipaId));
-    if (e?.responsabilId === lider.id) {
+    if (await esteLiderulEchipei(lider.id, programare.echipaId)) {
       return { permis: true, prinInlocuire: false };
     }
   }
@@ -113,8 +117,10 @@ export async function verificaAccesProgramare(
 export type PersoanaDeSlujire = {
   id: number;
   nume: string;
-  /** De unde vine pe listă: din grupa programată sau din echipă. */
+  /** De unde vine pe listă: dintr-o grupă programată sau din echipă. */
   sursa: "grupa" | "echipa";
+  /** Grupa din care vine, când vine dintr-una - la două grupe contează. */
+  grupaNume: string | null;
 };
 
 export type FoaieSlujire = {
@@ -125,42 +131,53 @@ export type FoaieSlujire = {
 /**
  * Cine ar trebui să fie la slujirea asta.
  *
- * Dacă slujește o grupă, toți membrii ei activi. Dacă e programată o echipă,
- * pulsiștii din echipă. Dacă sunt amândouă - grupa ajută echipa - lista e
- * reunită, fără să apară cineva de două ori.
+ * Dacă slujesc grupe, toți membrii lor activi. Dacă e programată o echipă,
+ * pulsiștii din echipă. Dacă sunt și una și alta - grupele ajută echipa -
+ * lista e reunită, fără să apară cineva de două ori.
  *
  * Musafirii nu intră: ei sunt în vizită la grupă, nu în slujire.
  */
 export async function foaiaSlujirii(programare: {
   id: number;
-  grupaId: number | null;
+  grupe: GrupaScurta[];
   echipaId: number | null;
 }): Promise<FoaieSlujire> {
   const persoane: PersoanaDeSlujire[] = [];
   const vazute = new Set<number>();
 
-  if (programare.grupaId !== null) {
-    const dinGrupa = await db
-      .select({ id: membri.id, nume: membri.nume })
+  if (programare.grupe.length > 0) {
+    const dinGrupe = await db
+      .select({ id: membri.id, nume: membri.nume, grupaId: membri.grupaId })
       .from(membri)
       .where(
         and(
-          eq(membri.grupaId, programare.grupaId),
+          inArray(
+            membri.grupaId,
+            programare.grupe.map((g) => g.id),
+          ),
           eq(membri.activ, true),
           eq(membri.status, "membru"),
         ),
       );
-    for (const m of dinGrupa) {
+
+    const numeGrupe = new Map(programare.grupe.map((g) => [g.id, g.nume]));
+    for (const m of dinGrupe) {
       vazute.add(m.id);
-      persoane.push({ ...m, sursa: "grupa" });
+      persoane.push({
+        id: m.id,
+        nume: m.nume,
+        sursa: "grupa",
+        grupaNume: m.grupaId !== null ? (numeGrupe.get(m.grupaId) ?? null) : null,
+      });
     }
   }
 
   if (programare.echipaId !== null) {
     const dinEchipa = await db
-      .select({ id: membri.id, nume: membri.nume })
+      .select({ id: membri.id, nume: membri.nume, grupaNume: grupe.nume })
       .from(membriEchipe)
       .innerJoin(membri, eq(membri.id, membriEchipe.membruId))
+      .leftJoin(grupe, eq(grupe.id, membri.grupaId))
       .where(
         and(
           eq(membriEchipe.echipaId, programare.echipaId),
@@ -174,9 +191,16 @@ export async function foaiaSlujirii(programare: {
     }
   }
 
+  /*
+    Întâi grupele, apoi echipa, iar în fiecare bucată alfabetic pe grupe și
+    pe nume: liderul care completează se uită la oamenii lui, strânși la un
+    loc, nu la o listă amestecată.
+  */
   persoane.sort(
     (a, b) =>
-      a.sursa.localeCompare(b.sursa) || a.nume.localeCompare(b.nume, "ro"),
+      a.sursa.localeCompare(b.sursa) ||
+      (a.grupaNume ?? "").localeCompare(b.grupaNume ?? "", "ro") ||
+      a.nume.localeCompare(b.nume, "ro"),
   );
 
   const stari: Record<number, StarePrezenta> = {};

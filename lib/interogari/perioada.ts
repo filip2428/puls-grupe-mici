@@ -12,6 +12,7 @@ import {
   prezente,
   programariSlujire,
 } from "@/lib/db/schema";
+import { programariAleGrupelor } from "@/lib/interogari/slujiri";
 import { FARA_GRUPA, etichetaClasa } from "@/lib/util/etichete";
 import { lunaLizibila } from "@/lib/util/date";
 
@@ -356,7 +357,7 @@ async function cateSlujiri(filtru: FiltruPerioada): Promise<number> {
     lte(programariSlujire.data, filtru.panaLa),
   ];
   if (filtru.grupaIds) {
-    conditii.push(inArray(programariSlujire.grupaId, filtru.grupaIds));
+    conditii.push(programariAleGrupelor(filtru.grupaIds));
   }
   const lista = await db
     .select({ id: programariSlujire.id })

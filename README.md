@@ -97,6 +97,13 @@ Panoul de administrare arată câți așteaptă, ca să nu rămână uitați aco
 lista de pulsiști au propriul filtru (*fără grupă*) și intră în Excel ca oricare
 alții.
 
+Îi ia și liderul, direct de pe pagina grupei lui: la *Adaugă un pulsist* prima
+listă e chiar cea a nerepartizaților. Așa, cine s-a înscris prin formular acum
+câteva luni intră în grupă cu telefonul, părinții și biserica lui, în loc să
+fie scris a doua oară. Și dacă totuși e scris din nou, aplicația recunoaște
+numele și întreabă întâi - „Ana Popescu e deja în aplicație, fără grupă" -
+înainte să facă a doua fișă.
+
 **Un pulsist e într-o singură grupă.** „Fără grupă" e o stare de trecere, nu o a
 doua formă de apartenență.
 
@@ -281,18 +288,20 @@ albastru - toți împreună, albastru deschis - o slujire.
 Sunt două lucruri diferite, legate între ele:
 
 **Locurile de slujire** - Harvest Kids, cafeneaua, laudă, media... Coordonatorul
-le creează din pagina *Slujiri*. Fiecare are un nume, o descriere scurtă și,
-dacă vrei, un lider care coordonează.
+le creează din pagina *Slujiri*. Fiecare are un nume, o descriere scurtă și
+liderii care o coordonează - pot fi oricâți. Toți primesc anunțurile despre
+programări și toți pot face prezența la slujire.
 
 **Cine unde slujește** - se trece de pe fișa pulsistului, la *Unde slujește*:
 alegi din listă și, opțional, scrii ce face acolo („la povestire", „chitară").
 Merge și invers, din pagina slujirii. Așa știi oricând că Filip e la Harvest
 Kids, iar pagina slujirii îți arată toată echipa.
 
-**Programările** - „pe 5 septembrie slujește grupa Băieți 14-16". O programare
-se pune fie pe o grupă mică, fie pe un loc de slujire, fie pe amândouă. Liderul
-o vede pe pagina grupei, pe *Slujiri* și în *Calendar*, iar cu câteva zile
-înainte primește și o notificare.
+**Programările** - „pe 5 septembrie slujește grupa Băieți 14-16". Se bifează
+câte grupe slujesc în ziua aia - la sărbători sunt mai multe - și, dacă e
+cazul, locul de slujire. Măcar una dintre ele trebuie aleasă. Liderul o vede
+pe pagina grupei, pe *Slujiri* și în *Calendar*, iar cu câteva zile înainte
+primește și o notificare.
 
 Un lider poate trece un pulsist din grupa lui la o slujire; restul (creat,
 modificat, programat) rămâne la coordonator.
@@ -460,7 +469,7 @@ la fel și cea a bisericilor.
 | o **grupă** (cu întâlnirile ei; pulsiștii rămân, fără grupă) | Administrare → Grupe → grupa | scrii numele grupei |
 | un **lider** | Administrare → Lideri | scrii numele lui |
 | un **pulsist** (cu prezențe și note) | fișa lui, jos | scrii numele lui |
-| un **loc de slujire** (cu programările lui) | Slujiri → slujirea | scrii numele ei |
+| un **loc de slujire** (zilele la care slujea singur ies din calendar) | Slujiri → slujirea | scrii numele ei |
 | **prezența unei zile** | pagina de prezență a zilei | un buton, sub un capac |
 | o **programare** din calendar | Slujiri | un buton |
 | o **înlocuire** | pagina grupei | un buton |
@@ -478,8 +487,9 @@ scrii numele. Nu se mai poate aduce nimic înapoi.
 
 Ce **nu** se pierde: la un lider șters rămân prezențele completate de el și
 notele scrise de el, doar fără nume lângă ele. La o grupă ștearsă rămân
-liderii, doar nu mai sunt repartizați acolo. La un loc de slujire șters rămân
-pulsiștii, doar nu mai slujesc acolo.
+liderii, doar nu mai sunt repartizați acolo, și rămân zilele din calendar la
+care slujea împreună cu altcineva. La un loc de slujire șters rămân pulsiștii,
+doar nu mai slujesc acolo.
 
 De cele mai multe ori tot nu asta vrei: pentru cine nu mai vine e „Marchează ca
 inactiv", pentru un lider care ia o pauză e „Dezactivează", iar pentru o grupă

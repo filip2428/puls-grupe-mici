@@ -4,7 +4,9 @@
  * Idei de bază:
  *  - un LIDER poate avea mai multe GRUPE, iar o GRUPĂ poate avea mai mulți lideri
  *    (tabelul de legătură `lideriGrupe`);
- *  - un MEMBRU (pulsist) aparține unei singure grupe;
+ *  - un MEMBRU (pulsist) aparține unei singure grupe, sau niciuneia;
+ *  - o SLUJIRE (echipă) e ținută de mai mulți lideri (`lideriEchipe`), iar la
+ *    o PROGRAMARE pot sluji mai multe grupe deodată (`programariGrupe`);
  *  - o ÎNTÂLNIRE e o dată calendaristică dintr-o grupă; PREZENȚELE sunt câte una
  *    per membru per întâlnire;
  *  - DELEGĂRILE permit ca un lider să facă prezența la altă grupă o perioadă
@@ -389,18 +391,41 @@ export const incercariLogin = sqliteTable(
 /**
  * Echipele de slujire (Laudă, Media, Protocol, Copii...).
  * Aici sunt pulsiștii implicați pe termen lung într-o slujire.
+ *
+ * Cine o coordonează nu e aici, ci în `lideriEchipe`: o slujire e ținută de
+ * obicei de mai mulți, iar dacă am ține minte doar unul, ceilalți n-ar afla
+ * de programări și n-ar putea face prezența.
  */
 export const echipeSlujire = sqliteTable("echipe_slujire", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   nume: text("nume").notNull(),
   descriere: text("descriere"),
-  /** Liderul care coordonează slujirea (opțional). */
-  responsabilId: integer("responsabil_id").references(() => lideri.id, {
-    onDelete: "set null",
-  }),
   activa: integer("activa", { mode: "boolean" }).notNull().default(true),
   creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
 });
+
+/**
+ * Legătura mulți-la-mulți lider - loc de slujire.
+ *
+ * Aceiași lideri primesc anunțurile despre programările slujirii și pot face
+ * prezența la ea, exact ca liderii unei grupe la grupa lor.
+ */
+export const lideriEchipe = sqliteTable(
+  "lideri_echipe",
+  {
+    liderId: integer("lider_id")
+      .notNull()
+      .references(() => lideri.id, { onDelete: "cascade" }),
+    echipaId: integer("echipa_id")
+      .notNull()
+      .references(() => echipeSlujire.id, { onDelete: "cascade" }),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+  },
+  (t) => [
+    primaryKey({ columns: [t.liderId, t.echipaId] }),
+    index("lideri_echipe_echipa_idx").on(t.echipaId),
+  ],
+);
 
 /** Cine e implicat în ce echipă de slujire. */
 export const membriEchipe = sqliteTable(
@@ -423,8 +448,12 @@ export const membriEchipe = sqliteTable(
 );
 
 /**
- * Calendarul slujirilor: la data X slujește o grupă mică sau o echipă
- * (sau amândouă - de exemplu grupa ajută echipa de protocol).
+ * Calendarul slujirilor: la data X slujesc niște grupe mici, o echipă, sau
+ * și una și alta (de exemplu două grupe ajută echipa de protocol).
+ *
+ * Grupele programate stau în `programariGrupe`. La sărbători și la zilele
+ * mari slujesc mai multe deodată, iar înainte ar fi trebuit scrisă aceeași
+ * slujire de trei ori, cu trei prezențe de completat.
  */
 export const programariSlujire = sqliteTable(
   "programari_slujire",
@@ -436,9 +465,6 @@ export const programariSlujire = sqliteTable(
     detalii: text("detalii"),
     ora: text("ora"),
     locatie: text("locatie"),
-    grupaId: integer("grupa_id").references(() => grupe.id, {
-      onDelete: "cascade",
-    }),
     echipaId: integer("echipa_id").references(() => echipeSlujire.id, {
       onDelete: "cascade",
     }),
@@ -461,8 +487,24 @@ export const programariSlujire = sqliteTable(
   },
   (t) => [
     index("programari_data_idx").on(t.data),
-    index("programari_grupa_idx").on(t.grupaId),
     index("programari_echipa_idx").on(t.echipaId),
+  ],
+);
+
+/** Ce grupe mici slujesc la o programare. */
+export const programariGrupe = sqliteTable(
+  "programari_grupe",
+  {
+    programareId: integer("programare_id")
+      .notNull()
+      .references(() => programariSlujire.id, { onDelete: "cascade" }),
+    grupaId: integer("grupa_id")
+      .notNull()
+      .references(() => grupe.id, { onDelete: "cascade" }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.programareId, t.grupaId] }),
+    index("programari_grupe_grupa_idx").on(t.grupaId),
   ],
 );
 

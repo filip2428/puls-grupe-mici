@@ -17,7 +17,9 @@ export function RandProgramare({
    */
   poateFacePrezenta?: boolean;
 }) {
-  const cine = [p.grupaNume, p.echipaNume].filter(Boolean).join(" + ");
+  const cine = [...p.grupe.map((g) => g.nume), p.echipaNume]
+    .filter(Boolean)
+    .join(" + ");
   const detaliu = [
     p.data === azi ? "azi" : dataLunga(p.data),
     p.ora ? `ora ${p.ora}` : "",

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import {
   FormularEchipaNoua,
+  FormularProgramareEditare,
   FormularProgramareNoua,
 } from "@/componente/AdminSlujiri";
 import { RandProgramare } from "@/componente/RandProgramare";
@@ -27,6 +28,7 @@ export default async function PaginaSlujiri() {
     listaEchipe(),
     programariPentruLider({
       esteAdmin,
+      liderId: lider.id,
       grupaIds: grupeleMele.map((g) => g.id),
       limita: 25,
     }),
@@ -37,6 +39,14 @@ export default async function PaginaSlujiri() {
     : [[], [], []];
 
   const azi = dataAzi();
+
+  // Aceleași liste în toate formularele de programare de pe pagină.
+  const grupeDeAles = toateGrupeleLista
+    .filter((g) => g.activa)
+    .map((g) => ({ id: g.id, nume: g.nume }));
+  const echipeDeAles = echipe
+    .filter((e) => e.activa)
+    .map((e) => ({ id: e.id, nume: e.nume }));
 
   return (
     <div className="flex flex-col gap-5">
@@ -64,17 +74,38 @@ export default async function PaginaSlujiri() {
               <li key={p.id} className="py-3">
                 <RandProgramare programare={p} azi={azi} poateFacePrezenta />
                 {esteAdmin && (
-                  <form
-                    action={stergeProgramare.bind(null, p.id)}
-                    className="mt-2"
-                  >
-                    <button
-                      type="submit"
-                      className="text-xs text-red-700 underline"
-                    >
-                      scoate din calendar
-                    </button>
-                  </form>
+                  <details className="mt-2">
+                    <summary className="min-h-9 cursor-pointer py-1 text-xs text-albastru">
+                      modifică
+                    </summary>
+                    <div className="pt-2">
+                      <FormularProgramareEditare
+                        programareId={p.id}
+                        grupe={grupeDeAles}
+                        echipe={echipeDeAles}
+                        initial={{
+                          data: p.data,
+                          titlu: p.titlu,
+                          ora: p.ora,
+                          locatie: p.locatie,
+                          detalii: p.detalii,
+                          grupaIds: p.grupe.map((g) => g.id),
+                          echipaId: p.echipaId,
+                        }}
+                      />
+                      <form
+                        action={stergeProgramare.bind(null, p.id)}
+                        className="mt-3 border-t border-[#eef1f7] pt-3"
+                      >
+                        <button
+                          type="submit"
+                          className="text-xs text-red-700 underline"
+                        >
+                          scoate din calendar
+                        </button>
+                      </form>
+                    </div>
+                  </details>
                 )}
               </li>
             ))}
@@ -110,7 +141,9 @@ export default async function PaginaSlujiri() {
                     </span>
                     <span className="block truncate text-xs text-cenusiu">
                       {e.cati} {e.cati === 1 ? "pulsist" : "pulsiști"}
-                      {e.responsabilNume ? ` · ${e.responsabilNume}` : ""}
+                      {e.lideri.length > 0
+                        ? ` · ${e.lideri.map((l) => l.nume).join(", ")}`
+                        : ""}
                       {e.descriere ? ` · ${e.descriere}` : ""}
                     </span>
                   </div>
@@ -143,12 +176,8 @@ export default async function PaginaSlujiri() {
               </summary>
               <div className="pt-2">
                 <FormularProgramareNoua
-                  grupe={toateGrupeleLista
-                    .filter((g) => g.activa)
-                    .map((g) => ({ id: g.id, nume: g.nume }))}
-                  echipe={echipe
-                    .filter((e) => e.activa)
-                    .map((e) => ({ id: e.id, nume: e.nume }))}
+                  grupe={grupeDeAles}
+                  echipe={echipeDeAles}
                   azi={azi}
                 />
               </div>

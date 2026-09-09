@@ -235,13 +235,14 @@ function avertismentGrupa(p: {
   intalniri: number;
   prezente: number;
   programari: number;
+  programariGoale: number;
 }): string {
   const bucati = [
     p.intalniri > 0
       ? `${p.intalniri === 1 ? "o întâlnire" : `${p.intalniri} întâlniri`} cu ${p.prezente} ${p.prezente === 1 ? "prezență" : "prezențe"}`
       : "",
-    p.programari > 0
-      ? `${p.programari === 1 ? "o programare" : `${p.programari} programări`} din calendarul slujirilor`
+    p.programariGoale > 0
+      ? `${p.programariGoale === 1 ? "o zi de slujire, la care slujea singură" : `${p.programariGoale} zile de slujire, la care slujea singură`}`
       : "",
   ].filter(Boolean);
 
@@ -250,10 +251,16 @@ function avertismentGrupa(p: {
       ? "Grupa n-are istoric, deci nu se pierde nimic."
       : `Dispar cu totul ${bucati.join(" și ")}.`;
 
+  const impreuna = p.programari - p.programariGoale;
+  const calendar =
+    impreuna > 0
+      ? ` ${impreuna === 1 ? "Mai e o zi în calendar la care" : `Mai sunt ${impreuna} zile în calendar la care`} slujea împreună cu alții - ${impreuna === 1 ? "ea rămâne" : "ele rămân"}, fără grupa asta.`
+      : "";
+
   const oameni =
     p.pulsisti === 0
       ? ""
       : ` ${p.pulsisti === 1 ? "Pulsistul din ea rămâne" : `Cei ${p.pulsisti} pulsiști din ea rămân`} în aplicație, fără grupă, și îi găsești la „Nerepartizați" ca să le dai alta.`;
 
-  return `${lista}${oameni} Liderii rămân și ei, doar nu mai sunt repartizați aici. Dacă grupa doar nu se mai ține, „Arhivează" e alegerea potrivită: păstrează și istoricul.`;
+  return `${lista}${calendar}${oameni} Liderii rămân și ei, doar nu mai sunt repartizați aici. Dacă grupa doar nu se mai ține, „Arhivează" e alegerea potrivită: păstrează și istoricul.`;
 }

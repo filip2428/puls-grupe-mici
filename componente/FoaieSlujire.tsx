@@ -62,7 +62,21 @@ export function FoaieSlujire({
     });
   }
 
-  const dinGrupa = persoane.filter((p) => p.sursa === "grupa");
+  /*
+    Când slujesc mai multe grupe, fiecare cu titlul ei. Liderul completează
+    de obicei pentru oamenii lui, iar o listă de patruzeci de nume amestecate
+    l-ar pune să caute pe fiecare.
+  */
+  const peGrupe = useMemo(() => {
+    const dupaGrupa = new Map<string, PersoanaDeSlujire[]>();
+    for (const p of persoane) {
+      if (p.sursa !== "grupa") continue;
+      const cheie = p.grupaNume ?? "Din grupă";
+      dupaGrupa.set(cheie, [...(dupaGrupa.get(cheie) ?? []), p]);
+    }
+    return [...dupaGrupa.entries()];
+  }, [persoane]);
+
   const dinEchipa = persoane.filter((p) => p.sursa === "echipa");
 
   return (
@@ -88,18 +102,23 @@ export function FoaieSlujire({
         </div>
       )}
 
-      {dinGrupa.length > 0 && (
-        <ul className="flex flex-col gap-2">
-          {dinGrupa.map((p) => (
-            <RandPrezenta
-              key={p.id}
-              nume={p.nume}
-              aleasa={stari[p.id]}
-              onAlege={(v) => seteaza(p.id, v)}
-            />
-          ))}
-        </ul>
-      )}
+      {peGrupe.map(([numeGrupa, aiEi]) => (
+        <section key={numeGrupa} className="flex flex-col gap-2">
+          {peGrupe.length > 1 && (
+            <h2 className="pt-2 text-sm font-bold">{numeGrupa}</h2>
+          )}
+          <ul className="flex flex-col gap-2">
+            {aiEi.map((p) => (
+              <RandPrezenta
+                key={p.id}
+                nume={p.nume}
+                aleasa={stari[p.id]}
+                onAlege={(v) => seteaza(p.id, v)}
+              />
+            ))}
+          </ul>
+        </section>
+      ))}
 
       {dinEchipa.length > 0 && (
         <section className="flex flex-col gap-2">

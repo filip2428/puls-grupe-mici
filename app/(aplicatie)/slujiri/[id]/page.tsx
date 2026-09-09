@@ -32,7 +32,7 @@ export default async function PaginaEchipa({
   if (!date) notFound();
 
   const esteAdmin = lider.rol === "admin";
-  const esteResponsabil = date.echipa.responsabilId === lider.id;
+  const esteLiderulEi = date.echipa.lideri.some((l) => l.id === lider.id);
 
   const [disponibili, toateProgramarile, toti, pierderi] = await Promise.all([
     pulsistiInAfaraEchipei(echipaId),
@@ -61,8 +61,8 @@ export default async function PaginaEchipa({
         <p className="text-sm text-cenusiu">
           {[
             date.echipa.descriere,
-            date.echipa.responsabilNume
-              ? `coordonează ${date.echipa.responsabilNume}`
+            date.echipa.lideri.length > 0
+              ? `coordonează ${date.echipa.lideri.map((l) => l.nume).join(", ")}`
               : "",
           ]
             .filter(Boolean)
@@ -165,7 +165,7 @@ export default async function PaginaEchipa({
           )}
         </details>
 
-        {!esteAdmin && !esteResponsabil && (
+        {!esteAdmin && !esteLiderulEi && (
           <p className="mt-3 text-xs text-cenusiu">
             Poți adăuga sau scoate doar pulsiști din grupele tale.
           </p>
@@ -187,7 +187,7 @@ export default async function PaginaEchipa({
                 initial={{
                   nume: date.echipa.nume,
                   descriere: date.echipa.descriere,
-                  responsabilId: date.echipa.responsabilId,
+                  liderIds: date.echipa.lideri.map((l) => l.id),
                 }}
               />
 
@@ -225,17 +225,25 @@ export default async function PaginaEchipa({
   );
 }
 
-/** Ce dispare odată cu locul de slujire. */
+/**
+ * Ce dispare odată cu locul de slujire.
+ *
+ * Din calendar se șterg doar zilele în care slujea singură. Unde erau trecute
+ * și grupe, ziua rămâne - ele slujesc mai departe, doar că nu mai e nimeni
+ * deasupra lor.
+ */
 function avertismentEchipa(p: {
   pulsisti: number;
   programari: number;
+  programariGoale: number;
 }): string {
+  const raman = p.programari - p.programariGoale;
   const bucati = [
     p.pulsisti > 0
       ? `${p.pulsisti === 1 ? "un pulsist nu va mai sluji aici" : `cei ${p.pulsisti} pulsiști nu vor mai sluji aici`}`
       : "",
-    p.programari > 0
-      ? `${p.programari === 1 ? "o programare iese" : `${p.programari} programări ies`} din calendar`
+    p.programariGoale > 0
+      ? `${p.programariGoale === 1 ? "o zi iese" : `${p.programariGoale} zile ies`} din calendar`
       : "",
   ].filter(Boolean);
 
@@ -244,5 +252,10 @@ function avertismentEchipa(p: {
       ? "Nu slujește nimeni aici și nu e nimic în calendar."
       : `${bucati.join(" și ")}.`;
 
-  return `${lista} Niciun pulsist nu se șterge - dispare doar locul de slujire. Dacă vrei doar să nu mai apară în liste, folosește „Arhivează".`;
+  const cuGrupe =
+    raman > 0
+      ? ` ${raman === 1 ? "O zi rămâne" : `${raman} zile rămân`} în calendar, pentru grupele trecute acolo.`
+      : "";
+
+  return `${lista}${cuGrupe} Niciun pulsist nu se șterge - dispare doar locul de slujire. Dacă vrei doar să nu mai apară în liste, folosește „Arhivează".`;
 }

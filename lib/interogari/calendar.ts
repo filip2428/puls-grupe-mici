@@ -7,9 +7,14 @@ import {
   echipeSlujire,
   evenimente,
   grupe,
+  programariGrupe,
   programariSlujire,
 } from "@/lib/db/schema";
-import { echipeleGrupelor } from "@/lib/interogari/slujiri";
+import {
+  echipeleGrupelor,
+  echipeleLiderului,
+  programariAleGrupelor,
+} from "@/lib/interogari/slujiri";
 
 /**
  * Calendarul: ce are lucrarea de făcut într-o lună.
@@ -78,6 +83,7 @@ async function intalniriIntre(
  */
 async function slujiriIntre(optiuni: {
   esteAdmin: boolean;
+  liderId: number;
   grupaIds: number[];
   deLa: string;
   panaLa: string;
@@ -90,10 +96,14 @@ async function slujiriIntre(optiuni: {
   let unde = inInterval;
 
   if (!optiuni.esteAdmin) {
-    const echipaIds = await echipeleGrupelor(optiuni.grupaIds);
+    const [prinPulsisti, aleLui] = await Promise.all([
+      echipeleGrupelor(optiuni.grupaIds),
+      echipeleLiderului(optiuni.liderId),
+    ]);
+    const echipaIds = [...new Set([...prinPulsisti, ...aleLui])];
     const conditii = [];
     if (optiuni.grupaIds.length > 0) {
-      conditii.push(inArray(programariSlujire.grupaId, optiuni.grupaIds));
+      conditii.push(programariAleGrupelor(optiuni.grupaIds));
     }
     if (echipaIds.length > 0) {
       conditii.push(inArray(programariSlujire.echipaId, echipaIds));
@@ -110,15 +120,36 @@ async function slujiriIntre(optiuni: {
       ora: programariSlujire.ora,
       locatie: programariSlujire.locatie,
       detalii: programariSlujire.detalii,
-      grupaNume: grupe.nume,
       echipaNume: echipeSlujire.nume,
       prezentaMarcataLa: programariSlujire.prezentaMarcataLa,
     })
     .from(programariSlujire)
-    .leftJoin(grupe, eq(grupe.id, programariSlujire.grupaId))
     .leftJoin(echipeSlujire, eq(echipeSlujire.id, programariSlujire.echipaId))
     .where(unde)
     .orderBy(asc(programariSlujire.data), asc(programariSlujire.ora));
+
+  if (randuri.length === 0) return [];
+
+  const legaturi = await db
+    .select({
+      programareId: programariGrupe.programareId,
+      nume: grupe.nume,
+    })
+    .from(programariGrupe)
+    .innerJoin(grupe, eq(grupe.id, programariGrupe.grupaId))
+    .where(
+      inArray(
+        programariGrupe.programareId,
+        randuri.map((r) => r.id),
+      ),
+    );
+
+  const numeGrupe = new Map<number, string[]>();
+  for (const l of legaturi) {
+    const lista = numeGrupe.get(l.programareId) ?? [];
+    lista.push(l.nume);
+    numeGrupe.set(l.programareId, lista);
+  }
 
   return randuri.map((p) => ({
     cheie: `sl-${p.id}`,
@@ -130,7 +161,10 @@ async function slujiriIntre(optiuni: {
     locatie: p.locatie,
     detalii: p.detalii,
     peGrupeMici: false,
-    cine: [p.grupaNume, p.echipaNume].filter(Boolean).join(" + ") || null,
+    cine:
+      [...(numeGrupe.get(p.id) ?? []).sort((a, b) => a.localeCompare(b, "ro")), p.echipaNume]
+        .filter(Boolean)
+        .join(" + ") || null,
     prezentaFacuta: p.prezentaMarcataLa !== null,
   }));
 }
@@ -138,6 +172,7 @@ async function slujiriIntre(optiuni: {
 /** Tot ce se vede pe calendar într-un interval, într-o singură listă. */
 export async function calendarul(optiuni: {
   esteAdmin: boolean;
+  liderId: number;
   grupaIds: number[];
   deLa: string;
   panaLa: string;

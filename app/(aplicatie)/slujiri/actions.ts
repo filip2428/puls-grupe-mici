@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -10,12 +10,16 @@ import { ceruteAdmin, ceruteLider } from "@/lib/auth/sesiune";
 import { db } from "@/lib/db";
 import {
   echipeSlujire,
+  grupe,
+  lideriEchipe,
   membri,
   membriEchipe,
   prezenteSlujire,
+  programariGrupe,
   programariSlujire,
 } from "@/lib/db/schema";
 import { verificaAccesMembru } from "@/lib/interogari/acces";
+import { esteLiderulEchipei } from "@/lib/interogari/slujiri";
 import {
   numeConfirmat,
   pierderiEchipa,
@@ -38,12 +42,36 @@ const textOptional = (max: number) =>
 const schemaEchipa = z.object({
   nume: z.string().trim().min(2, "Numele echipei e prea scurt.").max(60),
   descriere: textOptional(200),
-  responsabilId: z
-    .string()
-    .optional()
-    .transform((v) => (v && v !== "" ? Number(v) : null))
-    .refine((v) => v === null || Number.isInteger(v), "Responsabil invalid."),
 });
+
+/** Id-urile bifate într-o listă de căsuțe, curățate de ce nu e număr. */
+function idBifate(formData: FormData, camp: string): number[] {
+  return [
+    ...new Set(
+      formData
+        .getAll(camp)
+        .map((v) => Number(v))
+        .filter((n) => Number.isInteger(n) && n > 0),
+    ),
+  ];
+}
+
+/**
+ * Scrie cine coordonează o slujire.
+ *
+ * Ștergem tot și punem la loc, în loc să căutăm diferența: sunt câțiva
+ * lideri, nu mii, iar așa nu rămâne nimeni agățat pentru că a fost debifat.
+ */
+async function scrieLideriiEchipei(echipaId: number, liderIds: number[]) {
+  await db.transaction(async (tx) => {
+    await tx.delete(lideriEchipe).where(eq(lideriEchipe.echipaId, echipaId));
+    if (liderIds.length > 0) {
+      await tx
+        .insert(lideriEchipe)
+        .values(liderIds.map((liderId) => ({ echipaId, liderId })));
+    }
+  });
+}
 
 /** Creează o echipă de slujire (Laudă, Media, Protocol...). */
 export async function creeazaEchipa(
@@ -55,7 +83,6 @@ export async function creeazaEchipa(
   const rezultat = schemaEchipa.safeParse({
     nume: formData.get("nume"),
     descriere: formData.get("descriere"),
-    responsabilId: formData.get("responsabilId"),
   });
   if (!rezultat.success) {
     return { eroare: rezultat.error.issues[0]?.message ?? "Date invalide." };
@@ -65,6 +92,7 @@ export async function creeazaEchipa(
     .insert(echipeSlujire)
     .values(rezultat.data)
     .returning({ id: echipeSlujire.id });
+  await scrieLideriiEchipei(creata.id, idBifate(formData, "liderId"));
   await scrieAudit(admin.id, "echipa:creata", {
     echipaId: creata.id,
     nume: rezultat.data.nume,
@@ -85,7 +113,6 @@ export async function salveazaEchipa(
   const rezultat = schemaEchipa.safeParse({
     nume: formData.get("nume"),
     descriere: formData.get("descriere"),
-    responsabilId: formData.get("responsabilId"),
   });
   if (!rezultat.success) {
     return { eroare: rezultat.error.issues[0]?.message ?? "Date invalide." };
@@ -95,6 +122,7 @@ export async function salveazaEchipa(
     .update(echipeSlujire)
     .set(rezultat.data)
     .where(eq(echipeSlujire.id, echipaId));
+  await scrieLideriiEchipei(echipaId, idBifate(formData, "liderId"));
   await scrieAudit(admin.id, "echipa:modificata", { echipaId });
 
   revalidatePath("/slujiri");
@@ -148,19 +176,14 @@ export async function stergeEchipa(
 }
 
 /**
- * Cine poate umbla la componența unei echipe: adminul, responsabilul ei,
- * sau liderul grupei din care face parte pulsistul.
+ * Cine poate umbla la componența unei echipe: adminul, liderii ei, sau
+ * liderul grupei din care face parte pulsistul.
  */
 async function poateSchimbaEchipa(echipaId: number, membruId: number) {
   const lider = await ceruteLider();
   if (lider.rol === "admin") return lider;
 
-  const [e] = await db
-    .select({ responsabilId: echipeSlujire.responsabilId })
-    .from(echipeSlujire)
-    .where(eq(echipeSlujire.id, echipaId));
-  if (!e) return null;
-  if (e.responsabilId === lider.id) return lider;
+  if (await esteLiderulEchipei(lider.id, echipaId)) return lider;
 
   const [m] = await db
     .select({ grupaId: membri.grupaId })
@@ -238,29 +261,20 @@ export async function scoateSlujireaMembrului(membruId: number, echipaId: number
 
 /* ------------------------------------------------------------ programări */
 
-const schemaProgramare = z
-  .object({
-    data: z
-      .string()
-      .trim()
-      .refine((v) => esteDataValida(v), "Alege o dată validă."),
-    titlu: z.string().trim().min(2, "Scrie ce se slujește.").max(80),
-    ora: textOptional(10),
-    locatie: textOptional(80),
-    detalii: textOptional(300),
-    grupaId: z
-      .string()
-      .optional()
-      .transform((v) => (v && v !== "" ? Number(v) : null)),
-    echipaId: z
-      .string()
-      .optional()
-      .transform((v) => (v && v !== "" ? Number(v) : null)),
-  })
-  .refine(
-    (v) => v.grupaId !== null || v.echipaId !== null,
-    "Alege cine slujește: o grupă mică sau o echipă.",
-  );
+const schemaProgramare = z.object({
+  data: z
+    .string()
+    .trim()
+    .refine((v) => esteDataValida(v), "Alege o dată validă."),
+  titlu: z.string().trim().min(2, "Scrie ce se slujește.").max(80),
+  ora: textOptional(10),
+  locatie: textOptional(80),
+  detalii: textOptional(300),
+  echipaId: z
+    .string()
+    .optional()
+    .transform((v) => (v && v !== "" ? Number(v) : null)),
+});
 
 function dinFormular(formData: FormData) {
   return {
@@ -269,9 +283,38 @@ function dinFormular(formData: FormData) {
     ora: formData.get("ora"),
     locatie: formData.get("locatie"),
     detalii: formData.get("detalii"),
-    grupaId: formData.get("grupaId"),
     echipaId: formData.get("echipaId"),
   };
+}
+
+/**
+ * Grupele bifate, dintre cele care chiar există.
+ *
+ * O grupă ștearsă între timp n-are ce căuta în calendar, iar dacă am scrie-o
+ * oricum, cheia străină ar da eroare tocmai la salvare.
+ */
+async function grupeleBifate(formData: FormData): Promise<number[]> {
+  const cerute = idBifate(formData, "grupaId");
+  if (cerute.length === 0) return [];
+  const gasite = await db
+    .select({ id: grupe.id })
+    .from(grupe)
+    .where(inArray(grupe.id, cerute));
+  return gasite.map((g) => g.id);
+}
+
+/** Scrie ce grupe slujesc la o programare (le rescrie pe toate). */
+async function scrieGrupeleProgramarii(programareId: number, grupaIds: number[]) {
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(programariGrupe)
+      .where(eq(programariGrupe.programareId, programareId));
+    if (grupaIds.length > 0) {
+      await tx
+        .insert(programariGrupe)
+        .values(grupaIds.map((grupaId) => ({ programareId, grupaId })));
+    }
+  });
 }
 
 /** Trece o slujire în calendar. */
@@ -286,17 +329,25 @@ export async function creeazaProgramare(
     return { eroare: rezultat.error.issues[0]?.message ?? "Date invalide." };
   }
 
+  const grupaIds = await grupeleBifate(formData);
+  if (grupaIds.length === 0 && rezultat.data.echipaId === null) {
+    return { eroare: "Alege cine slujește: una sau mai multe grupe, ori o echipă." };
+  }
+
   const [creata] = await db
     .insert(programariSlujire)
     .values({ ...rezultat.data, creatDeId: admin.id })
     .returning({ id: programariSlujire.id });
+  await scrieGrupeleProgramarii(creata.id, grupaIds);
   await scrieAudit(admin.id, "programare:creata", {
     programareId: creata.id,
     data: rezultat.data.data,
+    grupe: grupaIds.length,
   });
 
   revalidatePath("/slujiri");
   revalidatePath("/grupe");
+  revalidatePath("/calendar");
   return { reusit: true };
 }
 
@@ -313,27 +364,40 @@ export async function salveazaProgramare(
     return { eroare: rezultat.error.issues[0]?.message ?? "Date invalide." };
   }
 
+  const grupaIds = await grupeleBifate(formData);
+  if (grupaIds.length === 0 && rezultat.data.echipaId === null) {
+    return { eroare: "Alege cine slujește: una sau mai multe grupe, ori o echipă." };
+  }
+
   await db
     .update(programariSlujire)
     .set(rezultat.data)
     .where(eq(programariSlujire.id, programareId));
+  await scrieGrupeleProgramarii(programareId, grupaIds);
   await scrieAudit(admin.id, "programare:modificata", { programareId });
 
   revalidatePath("/slujiri");
+  revalidatePath("/grupe");
+  revalidatePath("/calendar");
   return { reusit: true };
 }
 
 /** Scoate o slujire din calendar. */
 export async function stergeProgramare(programareId: number) {
   const admin = await ceruteAdmin();
-  // Întâi bifele de prezență, altfel rămân agățate de o slujire care nu mai e.
+  // Întâi bifele de prezență și grupele programate, altfel rămân agățate de o
+  // slujire care nu mai e.
   await db
     .delete(prezenteSlujire)
     .where(eq(prezenteSlujire.programareId, programareId));
+  await db
+    .delete(programariGrupe)
+    .where(eq(programariGrupe.programareId, programareId));
   await db
     .delete(programariSlujire)
     .where(eq(programariSlujire.id, programareId));
   await scrieAudit(admin.id, "programare:stearsa", { programareId });
   revalidatePath("/slujiri");
   revalidatePath("/grupe");
+  revalidatePath("/calendar");
 }
