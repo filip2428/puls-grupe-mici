@@ -150,7 +150,4 @@ function brut(corp: string): string {
   return curat ? `(Resend a zis: ${curat.slice(0, 200)})` : "";
 }
 
-/** Verificare simplă de adresă - cât să prindem greșelile de tastare. */
-export function emailValid(text: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(text);
-}
+export { emailValid } from "@/lib/util/email";

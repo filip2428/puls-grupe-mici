@@ -20,7 +20,8 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - adaugă pe loc un **musafir** care a venit prima dată, fără să piardă ce a bifat;
 - scrie subiectul întâlnirii și o notă despre cum a fost;
 - vede cine a lipsit de mai multe ori la rând („de căutat") și îl poate suna direct;
-- are la îndemână datele părinților (nume și telefon, cu buton de sunat);
+- are la îndemână datele de contact: telefonul și email-ul pulsistului și ale
+  celor doi părinți, cu butoane de sunat, WhatsApp și email;
 - ține note despre fiecare pulsist (rugăciune, situații, follow-up);
 - adaugă pulsiști noi în grupă și îi marchează inactivi când nu mai vin;
 - trece pe fișa fiecăruia **unde slujește** (Harvest Kids, cafenea, laudă...);
@@ -32,8 +33,8 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 **Coordonatorul (administrator)**
 
 - vede **lista tuturor pulsiștilor**, cu filtre după grupă, statut (membru sau
-  musafir), sex, clasă, vârstă și situație, plus căutare după nume, telefon sau
-  numele unui părinte;
+  musafir), sex, clasă, vârstă și situație, plus căutare după nume, telefon,
+  email sau numele unui părinte;
 - descarcă lista în Excel exact cu filtrele alese;
 - **importă pulsiști dintr-un Excel**, după un model descărcabil;
 - creează lideri și generează coduri de acces (inclusiv coduri noi, dacă se pierd);
@@ -72,6 +73,23 @@ Merge și invers: „Trece-l înapoi la musafiri", dacă a fost primit din greș
 
 ---
 
+## Cum îi contactezi
+
+Pe fișă stau, unul lângă altul, **telefonul și email-ul** pulsistului și, sub
+ele, cei doi părinți - fiecare cu telefon și email. Numărul dă butoane de *Sună*
+și *WhatsApp*, adresa deschide un email nou.
+
+Adresele sunt pentru anunțuri: tabăra, programul verii, ce trebuie să ajungă
+deodată la toată lucrarea și nu încape într-un mesaj. La părinți e de multe ori
+singura cale bună. **Nu servesc la autentificare** - pulsiștii nu intră în
+aplicație, iar liderii intră cu un cod, nu cu o adresă.
+
+Toate șase se umplu și din import, și din formularul de înscriere, intră în
+Excel și se pot scrie oricând de pe fișă. Aplicația nu le trimite încă nimic
+singură: notificările automate merg doar către lideri.
+
+---
+
 ## Din ce biserică e
 
 Pe fiecare pulsist scrie de unde vine, cu trei răspunsuri: **Harvest Arad**
@@ -92,6 +110,14 @@ la statistici.
 Dacă biserica omului nu e în listă, o adaugi pe loc, de pe fișa lui, din „Nu e
 în listă? Adaugă o biserică" - nu trebuie să pleci și să te întorci. Se scrie la
 salvare și rămâne apoi în listă pentru toată lucrarea.
+
+**O denominațiune nu e o biserică.** Cine scrie într-un formular „ortodoxă" sau
+„catolică" spune, de obicei, în ce a fost botezat - nu unde merge duminica. La
+import astea se trec la *fără biserică*, altfel ar apărea în statistici o
+„Biserică Ortodoxă" care nu e nicăieri o biserică anume. Un nume de biserică
+trece neatins, chiar dacă are denominațiunea în el: *Biserica Penticostală
+Betania Arad* e o biserică. Iar dacă cineva chiar ține de o parohie și e
+implicat acolo, i-o scrii pe fișa lui, ca oricare alta.
 
 Lista întreagă se ține din **Administrare · Biserici**: acolo adaugi biserici
 dinainte, îndrepți un nume scris greșit (se schimbă la toți pulsiștii deodată)
@@ -346,8 +372,8 @@ arate la fel.
 de exemplu și o foaie cu explicații), îl completezi și îl încarci înapoi.
 
 Obligatorii sunt doar **Nume** și **Grupa**; restul (statut, sex, clasă, data
-nașterii, biserica, botezul și data lui, telefon, cei doi părinți) se
-completează dacă le ai. Ordinea coloanelor
+nașterii, biserica, botezul și data lui, telefon, email, cei doi părinți cu
+telefoanele și adresele lor) se completează dacă le ai. Ordinea coloanelor
 nu contează, iar cele în plus se ignoră.
 
 Înainte să scrie ceva, aplicația îți arată ce a înțeles: cine intră, cine e deja
@@ -368,8 +394,10 @@ npm run formular -- "C:/Users/.../Downloads/PULS 2026-2027 (Responses).xlsx"
 
 Iese, lângă fișierul dat, un `pulsisti-pentru-import.xlsx` gata de urcat. Ce
 face: lipește *Prenume Nume*, aduce numele scrise cu Caps Lock la forma
-celorlalte, scoate clasa ca număr, unește telefoanele la `07xxxxxxxx`, unește
-scrierile aceleiași biserici și formează părinții ca *Mama, Maria Popa*.
+celorlalte, scoate clasa ca număr, unește telefoanele la `07xxxxxxxx`, curăță
+adresele de email (una cu o paranteză după ea sau cu un spațiu în mijloc se
+salvează; ce rămâne și tot nu seamănă a adresă se lasă gol), unește scrierile
+aceleiași biserici și formează părinții ca *Mama, Maria Popa*.
 
 Două coloane rămân de completat de mână, pentru că formularul nu le întreabă:
 **Grupa** (rândurile ies sortate pe clase și pe băieți/fete, ca să se completeze

@@ -18,6 +18,7 @@ import {
   stergeMembruDefinitiv,
 } from "@/lib/interogari/stergere";
 import { dataAzi, esteDataValida } from "@/lib/util/date";
+import { emailValid } from "@/lib/util/email";
 
 export type StareFormular = { eroare?: string; reusit?: boolean };
 
@@ -83,9 +84,24 @@ const textOptional = (max: number) =>
     .optional()
     .transform((v) => (v ? v : null));
 
+/*
+  Adresa se scrie cu litere mici, ca să nu ajungă același om de două ori în
+  listă dacă unul o scrie cu majusculă. Golul e îngăduit; ce nu e gol trebuie
+  să semene a adresă, altfel anunțul pleacă în neant fără să afle nimeni.
+*/
+const emailOptional = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .max(120)
+  .optional()
+  .transform((v) => (v ? v : null))
+  .refine((v) => v === null || emailValid(v), "Adresa de email nu e validă.");
+
 const schemaMembru = z.object({
   nume: z.string().trim().min(2, "Numele e prea scurt.").max(80),
   telefon: textOptional(30),
+  email: emailOptional,
   dataNasterii: z
     .string()
     .trim()
@@ -129,8 +145,10 @@ const schemaMembru = z.object({
   bisericaNouaDenominatiune: textOptional(60),
   parinte1Nume: textOptional(80),
   parinte1Telefon: textOptional(30),
+  parinte1Email: emailOptional,
   parinte2Nume: textOptional(80),
   parinte2Telefon: textOptional(30),
+  parinte2Email: emailOptional,
 }).transform((date) => ({
   ...date,
   /*
@@ -156,6 +174,7 @@ export async function salveazaMembru(
   const rezultat = schemaMembru.safeParse({
     nume: formData.get("nume"),
     telefon: formData.get("telefon"),
+    email: formData.get("email"),
     dataNasterii: formData.get("dataNasterii"),
     sex: formData.get("sex"),
     clasa: formData.get("clasa"),
@@ -169,8 +188,10 @@ export async function salveazaMembru(
     bisericaNouaDenominatiune: formData.get("bisericaNouaDenominatiune"),
     parinte1Nume: formData.get("parinte1Nume"),
     parinte1Telefon: formData.get("parinte1Telefon"),
+    parinte1Email: formData.get("parinte1Email"),
     parinte2Nume: formData.get("parinte2Nume"),
     parinte2Telefon: formData.get("parinte2Telefon"),
+    parinte2Email: formData.get("parinte2Email"),
   });
   if (!rezultat.success) {
     return { eroare: rezultat.error.issues[0]?.message ?? "Date invalide." };

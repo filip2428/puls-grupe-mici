@@ -140,6 +140,14 @@ export const membri = sqliteTable(
       .references(() => grupe.id, { onDelete: "cascade" }),
     nume: text("nume").notNull(),
     telefon: text("telefon"),
+    /**
+     * Adresa lui de email, dacă are una.
+     *
+     * E pentru anunțuri - tabere, programul verii, ce se trimite deodată la
+     * toată lucrarea. Nu servește la autentificare: pulsiștii nu intră în
+     * aplicație, iar liderii intră cu un cod, nu cu email.
+     */
+    email: text("email"),
     /** Format AAAA-LL-ZZ, opțional (pentru zile de naștere). */
     dataNasterii: text("data_nasterii"),
     /** "baiat" | "fata" - folosit la filtrare. */
@@ -183,11 +191,18 @@ export const membri = sqliteTable(
      * număra pe o perioadă - câți au făcut pasul anul ăsta.
      */
     botezatLa: text("botezat_la"),
-    /** Datele părinților, pentru contact rapid. */
+    /**
+     * Datele părinților, pentru contact rapid.
+     *
+     * Email-ul stă lângă telefon pentru că la părinți e de multe ori singura
+     * cale bună: un anunț lung despre tabără nu se trimite pe WhatsApp.
+     */
     parinte1Nume: text("parinte1_nume"),
     parinte1Telefon: text("parinte1_telefon"),
+    parinte1Email: text("parinte1_email"),
     parinte2Nume: text("parinte2_nume"),
     parinte2Telefon: text("parinte2_telefon"),
+    parinte2Email: text("parinte2_email"),
     /** Inactiv = nu mai vine; rămâne în istoric, dar nu apare la prezență. */
     activ: integer("activ", { mode: "boolean" }).notNull().default(true),
     creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),

@@ -59,6 +59,7 @@ export type BisericaDinLista = {
 export type DateMembru = {
   nume: string;
   telefon: string | null;
+  email: string | null;
   dataNasterii: string | null;
   sex: "baiat" | "fata" | null;
   clasa: number | null;
@@ -68,8 +69,10 @@ export type DateMembru = {
   botezatLa: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
+  parinte1Email: string | null;
   parinte2Nume: string | null;
   parinte2Telefon: string | null;
+  parinte2Email: string | null;
 };
 
 /** Formularul de editare a datelor unui pulsist, inclusiv părinții. */
@@ -166,6 +169,24 @@ export function FormularEditareMembru({
             defaultValue={initial.dataNasterii ?? ""}
           />
         </div>
+      </div>
+
+      <div>
+        <label className="eticheta" htmlFor="email">
+          Email
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          className="camp"
+          inputMode="email"
+          autoCapitalize="none"
+          autoComplete="off"
+          defaultValue={initial.email ?? ""}
+          maxLength={120}
+          placeholder="pentru anunțuri"
+        />
       </div>
 
       {/*
@@ -334,63 +355,23 @@ export function FormularEditareMembru({
         <legend className="px-1 text-xs font-bold text-cenusiu uppercase">
           Părinți
         </legend>
-        <div className="flex flex-col gap-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="eticheta" htmlFor="parinte1Nume">
-                Părinte 1
-              </label>
-              <input
-                id="parinte1Nume"
-                name="parinte1Nume"
-                className="camp"
-                defaultValue={initial.parinte1Nume ?? ""}
-                maxLength={80}
-                placeholder="ex. mama, Ana"
-              />
-            </div>
-            <div>
-              <label className="eticheta" htmlFor="parinte1Telefon">
-                Telefon
-              </label>
-              <input
-                id="parinte1Telefon"
-                name="parinte1Telefon"
-                className="camp"
-                inputMode="tel"
-                defaultValue={initial.parinte1Telefon ?? ""}
-                maxLength={30}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="eticheta" htmlFor="parinte2Nume">
-                Părinte 2
-              </label>
-              <input
-                id="parinte2Nume"
-                name="parinte2Nume"
-                className="camp"
-                defaultValue={initial.parinte2Nume ?? ""}
-                maxLength={80}
-                placeholder="ex. tata, Ionel"
-              />
-            </div>
-            <div>
-              <label className="eticheta" htmlFor="parinte2Telefon">
-                Telefon
-              </label>
-              <input
-                id="parinte2Telefon"
-                name="parinte2Telefon"
-                className="camp"
-                inputMode="tel"
-                defaultValue={initial.parinte2Telefon ?? ""}
-                maxLength={30}
-              />
-            </div>
-          </div>
+        <div className="flex flex-col gap-4">
+          <CampuriParinte
+            numar={1}
+            exemplu="ex. mama, Ana"
+            nume={initial.parinte1Nume}
+            telefon={initial.parinte1Telefon}
+            email={initial.parinte1Email}
+          />
+          {/* Linia desparte cei doi părinți - altfel șase căsuțe la rând se amestecă. */}
+          <div className="border-t border-[#e3e7f2]" />
+          <CampuriParinte
+            numar={2}
+            exemplu="ex. tata, Ionel"
+            nume={initial.parinte2Nume}
+            telefon={initial.parinte2Telefon}
+            email={initial.parinte2Email}
+          />
         </div>
       </fieldset>
 
@@ -404,6 +385,75 @@ export function FormularEditareMembru({
         {seTrimite ? "Salvez..." : "Salvează"}
       </button>
     </form>
+  );
+}
+
+/**
+ * Căsuțele unui părinte: nume, telefon, email.
+ *
+ * Numele și telefonul stau alături, că se citesc împreună; email-ul stă pe
+ * toată lățimea, fiindcă o adresă nu încape pe jumătate de ecran de telefon.
+ */
+function CampuriParinte({
+  numar,
+  exemplu,
+  nume,
+  telefon,
+  email,
+}: {
+  numar: 1 | 2;
+  exemplu: string;
+  nume: string | null;
+  telefon: string | null;
+  email: string | null;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="eticheta" htmlFor={`parinte${numar}Nume`}>
+            Părinte {numar}
+          </label>
+          <input
+            id={`parinte${numar}Nume`}
+            name={`parinte${numar}Nume`}
+            className="camp"
+            defaultValue={nume ?? ""}
+            maxLength={80}
+            placeholder={exemplu}
+          />
+        </div>
+        <div>
+          <label className="eticheta" htmlFor={`parinte${numar}Telefon`}>
+            Telefon
+          </label>
+          <input
+            id={`parinte${numar}Telefon`}
+            name={`parinte${numar}Telefon`}
+            className="camp"
+            inputMode="tel"
+            defaultValue={telefon ?? ""}
+            maxLength={30}
+          />
+        </div>
+      </div>
+      <div>
+        <label className="eticheta" htmlFor={`parinte${numar}Email`}>
+          Email
+        </label>
+        <input
+          id={`parinte${numar}Email`}
+          name={`parinte${numar}Email`}
+          type="email"
+          className="camp"
+          inputMode="email"
+          autoCapitalize="none"
+          autoComplete="off"
+          defaultValue={email ?? ""}
+          maxLength={120}
+        />
+      </div>
+    </div>
   );
 }
 

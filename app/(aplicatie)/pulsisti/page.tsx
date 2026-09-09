@@ -65,7 +65,7 @@ export default async function PaginaPulsisti({
           <input
             name="q"
             className="camp"
-            placeholder="Caută după nume, telefon, părinte"
+            placeholder="Caută după nume, telefon, email, părinte"
             defaultValue={filtru.q ?? ""}
             enterKeyHint="search"
           />

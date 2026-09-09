@@ -89,11 +89,14 @@ export type RandPulsist = {
   botez: string;
   botezatLa: string | null;
   telefon: string | null;
+  email: string | null;
   dataNasterii: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
+  parinte1Email: string | null;
   parinte2Nume: string | null;
   parinte2Telefon: string | null;
+  parinte2Email: string | null;
   activ: string;
   prezente: number;
   anuntate: number;
@@ -116,6 +119,7 @@ export async function randuriPulsisti(
       id: membri.id,
       nume: membri.nume,
       telefon: membri.telefon,
+      email: membri.email,
       dataNasterii: membri.dataNasterii,
       sex: membri.sex,
       clasa: membri.clasa,
@@ -126,8 +130,10 @@ export async function randuriPulsisti(
       botezatLa: membri.botezatLa,
       parinte1Nume: membri.parinte1Nume,
       parinte1Telefon: membri.parinte1Telefon,
+      parinte1Email: membri.parinte1Email,
       parinte2Nume: membri.parinte2Nume,
       parinte2Telefon: membri.parinte2Telefon,
+      parinte2Email: membri.parinte2Email,
       activ: membri.activ,
       grupa: grupe.nume,
     })
@@ -184,11 +190,14 @@ export async function randuriPulsisti(
       botez: m.botez ? etichetaBotez(m.botez) : "",
       botezatLa: m.botezatLa,
       telefon: m.telefon,
+      email: m.email,
       dataNasterii: m.dataNasterii,
       parinte1Nume: m.parinte1Nume,
       parinte1Telefon: m.parinte1Telefon,
+      parinte1Email: m.parinte1Email,
       parinte2Nume: m.parinte2Nume,
       parinte2Telefon: m.parinte2Telefon,
+      parinte2Email: m.parinte2Email,
       activ: m.activ ? "da" : "nu",
       prezente: t.prezente,
       anuntate: t.anuntate,

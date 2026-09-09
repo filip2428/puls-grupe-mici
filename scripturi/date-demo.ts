@@ -125,6 +125,33 @@ function alege<T>(lista: T[]): T {
   return lista[Math.floor(Math.random() * lista.length)];
 }
 
+/** „Ana Popescu" -> „ana.popescu@exemplu.ro" - adrese care nu duc nicăieri. */
+function adresa(nume: string): string {
+  const curat = nume
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z ]/g, "")
+    .trim()
+    .replace(/\s+/g, ".");
+  return `${curat}@exemplu.ro`;
+}
+
+/**
+ * Un părinte întreg: nume, telefon, email.
+ *
+ * Cele trei se fac deodată, ca să nu iasă un telefon fără nume - fișele de
+ * demonstrație trebuie să arate ca niște fișe adevărate.
+ */
+function unParinte(numar: 1 | 2, numeCopil: string) {
+  const nume = `${alege(NUME_PARINTI)} ${numeCopil.split(" ")[1]}`;
+  return {
+    [`parinte${numar}Nume`]: nume,
+    [`parinte${numar}Telefon`]: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
+    [`parinte${numar}Email`]: adresa(nume),
+  };
+}
+
 async function main() {
   const existente = await db.select({ id: grupe.id }).from(grupe);
   if (existente.length > 0) {
@@ -196,17 +223,11 @@ async function main() {
           ...deUndeVine(idBiserici),
           ...botezat(),
           telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
+          // Nu toti adolescentii au email; parintii, aproape totdeauna.
+          email: Math.random() < 0.6 ? adresa(persoana.nume) : null,
           dataNasterii: `${anNasterii}-0${1 + Math.floor(Math.random() * 9)}-1${Math.floor(Math.random() * 9)}`,
-          parinte1Nume: `${alege(NUME_PARINTI)} ${persoana.nume.split(" ")[1]}`,
-          parinte1Telefon: `07${Math.floor(10000000 + Math.random() * 89999999)}`,
-          parinte2Nume:
-            Math.random() < 0.6
-              ? `${alege(NUME_PARINTI)} ${persoana.nume.split(" ")[1]}`
-              : null,
-          parinte2Telefon:
-            Math.random() < 0.6
-              ? `07${Math.floor(10000000 + Math.random() * 89999999)}`
-              : null,
+          ...unParinte(1, persoana.nume),
+          ...(Math.random() < 0.6 ? unParinte(2, persoana.nume) : {}),
         })
         .returning({ id: membri.id });
       ids.push(creat.id);

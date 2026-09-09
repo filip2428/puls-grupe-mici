@@ -3,7 +3,9 @@ import "server-only";
 import ExcelJS from "exceljs";
 
 import { COLOANE, type CheieColoana } from "@/lib/import-coloane";
+import { faraBiserica } from "@/lib/util/biserica-text";
 import { esteDataValida } from "@/lib/util/date";
+import { emailValid } from "@/lib/util/email";
 import type { Biserica, Botez } from "@/lib/util/etichete";
 
 /**
@@ -34,10 +36,13 @@ export type RandPregatit = {
   botez: Botez | null;
   botezatLa: string | null;
   telefon: string | null;
+  email: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
+  parinte1Email: string | null;
   parinte2Nume: string | null;
   parinte2Telefon: string | null;
+  parinte2Email: string | null;
 };
 
 export type ProblemaRand = { rand: number; nume: string; mesaj: string };
@@ -123,16 +128,14 @@ function clasaDinText(text: string): number | null {
   return CLASE_ROMANE[roman] ?? null;
 }
 
-/** Cuvintele prin care cineva spune, într-un tabel, „nu ține de nicio biserică". */
-const FARA_BISERICA = ["fara", "fara biserica", "niciuna", "nicio", "nu", "-", "n/a"];
-
 /**
- * „Harvest Arad", „Betel", „-" -> de unde vine.
+ * „Harvest Arad", „Betel", „-", „Ortodoxă" -> de unde vine.
  *
  * Un fișier scris de om n-are trei căsuțe de bifat: unii scriu numele
  * bisericii, alții o liniuță, alții nimic. Luăm ce e scris - ce seamănă a
- * Harvest e de la noi, ce spune limpede „fără" e fără, iar orice alt nume e
- * altă biserică, cu numele păstrat exact cum a fost scris.
+ * Harvest e de la noi, ce spune „fără" (sau doar o denominațiune, vezi
+ * `faraBiserica`) e fără, iar orice alt nume e altă biserică, cu numele
+ * păstrat exact cum a fost scris.
  */
 function bisericaDinText(text: string): {
   biserica: Biserica | null;
@@ -141,7 +144,7 @@ function bisericaDinText(text: string): {
   const curat = normalizeaza(text);
   if (!curat) return { biserica: null, bisericaNume: null };
   if (curat.includes("harvest")) return { biserica: "harvest", bisericaNume: null };
-  if (FARA_BISERICA.includes(curat)) return { biserica: "fara", bisericaNume: null };
+  if (faraBiserica(text)) return { biserica: "fara", bisericaNume: null };
   return { biserica: "alta", bisericaNume: text.trim().slice(0, 80) };
 }
 
@@ -237,6 +240,16 @@ export async function analizeazaFisier(
     return textDinCelula(rand.getCell(pozitie).value).trim();
   };
 
+  /*
+    Adresele nu opresc importul dacă sunt scrise greșit: se folosesc doar la
+    anunțuri, iar o adresă stricată se vede oricum la prima trimitere. Un „-"
+    sau un „nu are" ar intra altfel ca adresă, așa că le lăsăm goale.
+  */
+  const adresa = (rand: ExcelJS.Row, cheie: CheieColoana): string | null => {
+    const scris = valoare(rand, cheie).toLowerCase();
+    return scris && emailValid(scris) ? scris.slice(0, 120) : null;
+  };
+
   for (let nrRand = 2; nrRand <= foaie.rowCount; nrRand++) {
     const rand = foaie.getRow(nrRand);
     const nume = valoare(rand, "nume").replace(/\s+/g, " ");
@@ -312,10 +325,13 @@ export async function analizeazaFisier(
       botez,
       botezatLa,
       telefon: valoare(rand, "telefon") || null,
+      email: adresa(rand, "email"),
       parinte1Nume: valoare(rand, "parinte1Nume") || null,
       parinte1Telefon: valoare(rand, "parinte1Telefon") || null,
+      parinte1Email: adresa(rand, "parinte1Email"),
       parinte2Nume: valoare(rand, "parinte2Nume") || null,
       parinte2Telefon: valoare(rand, "parinte2Telefon") || null,
+      parinte2Email: adresa(rand, "parinte2Email"),
     });
   }
 
@@ -375,10 +391,13 @@ export async function fisierModel(grupe: GrupaCunoscuta[]): Promise<Buffer> {
     botez: "botezat sau nebotezat (merge și da / nu). Gol = nu știm încă.",
     botezatLa: "Când s-a botezat, dacă știi: 2024-05-12. Se ia doar la botezat.",
     telefon: "Telefonul pulsistului.",
+    email: "Adresa lui de email, pentru anunțuri. Ce nu e o adresă se lasă goală.",
     parinte1Nume: "Cum îl salvezi în agendă, ex. mama, Maria.",
     parinte1Telefon: "Telefonul primului părinte.",
+    parinte1Email: "Adresa lui de email - de multe ori singura cale bună pentru un anunț lung.",
     parinte2Nume: "Al doilea părinte, dacă îl ai.",
     parinte2Telefon: "Telefonul celui de-al doilea părinte.",
+    parinte2Email: "Adresa celui de-al doilea părinte.",
   };
 
   for (const c of COLOANE) {

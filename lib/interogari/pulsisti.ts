@@ -9,7 +9,7 @@ import type { Biserica, Botez } from "@/lib/util/etichete";
 
 /** Filtrele listei de pulsiști (vin din adresa paginii). */
 export type FiltruPulsisti = {
-  /** Căutare după nume sau telefon. */
+  /** Căutare după numele lui, al unui părinte, telefon sau email. */
   q?: string;
   grupaId?: number;
   status?: "membru" | "musafir";
@@ -31,6 +31,7 @@ export type PulsistDinLista = {
   id: number;
   nume: string;
   telefon: string | null;
+  email: string | null;
   dataNasterii: string | null;
   varsta: number | null;
   sex: "baiat" | "fata" | null;
@@ -44,8 +45,10 @@ export type PulsistDinLista = {
   botezatLa: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
+  parinte1Email: string | null;
   parinte2Nume: string | null;
   parinte2Telefon: string | null;
+  parinte2Email: string | null;
   grupaId: number;
   grupaNume: string;
   /** Câte întâlniri a avut și la câte a fost prezent (tot istoricul). */
@@ -86,8 +89,11 @@ export async function cautaPulsisti(
     const potriviri = or(
       like(membri.nume, tipar),
       like(membri.telefon, tipar),
+      like(membri.email, tipar),
       like(membri.parinte1Nume, tipar),
+      like(membri.parinte1Email, tipar),
       like(membri.parinte2Nume, tipar),
+      like(membri.parinte2Email, tipar),
     );
     if (potriviri) conditii.push(potriviri);
   }
@@ -127,6 +133,7 @@ export async function cautaPulsisti(
       id: m.id,
       nume: m.nume,
       telefon: m.telefon,
+      email: m.email,
       dataNasterii: m.dataNasterii,
       varsta: varsta(m.dataNasterii),
       sex: m.sex,
@@ -140,8 +147,10 @@ export async function cautaPulsisti(
       botezatLa: m.botezatLa,
       parinte1Nume: m.parinte1Nume,
       parinte1Telefon: m.parinte1Telefon,
+      parinte1Email: m.parinte1Email,
       parinte2Nume: m.parinte2Nume,
       parinte2Telefon: m.parinte2Telefon,
+      parinte2Email: m.parinte2Email,
       grupaId: m.grupaId,
       grupaNume,
       intalniri: t.total,

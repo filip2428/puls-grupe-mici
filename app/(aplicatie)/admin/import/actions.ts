@@ -77,10 +77,13 @@ const schemaRand = z.object({
     .nullable()
     .refine((v) => v === null || esteDataValida(v), "Dată invalidă."),
   telefon: z.string().max(30).nullable(),
+  email: z.string().max(120).nullable(),
   parinte1Nume: z.string().max(80).nullable(),
   parinte1Telefon: z.string().max(30).nullable(),
+  parinte1Email: z.string().max(120).nullable(),
   parinte2Nume: z.string().max(80).nullable(),
   parinte2Telefon: z.string().max(30).nullable(),
+  parinte2Email: z.string().max(120).nullable(),
 });
 
 export type StareImport = { eroare?: string; adaugati?: number };
@@ -133,6 +136,7 @@ export async function importa(
       grupaId: r.grupaId,
       nume: r.nume,
       telefon: r.telefon,
+      email: r.email,
       dataNasterii: r.dataNasterii,
       sex: r.sex,
       clasa: r.clasa,
@@ -144,8 +148,10 @@ export async function importa(
       botezatLa: r.botezatLa,
       parinte1Nume: r.parinte1Nume,
       parinte1Telefon: r.parinte1Telefon,
+      parinte1Email: r.parinte1Email,
       parinte2Nume: r.parinte2Nume,
       parinte2Telefon: r.parinte2Telefon,
+      parinte2Email: r.parinte2Email,
     })),
   );
 

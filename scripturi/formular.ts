@@ -21,6 +21,8 @@ import { basename, dirname, resolve } from "node:path";
 import ExcelJS from "exceljs";
 
 import { COLOANE } from "../lib/import-coloane";
+import { faraBiserica } from "../lib/util/biserica-text";
+import { emailValid } from "../lib/util/email";
 
 /* ------------------------------------------------------------------ *
  * Ajutoare
@@ -90,6 +92,26 @@ function telefonCurat(brut: string): { numar: string | null; nota?: string } {
 }
 
 /**
+ * Ce a scris omul în căsuța de email -> o adresă sau nimic.
+ *
+ * În răspunsuri au apărut și „-", și o adresă cu o paranteză după ea („nu-l
+ * prea folosește"), și una cu un spațiu înainte de „.com". Primele două se pot
+ * salva; ce rămâne și tot nu seamănă a adresă se lasă gol - o adresă stricată e
+ * mai rea decât una lipsă, că anunțul pleacă și nu-l primește nimeni.
+ */
+function emailCurat(brut: string): { adresa: string | null; nota?: string } {
+  const text = brut.trim();
+  if (!text || text === "-") return { adresa: null };
+
+  const curat = text
+    .replace(/\(.*?\)/g, "")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+  if (emailValid(curat)) return { adresa: curat.slice(0, 120) };
+  return { adresa: null, nota: `Emailul „${text}" nu seamănă a adresă - l-am lăsat gol.` };
+}
+
+/**
  * Bisericile, scrise la fel de fiecare dată.
  *
  * „Metanoia" și „METANOIA ARAD" sunt o singură biserică; dacă intră așa cum
@@ -105,16 +127,6 @@ const BISERICI: { potriviri: string[]; nume: string; nota?: string }[] = [
   { potriviri: ["victory"], nume: "Victory of Christ Arad" },
   { potriviri: ["elim"], nume: "Elim Curtici" },
   { potriviri: ["oastea domnului"], nume: "Oastea Domnului" },
-  {
-    potriviri: ["ortodox"],
-    nume: "Biserica Ortodoxă",
-    nota: `„Ortodoxă" e o denominațiune, nu o biserică - întreabă la care parohie merge.`,
-  },
-  {
-    potriviri: ["catolic"],
-    nume: "Biserica Catolică",
-    nota: `„Catolică" e o denominațiune, nu o biserică - întreabă la care parohie merge.`,
-  },
 ];
 
 /** Cuvintele prin care cineva spune, într-un formular, „nu ține de nicio biserică". */
@@ -124,6 +136,20 @@ function bisericaCurata(brut: string): { nume: string; nota?: string } {
   const curat = normalizeaza(brut);
   if (!curat) return { nume: "" };
   if (FARA_BISERICA.includes(curat)) return { nume: "-" };
+
+  /*
+    „Ortodoxă", „Biserica catolică" - o denominațiune scrisă în locul unei
+    biserici. Înseamnă, aproape întotdeauna, „am fost botezat acolo", nu „merg
+    acolo duminica", deci trec la „fără biserică". Cine chiar ține de o parohie
+    scrie parohia, iar aceea intră ca orice altă biserică.
+  */
+  if (faraBiserica(brut)) {
+    const scris = brut.replace(/\s+/g, " ").trim();
+    return {
+      nume: "-",
+      nota: `A scris „${scris}" - o denominațiune, nu o biserică anume, deci l-am trecut fără biserică. Dacă totuși ține de o parohie și e implicat acolo, scrie-o pe fișa lui.`,
+    };
+  }
 
   const stiuta = BISERICI.find((b) => b.potriviri.some((p) => curat.includes(p)));
   if (stiuta) return { nume: stiuta.nume, nota: stiuta.nota };
@@ -238,6 +264,7 @@ const INTREBARI = {
   dataNasterii: ["nasterii"],
   clasa: ["clasa"],
   telefon: ["telefon al adolescent", "telefonul adolescent"],
+  email: ["email a adolescent", "email al adolescent", "emailul adolescent"],
   biserica: ["biserica din care face parte"],
   frecventa: ["frecventeaza"],
 } as const;
@@ -245,7 +272,13 @@ const INTREBARI = {
 type CheieIntrebare = keyof typeof INTREBARI;
 
 /** Un părinte, așa cum stă în formular: patru coloane una după alta. */
-type BlocParinte = { nume: number; prenume: number; relatie: number; telefon: number };
+type BlocParinte = {
+  nume: number;
+  prenume: number;
+  relatie: number;
+  telefon: number;
+  email: number;
+};
 
 function gasesteColoane(antet: ExcelJS.Row) {
   const titluri = new Map<number, string>();
@@ -278,11 +311,13 @@ function gasesteColoane(antet: ExcelJS.Row) {
       prenume: coloana - 1,
       relatie: coloana,
       telefon: coloana + 1,
+      email: coloana + 2,
     };
     const arataBine =
       (titluri.get(bloc.nume) ?? "").includes("nume") &&
       (titluri.get(bloc.prenume) ?? "").includes("prenume") &&
-      (titluri.get(bloc.telefon) ?? "").includes("telefon");
+      (titluri.get(bloc.telefon) ?? "").includes("telefon") &&
+      (titluri.get(bloc.email) ?? "").includes("email");
     if (!arataBine) {
       console.warn(
         `  Atenție: coloanele părintelui din jurul coloanei ${coloana} nu arată cum mă așteptam. Verifică-le în fișierul scos.`,
@@ -307,10 +342,13 @@ type RandIesire = {
   dataNasterii: string | null;
   biserica: string;
   telefon: string | null;
+  email: string | null;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
+  parinte1Email: string | null;
   parinte2Nume: string | null;
   parinte2Telefon: string | null;
+  parinte2Email: string | null;
   frecventa: string;
   note: string[];
 };
@@ -417,18 +455,28 @@ async function main() {
     const telefon = telefonCurat(text(rand, "telefon"));
     if (telefon.nota) note.push(telefon.nota);
 
+    const email = emailCurat(text(rand, "email"));
+    if (email.nota) note.push(email.nota);
+
     /*
       Un părinte intră doar dacă are nume. Al doilea bloc din formular e des
       lăsat pe jumătate - un prenume și nimic altceva - iar un „părinte" fără
       nume întreg și fără telefon n-ajută la nimic pe fișă.
     */
-    const contacte: { nume: string; numeGol: string; telefon: string | null }[] = [];
+    const contacte: {
+      nume: string;
+      numeGol: string;
+      telefon: string | null;
+      email: string | null;
+    }[] = [];
     for (const bloc of parinti) {
       const numeP = numeFrumos(textDinCelula(rand.getCell(bloc.nume).value));
       const prenumeP = numeFrumos(textDinCelula(rand.getCell(bloc.prenume).value));
       const relatie = textDinCelula(rand.getCell(bloc.relatie).value).trim();
       const telefonP = telefonCurat(textDinCelula(rand.getCell(bloc.telefon).value));
       if (telefonP.nota) note.push(`Părinte: ${telefonP.nota}`);
+      const emailP = emailCurat(textDinCelula(rand.getCell(bloc.email).value));
+      if (emailP.nota) note.push(`Părinte: ${emailP.nota}`);
 
       const numeIntreg = `${prenumeP} ${numeP}`.replace(/\s+/g, " ").trim();
       if (!numeIntreg) continue;
@@ -452,8 +500,8 @@ async function main() {
       if (laFel) {
         note.push(`Cei doi părinți au același nume („${numeIntreg}"). Verifică-l pe al doilea.`);
       }
-      if (!telefonP.numar) {
-        note.push(`${numeIntreg} n-are telefon în formular.`);
+      if (!telefonP.numar && !emailP.adresa) {
+        note.push(`${numeIntreg} n-are nici telefon, nici email în formular.`);
       }
 
       contacte.push({
@@ -461,6 +509,7 @@ async function main() {
         nume: relatie ? `${numeFrumos(relatie)}, ${numeIntreg}` : numeIntreg,
         numeGol: numeIntreg,
         telefon: telefonP.numar,
+        email: emailP.adresa,
       });
     }
 
@@ -478,10 +527,13 @@ async function main() {
       dataNasterii,
       biserica: biserica.nume,
       telefon: telefon.numar,
+      email: email.adresa,
       parinte1Nume: contacte[0]?.nume ?? null,
       parinte1Telefon: contacte[0]?.telefon ?? null,
+      parinte1Email: contacte[0]?.email ?? null,
       parinte2Nume: contacte[1]?.nume ?? null,
       parinte2Telefon: contacte[1]?.telefon ?? null,
+      parinte2Email: contacte[1]?.email ?? null,
       frecventa: text(rand, "frecventa"),
       note,
     });
@@ -563,10 +615,13 @@ function scriePulsisti(registru: ExcelJS.Workbook, randuri: RandIesire[]) {
       botez: "",
       botezatLa: "",
       telefon: r.telefon ?? "",
+      email: r.email ?? "",
       parinte1Nume: r.parinte1Nume ?? "",
       parinte1Telefon: r.parinte1Telefon ?? "",
+      parinte1Email: r.parinte1Email ?? "",
       parinte2Nume: r.parinte2Nume ?? "",
       parinte2Telefon: r.parinte2Telefon ?? "",
+      parinte2Email: r.parinte2Email ?? "",
       frecventa: r.frecventa,
       note: r.note.join(" "),
     });
@@ -605,6 +660,7 @@ function scrieCeMaiTrebuie(registru: ExcelJS.Workbook, randuri: RandIesire[]) {
       : `Coloana „De verificat" e goală - n-am găsit nimic ciudat.`,
     `Cine a răspuns „Nu" la „frecventează PULS" e nou. Dacă vrei să intre ca musafir până e primit în grupă, schimbă-i „Statut" în musafir.`,
     `„Botez" și „Data botezului" nu se întreabă în formular. Le lași goale și le completezi pe fișe, sau le scrii aici dacă le știi.`,
+    `Cine a scris în dreptul bisericii doar o denominațiune („Ortodoxă", „Catolică") e trecut fără biserică, iar rândul lui e însemnat la „De verificat". Dacă vreunul chiar ține de o parohie și e implicat acolo, scrie-o pe fișa lui după import.`,
     "Încarcă fișierul la Administrare · Import. Îți arată întâi ce urmează să intre; abia după ce confirmi se scrie ceva în baza de date.",
     "După import, treci prin Administrare · Biserici și pune localitatea și denominațiunea la bisericile nou apărute.",
     "Ultimele două coloane (cele galbene) sunt doar pentru tine - aplicația le ignoră.",

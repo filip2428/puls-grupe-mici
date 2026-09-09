@@ -33,6 +33,7 @@ export const COLOANE = [
     exemplu: "2024-05-12",
   },
   { cheie: "telefon", titlu: "Telefon", obligatoriu: false, exemplu: "0722000111" },
+  { cheie: "email", titlu: "Email", obligatoriu: false, exemplu: "andrei@exemplu.ro" },
   { cheie: "parinte1Nume", titlu: "Părinte 1", obligatoriu: false, exemplu: "Maria Popa" },
   {
     cheie: "parinte1Telefon",
@@ -40,12 +41,24 @@ export const COLOANE = [
     obligatoriu: false,
     exemplu: "0722000112",
   },
+  {
+    cheie: "parinte1Email",
+    titlu: "Email părinte 1",
+    obligatoriu: false,
+    exemplu: "maria@exemplu.ro",
+  },
   { cheie: "parinte2Nume", titlu: "Părinte 2", obligatoriu: false, exemplu: "Ion Popa" },
   {
     cheie: "parinte2Telefon",
     titlu: "Telefon părinte 2",
     obligatoriu: false,
     exemplu: "0722000113",
+  },
+  {
+    cheie: "parinte2Email",
+    titlu: "Email părinte 2",
+    obligatoriu: false,
+    exemplu: "ion@exemplu.ro",
   },
 ] as const;
 

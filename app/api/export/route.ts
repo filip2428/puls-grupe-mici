@@ -93,6 +93,7 @@ export async function GET(cerere: Request) {
         format: "data",
       },
       { antet: "Telefon", cheie: "telefon", latime: 14 },
+      { antet: "Email", cheie: "email", latime: 26 },
       {
         antet: "Data nașterii",
         cheie: "dataNasterii",
@@ -101,8 +102,10 @@ export async function GET(cerere: Request) {
       },
       { antet: "Părinte 1", cheie: "parinte1Nume", latime: 22 },
       { antet: "Telefon părinte 1", cheie: "parinte1Telefon", latime: 16 },
+      { antet: "Email părinte 1", cheie: "parinte1Email", latime: 26 },
       { antet: "Părinte 2", cheie: "parinte2Nume", latime: 22 },
       { antet: "Telefon părinte 2", cheie: "parinte2Telefon", latime: 16 },
+      { antet: "Email părinte 2", cheie: "parinte2Email", latime: 26 },
       { antet: "Activ", cheie: "activ", latime: 8, ton: TON.activ },
       { antet: "Prezențe", cheie: "prezente", latime: 10 },
       { antet: "Anunțate", cheie: "anuntate", latime: 10 },

@@ -169,19 +169,28 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             `${detalii.length ? " · " : ""}prezent la ${prezenteNr} din ultimele ${istoric.length} întâlniri`}
         </p>
 
-        {m.telefon && (
+        {(m.telefon || m.email) && (
           <div className="mt-3 flex flex-wrap gap-2">
-            <a href={`tel:${m.telefon}`} className="buton buton-secundar">
-              Sună {m.telefon}
-            </a>
-            <a
-              href={`https://wa.me/${numarInternational(m.telefon)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="buton buton-secundar"
-            >
-              WhatsApp
-            </a>
+            {m.telefon && (
+              <>
+                <a href={`tel:${m.telefon}`} className="buton buton-secundar">
+                  Sună {m.telefon}
+                </a>
+                <a
+                  href={`https://wa.me/${numarInternational(m.telefon)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="buton buton-secundar"
+                >
+                  WhatsApp
+                </a>
+              </>
+            )}
+            {m.email && (
+              <a href={`mailto:${m.email}`} className="buton buton-secundar">
+                {m.email}
+              </a>
+            )}
           </div>
         )}
       </div>
@@ -280,12 +289,25 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
       </section>
 
       {/* Părinții */}
-      {(m.parinte1Nume || m.parinte1Telefon || m.parinte2Nume || m.parinte2Telefon) && (
+      {(m.parinte1Nume ||
+        m.parinte1Telefon ||
+        m.parinte1Email ||
+        m.parinte2Nume ||
+        m.parinte2Telefon ||
+        m.parinte2Email) && (
         <section className="card p-4">
           <h2 className="mb-3 text-sm font-bold">Părinți</h2>
           <ul className="flex flex-col gap-3">
-            <Parinte nume={m.parinte1Nume} telefon={m.parinte1Telefon} />
-            <Parinte nume={m.parinte2Nume} telefon={m.parinte2Telefon} />
+            <Parinte
+              nume={m.parinte1Nume}
+              telefon={m.parinte1Telefon}
+              email={m.parinte1Email}
+            />
+            <Parinte
+              nume={m.parinte2Nume}
+              telefon={m.parinte2Telefon}
+              email={m.parinte2Email}
+            />
           </ul>
         </section>
       )}
@@ -551,6 +573,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
               initial={{
                 nume: m.nume,
                 telefon: m.telefon,
+                email: m.email,
                 dataNasterii: m.dataNasterii,
                 sex: m.sex,
                 clasa: m.clasa,
@@ -560,8 +583,10 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 botezatLa: m.botezatLa,
                 parinte1Nume: m.parinte1Nume,
                 parinte1Telefon: m.parinte1Telefon,
+                parinte1Email: m.parinte1Email,
                 parinte2Nume: m.parinte2Nume,
                 parinte2Telefon: m.parinte2Telefon,
+                parinte2Email: m.parinte2Email,
               }}
             />
 
@@ -636,11 +661,13 @@ function pierderiText(p: {
 function Parinte({
   nume,
   telefon,
+  email,
 }: {
   nume: string | null;
   telefon: string | null;
+  email: string | null;
 }) {
-  if (!nume && !telefon) return null;
+  if (!nume && !telefon && !email) return null;
   return (
     <li className="flex flex-wrap items-center gap-2">
       <span className="min-w-0 flex-1 truncate text-sm font-medium">
@@ -660,6 +687,14 @@ function Parinte({
             WhatsApp
           </a>
         </>
+      )}
+      {email && (
+        <a
+          href={`mailto:${email}`}
+          className="buton buton-secundar buton-mic max-w-full truncate"
+        >
+          {email}
+        </a>
       )}
     </li>
   );
