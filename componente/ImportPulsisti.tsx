@@ -100,7 +100,11 @@ export function ImportPulsisti() {
                           </span>
                         )}
                       </td>
-                      <td className="py-2 pr-3 text-cenusiu">{r.grupaNume}</td>
+                      <td className="py-2 pr-3 text-cenusiu">
+                        {r.grupaNume ?? (
+                          <span className="italic">nerepartizat</span>
+                        )}
+                      </td>
                       <td className="py-2 pr-3 text-cenusiu">
                         {etichetaClasaScurta(r.clasa) || "-"}
                       </td>

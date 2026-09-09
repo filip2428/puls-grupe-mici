@@ -120,7 +120,7 @@ export async function stergeLiderDefinitiv(liderId: number) {
 
 export type PierderiMembru = {
   nume: string;
-  grupaId: number;
+  grupaId: number | null;
   prezente: number;
   note: number;
   echipe: number;
@@ -251,15 +251,19 @@ export async function pierderiGrupa(
 }
 
 /**
- * Șterge definitiv o grupă cu tot ce ține de ea: pulsiștii, prezențele,
- * notele, înlocuirile și programările ei. Liderii rămân - doar nu mai sunt
- * repartizați aici.
+ * Șterge definitiv o grupă: întâlnirile ei cu prezențele lor, înlocuirile și
+ * programările.
+ *
+ * PULSIȘTII NU SE ȘTERG. Rămân ai lucrării, doar fără grupă, și așteaptă la
+ * „Administrare · Nerepartizați". O grupă desființată înseamnă că s-a
+ * schimbat împărțirea, nu că au plecat oamenii - iar datele lor (botez,
+ * biserică, părinți, note) s-au strâns în luni de zile.
+ *
+ * Ce se pierde totuși e prezența de la întâlnirile grupei: ea ține de întâlniri,
+ * iar întâlnirile dispar odată cu grupa. De-aia ecranul de confirmare o spune.
+ * Liderii rămân și ei - doar nu mai sunt repartizați aici.
  */
 export async function stergeGrupaDefinitiv(grupaId: number) {
-  const aiGrupei = await db
-    .select({ id: membri.id })
-    .from(membri)
-    .where(eq(membri.grupaId, grupaId));
   const aleGrupei = await db
     .select({ id: intalniri.id })
     .from(intalniri)
@@ -270,7 +274,6 @@ export async function stergeGrupaDefinitiv(grupaId: number) {
     .from(programariSlujire)
     .where(eq(programariSlujire.grupaId, grupaId));
 
-  const idMembri = aiGrupei.map((m) => m.id);
   const idIntalniri = aleGrupei.map((i) => i.id);
   const idProgramari = aleSlujirii.map((p) => p.id);
 
@@ -283,24 +286,12 @@ export async function stergeGrupaDefinitiv(grupaId: number) {
         .delete(prezenteSlujire)
         .where(inArray(prezenteSlujire.programareId, idProgramari));
     }
-    if (idMembri.length > 0) {
-      await tx.delete(prezente).where(inArray(prezente.membruId, idMembri));
-      await tx
-        .delete(prezenteSlujire)
-        .where(inArray(prezenteSlujire.membruId, idMembri));
-      await tx.delete(noteMembru).where(inArray(noteMembru.membruId, idMembri));
-      await tx.delete(membriEchipe).where(inArray(membriEchipe.membruId, idMembri));
-      await tx
-        .delete(prietenii)
-        .where(
-          or(
-            inArray(prietenii.membruAId, idMembri),
-            inArray(prietenii.membruBId, idMembri),
-          ),
-        );
-    }
     await tx.delete(intalniri).where(eq(intalniri.grupaId, grupaId));
-    await tx.delete(membri).where(eq(membri.grupaId, grupaId));
+    // Oamenii rămân; îi scoatem doar din grupa care dispare.
+    await tx
+      .update(membri)
+      .set({ grupaId: null })
+      .where(eq(membri.grupaId, grupaId));
     await tx.delete(lideriGrupe).where(eq(lideriGrupe.grupaId, grupaId));
     await tx.delete(delegari).where(eq(delegari.grupaId, grupaId));
     await tx

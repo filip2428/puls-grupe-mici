@@ -341,6 +341,7 @@ async function main() {
       .select({ grupaId: membri.grupaId })
       .from(membri)
       .where(eq(membri.id, musafirId));
+    if (m.grupaId === null) continue;
     const [ultima] = await db
       .select({ id: intalniri.id })
       .from(intalniri)

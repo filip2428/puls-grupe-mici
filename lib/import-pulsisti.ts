@@ -15,6 +15,10 @@ import type { Biserica, Botez } from "@/lib/util/etichete";
  * de la butonul „Descarcă modelul". Ordinea coloanelor nu contează - ne uităm
  * după numele lor din primul rând - iar coloanele în plus sunt ignorate.
  *
+ * Singura coloană obligatorie e numele. Grupa se poate lăsa goală: omul intră
+ * nerepartizat și i se dă grupa din aplicație, unde se văd clasele și vârstele
+ * deodată - e mai ușor decât ghicită rând cu rând într-un tabel.
+ *
  * Importul are două etape: întâi verificăm și îți arătăm ce urmează să intre
  * și ce n-a mers, abia apoi scriem în baza de date.
  */
@@ -25,8 +29,9 @@ export type RandPregatit = {
   /** Rândul din fișier, ca să știi unde să te uiți dacă e o problemă. */
   rand: number;
   nume: string;
-  grupaId: number;
-  grupaNume: string;
+  /** Gol dacă rândul n-a spus în ce grupă merge. */
+  grupaId: number | null;
+  grupaNume: string | null;
   status: "membru" | "musafir";
   sex: "baiat" | "fata" | null;
   clasa: number | null;
@@ -176,14 +181,22 @@ function sexDinText(text: string): "baiat" | "fata" | null {
 
 export type GrupaCunoscuta = { id: number; nume: string };
 
+/** Un pulsist care e deja în aplicație, cu grupa lui (dacă are). */
+export type PulsistExistent = { nume: string; grupaNume: string | null };
+
 /**
  * Citește fișierul și verifică fiecare rând, fără să scrie nimic.
- * `existente` = numele pulsiștilor deja din baza de date, ca `grupaId|nume`.
+ *
+ * Cine e deja în aplicație se sare, iar potrivirea se face DUPA NUME, oriunde
+ * ar fi el. Motivul: același export de formular se încarcă de mai multe ori
+ * peste vară, iar cei din prima tură au primit între timp o grupă - o
+ * potrivire pe „nume + grupă" nu i-ar mai recunoaște și i-ar dubla. Doi oameni
+ * cu același nume sunt rari; un pulsist dublat e o pacoste sigură.
  */
 export async function analizeazaFisier(
   continut: ArrayBuffer,
   grupeCunoscute: GrupaCunoscuta[],
-  existente: Set<string>,
+  existenti: PulsistExistent[],
 ): Promise<RezultatAnaliza> {
   const registru = new ExcelJS.Workbook();
   try {
@@ -228,9 +241,12 @@ export async function analizeazaFisier(
   const dupaNume = new Map(
     grupeCunoscute.map((g) => [normalizeaza(g.nume), g] as const),
   );
+  const existente = new Map(
+    existenti.map((m) => [normalizeaza(m.nume), m.grupaNume] as const),
+  );
 
   const deImportat: RandPregatit[] = [];
-  const existenti: ProblemaRand[] = [];
+  const gasitiDeja: ProblemaRand[] = [];
   const probleme: ProblemaRand[] = [];
   const dejaInFisier = new Set<string>();
 
@@ -262,21 +278,32 @@ export async function analizeazaFisier(
       continue;
     }
 
-    const grupa = dupaNume.get(normalizeaza(numeGrupa));
-    if (!grupa) {
-      probleme.push({
-        rand: nrRand,
-        nume,
-        mesaj: numeGrupa
-          ? `Nu există o grupă numită „${numeGrupa}".`
-          : "Grupa lipsește.",
-      });
-      continue;
+    /*
+      Grupa e opțională, dar dacă e scrisă trebuie să existe: o grupă scrisă
+      greșit nu e același lucru cu o grupă nescrisă, și n-ar fi cinstit să luăm
+      un „Băieți 14-16 " tastat aiurea drept „hotărăște tu mai târziu".
+    */
+    let grupa: GrupaCunoscuta | null = null;
+    if (numeGrupa) {
+      grupa = dupaNume.get(normalizeaza(numeGrupa)) ?? null;
+      if (!grupa) {
+        probleme.push({
+          rand: nrRand,
+          nume,
+          mesaj: `Nu există o grupă numită „${numeGrupa}".`,
+        });
+        continue;
+      }
     }
 
-    const cheie = `${grupa.id}|${normalizeaza(nume)}`;
-    if (existente.has(cheie)) {
-      existenti.push({ rand: nrRand, nume, mesaj: `E deja în ${grupa.nume}.` });
+    const cheie = normalizeaza(nume);
+    const unde = existente.get(cheie);
+    if (unde !== undefined) {
+      gasitiDeja.push({
+        rand: nrRand,
+        nume,
+        mesaj: unde ? `E deja în ${unde}.` : "E deja în aplicație, fără grupă.",
+      });
       continue;
     }
     if (dejaInFisier.has(cheie)) {
@@ -314,8 +341,8 @@ export async function analizeazaFisier(
     deImportat.push({
       rand: nrRand,
       nume,
-      grupaId: grupa.id,
-      grupaNume: grupa.nume,
+      grupaId: grupa?.id ?? null,
+      grupaNume: grupa?.nume ?? null,
       status,
       sex: sexDinText(valoare(rand, "sex")),
       clasa: clasaDinText(valoare(rand, "clasa")),
@@ -335,7 +362,7 @@ export async function analizeazaFisier(
     });
   }
 
-  if (deImportat.length === 0 && probleme.length === 0 && existenti.length === 0) {
+  if (deImportat.length === 0 && probleme.length === 0 && gasitiDeja.length === 0) {
     return {
       eroare: "N-am găsit niciun rând completat în fișier.",
       deImportat: [],
@@ -344,7 +371,7 @@ export async function analizeazaFisier(
     };
   }
 
-  return { deImportat, existenti, probleme };
+  return { deImportat, existenti: gasitiDeja, probleme };
 }
 
 /** Fișierul-model, cu titlurile potrivite și un rând de exemplu. */
@@ -381,7 +408,8 @@ export async function fisierModel(grupe: GrupaCunoscuta[]): Promise<Buffer> {
 
   const explicatii: Record<CheieColoana, string> = {
     nume: "Numele și prenumele, ca în catalog.",
-    grupa: "Numele exact al unei grupe care există deja în aplicație.",
+    grupa:
+      "Numele exact al unei grupe din aplicație. Se poate lăsa gol: intră nerepartizat și îi dai grupa din Administrare · Nerepartizați.",
     statut: "membru sau musafir. Dacă lași gol, intră ca membru.",
     sex: "băiat sau fată (merge și B / F).",
     clasa: "Un număr de la 5 la 13, sau a IX-a. 13 înseamnă după liceu.",

@@ -135,9 +135,21 @@ export const membri = sqliteTable(
   "membri",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    grupaId: integer("grupa_id")
-      .notNull()
-      .references(() => grupe.id, { onDelete: "cascade" }),
+    /**
+     * Grupa în care e acum. Una singură, și poate să lipsească.
+     *
+     * Lipsește în două situații, amândouă normale: a fost înscris (din formular
+     * sau din import) și încă nu s-a hotărât unde merge; ori grupa lui a fost
+     * ștearsă, iar el a rămas al lucrării până i se dă alta. De-aia e
+     * `set null`, nu `cascade`: o grupă desființată nu ia oamenii cu ea.
+     *
+     * Cei fără grupă se văd la „Administrare · Nerepartizați" și nu apar
+     * nicăieri unde s-ar aștepta cineva să vadă o grupă - nici pe foaia de
+     * prezență, nici în statistici, care se socotesc pe grupe.
+     */
+    grupaId: integer("grupa_id").references(() => grupe.id, {
+      onDelete: "set null",
+    }),
     nume: text("nume").notNull(),
     telefon: text("telefon"),
     /**

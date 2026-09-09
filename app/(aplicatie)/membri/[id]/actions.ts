@@ -9,7 +9,7 @@ import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { db } from "@/lib/db";
 import { membri, noteMembru } from "@/lib/db/schema";
-import { verificaAccesGrupa } from "@/lib/interogari/acces";
+import { verificaAccesMembru } from "@/lib/interogari/acces";
 import { creeazaBiserica, iaBiserica } from "@/lib/interogari/biserici";
 import { desfaPrietenia, leagaPrietenii } from "@/lib/interogari/prietenii";
 import {
@@ -22,6 +22,12 @@ import { emailValid } from "@/lib/util/email";
 
 export type StareFormular = { eroare?: string; reusit?: boolean };
 
+/** Împrospătează pagina grupei, dacă pulsistul chiar e într-una. */
+function improspateazaGrupa(grupaId: number | null) {
+  if (grupaId !== null) revalidatePath(`/grupe/${grupaId}`);
+  else revalidatePath("/admin/nerepartizati");
+}
+
 /** Verifică dreptul de a lucra cu un anumit pulsist. */
 async function accesLaMembru(membruId: number) {
   const lider = await ceruteLider();
@@ -30,7 +36,7 @@ async function accesLaMembru(membruId: number) {
     .from(membri)
     .where(eq(membri.id, membruId));
   if (!m) return null;
-  const acces = await verificaAccesGrupa(lider, m.grupaId);
+  const acces = await verificaAccesMembru(lider, m.grupaId);
   if (!acces.permis) return null;
   return { lider, membru: m };
 }
@@ -245,7 +251,7 @@ export async function schimbaActiv(membruId: number, activ: boolean) {
   });
 
   revalidatePath(`/membri/${membruId}`);
-  revalidatePath(`/grupe/${acces.membru.grupaId}`);
+  improspateazaGrupa(acces.membru.grupaId);
 }
 
 /**
@@ -266,7 +272,7 @@ export async function primesteInGrupa(membruId: number) {
   });
 
   revalidatePath(`/membri/${membruId}`);
-  revalidatePath(`/grupe/${acces.membru.grupaId}`);
+  improspateazaGrupa(acces.membru.grupaId);
 }
 
 /**
@@ -304,7 +310,11 @@ export async function stergeMembru(
   // Ștergerea atinge multe pagini deodată (grupa, lista, slujirile, alertele),
   // așa că golim tot ce ține de cadrul aplicației - se întâmplă destul de rar.
   revalidatePath("/", "layout");
-  redirect(`/grupe/${pierderi.grupaId}`);
+  redirect(
+    pierderi.grupaId === null
+      ? "/admin/nerepartizati"
+      : `/grupe/${pierderi.grupaId}`,
+  );
 }
 
 /** Îl trece înapoi la musafiri (dacă a fost primit din greșeală). */
@@ -319,7 +329,7 @@ export async function treceLaMusafiri(membruId: number) {
   await scrieAudit(acces.lider.id, "membru:trecut-la-musafiri", { membruId });
 
   revalidatePath(`/membri/${membruId}`);
-  revalidatePath(`/grupe/${acces.membru.grupaId}`);
+  improspateazaGrupa(acces.membru.grupaId);
 }
 
 /**

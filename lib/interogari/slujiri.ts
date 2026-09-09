@@ -113,7 +113,7 @@ export async function echipa(echipaId: number) {
     })
     .from(membriEchipe)
     .innerJoin(membri, eq(membri.id, membriEchipe.membruId))
-    .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
     .where(eq(membriEchipe.echipaId, echipaId));
 
   return {
@@ -368,7 +368,7 @@ export async function pulsistiInAfaraEchipei(echipaId: number) {
       grupaNume: grupe.nume,
     })
     .from(membri)
-    .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
     .where(and(eq(membri.activ, true), eq(membri.status, "membru")))
     .orderBy(asc(membri.nume));
 
@@ -403,7 +403,8 @@ export async function liderilDeAnuntat(programareId: number): Promise<number[]> 
       .from(membriEchipe)
       .innerJoin(membri, eq(membri.id, membriEchipe.membruId))
       .where(and(eq(membriEchipe.echipaId, p.echipaId), eq(membri.activ, true)));
-    for (const m of dinEchipa) grupaIds.add(m.grupaId);
+    // Cine n-are grupă n-are nici lideri de anunțat.
+    for (const m of dinEchipa) if (m.grupaId !== null) grupaIds.add(m.grupaId);
   }
 
   if (grupaIds.size > 0) {

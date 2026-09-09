@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { prieteniiMaiMultora } from "@/lib/interogari/prietenii";
 import {
+  FARA_GRUPA,
   bisericaPeLarg,
   etichetaBotez,
   etichetaClasa,
@@ -138,7 +139,7 @@ export async function randuriPulsisti(
       grupa: grupe.nume,
     })
     .from(membri)
-    .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
     .leftJoin(biserici, eq(biserici.id, membri.bisericaId))
     .where(conditiiMembri)
     .orderBy(asc(grupe.nume), asc(membri.nume));
@@ -181,7 +182,7 @@ export async function randuriPulsisti(
     const t = totaluri.get(m.id)!;
     const total = t.prezente + t.anuntate + t.absente;
     return {
-      grupa: m.grupa,
+      grupa: m.grupa ?? FARA_GRUPA,
       nume: m.nume,
       statut: m.status === "musafir" ? "musafir" : "membru",
       sex: etichetaSex(m.sex),

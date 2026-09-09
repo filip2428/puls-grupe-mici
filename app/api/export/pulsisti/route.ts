@@ -15,6 +15,7 @@ import { dataAzi, momentLizibil } from "@/lib/util/date";
 import {
   BISERICI,
   BOTEZ,
+  FARA_GRUPA,
   bisericaPeLarg,
   etichetaBotez,
   etichetaClasa,
@@ -44,7 +45,7 @@ export async function GET(cerere: Request) {
 
   const randuri = lista.map((a) => ({
     nume: a.nume,
-    grupa: a.grupaNume,
+    grupa: a.grupaNume ?? FARA_GRUPA,
     statut: a.status === "musafir" ? "musafir" : "membru",
     sex: etichetaSex(a.sex),
     clasa: etichetaClasa(a.clasa),

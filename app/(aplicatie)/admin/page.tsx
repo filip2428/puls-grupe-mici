@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ButonNotificari } from "@/componente/ButonNotificari";
 import { ceruteAdmin } from "@/lib/auth/sesiune";
+import { cautaPulsisti } from "@/lib/interogari/pulsisti";
 import { evolutiePrezenta, rezumatGrupe } from "@/lib/interogari/statistici";
 import { dataScurta } from "@/lib/util/date";
 
@@ -10,9 +11,10 @@ export const metadata = { title: "Administrare · Puls" };
 export default async function PaginaAdmin() {
   await ceruteAdmin();
 
-  const [rezumate, evolutie] = await Promise.all([
+  const [rezumate, evolutie, nerepartizati] = await Promise.all([
     rezumatGrupe(),
     evolutiePrezenta(10),
+    cautaPulsisti({ faraGrupa: true, activi: "toti" }),
   ]);
 
   const active = rezumate.filter((r) => r.activa);
@@ -48,6 +50,22 @@ export default async function PaginaAdmin() {
         />
       </div>
 
+      {nerepartizati.length > 0 && (
+        <Link
+          href="/admin/nerepartizati"
+          className="card block bg-lime/25 p-4 text-sm"
+        >
+          <span className="font-semibold">
+            {nerepartizati.length === 1
+              ? "Un pulsist așteaptă o grupă"
+              : `${nerepartizati.length} pulsiști așteaptă o grupă`}
+          </span>
+          <span className="mt-0.5 block text-xs text-cenusiu">
+            Până sunt repartizați nu apar pe nicio foaie de prezență. Repartizează-i →
+          </span>
+        </Link>
+      )}
+
       <nav className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Buton href="/pulsisti" text="Pulsiști" />
         <Buton href="/admin/lideri" text="Lideri" />
@@ -55,6 +73,7 @@ export default async function PaginaAdmin() {
         <Buton href="/admin/biserici" text="Biserici" />
         <Buton href="/slujiri" text="Slujiri" />
         <Buton href="/statistici" text="Statistici" />
+        <Buton href="/admin/nerepartizati" text="Nerepartizați" />
         <Buton href="/admin/import" text="Import Excel" />
         <Buton href="/admin/export" text="Export" />
         <Buton href="/admin/jurnal" text="Jurnal" />

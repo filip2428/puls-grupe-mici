@@ -102,10 +102,14 @@ async function notificariZileNastere(azi: string): Promise<NotificareNoua[]> {
       id: membri.id,
       nume: membri.nume,
       dataNasterii: membri.dataNasterii,
-      grupaId: membri.grupaId,
+      grupaId: grupe.id,
       grupaNume: grupe.nume,
     })
     .from(membri)
+    /*
+      Anunțul de zi de naștere se duce la liderii grupei. Cine nu e repartizat
+      n-are cui, așa că e lăsat afară dinadins - `innerJoin`, nu `leftJoin`.
+    */
     .innerJoin(grupe, eq(grupe.id, membri.grupaId))
     .where(
       and(eq(membri.activ, true), eq(membri.status, "membru"), eq(grupe.activa, true)),

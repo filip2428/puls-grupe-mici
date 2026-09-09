@@ -1,6 +1,6 @@
 "use server";
 
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -42,17 +42,16 @@ export async function analizeaza(
 
   const [toateGrupele, toti] = await Promise.all([
     db.select({ id: grupe.id, nume: grupe.nume }).from(grupe),
-    db.select({ grupaId: membri.grupaId, nume: membri.nume }).from(membri),
+    db
+      .select({ nume: membri.nume, grupaNume: grupe.nume })
+      .from(membri)
+      .leftJoin(grupe, eq(grupe.id, membri.grupaId)),
   ]);
-
-  const existente = new Set(
-    toti.map((m) => `${m.grupaId}|${normalizeaza(m.nume)}`),
-  );
 
   const rezultat = await analizeazaFisier(
     await fisier.arrayBuffer(),
     toateGrupele,
-    existente,
+    toti,
   );
   return { ...rezultat, gata: true };
 }
@@ -60,8 +59,8 @@ export async function analizeaza(
 const schemaRand = z.object({
   rand: z.number(),
   nume: z.string().trim().min(2).max(80),
-  grupaId: z.number().int(),
-  grupaNume: z.string(),
+  grupaId: z.number().int().nullable(),
+  grupaNume: z.string().nullable(),
   status: z.enum(["membru", "musafir"]),
   sex: z.enum(["baiat", "fata"]).nullable(),
   clasa: z.number().int().min(1).max(13).nullable(),
@@ -108,14 +107,19 @@ export async function importa(
   }
   const randuri = verificat.data;
 
-  // Grupele trebuie să existe și acum - fișierul putea sta deschis o vreme.
-  const grupeExistente = await db
-    .select({ id: grupe.id })
-    .from(grupe)
-    .where(inArray(grupe.id, [...new Set(randuri.map((r) => r.grupaId))]));
+  /*
+    Grupele trebuie să existe și acum - fișierul putea sta deschis o vreme, iar
+    între timp cineva putea șterge o grupă. Rândurile fără grupă trec oricum.
+  */
+  const cerute = [...new Set(randuri.map((r) => r.grupaId).filter((g) => g !== null))];
+  const grupeExistente = cerute.length
+    ? await db.select({ id: grupe.id }).from(grupe).where(inArray(grupe.id, cerute))
+    : [];
   const idValide = new Set(grupeExistente.map((g) => g.id));
 
-  const deScris = randuri.filter((r) => idValide.has(r.grupaId));
+  const deScris = randuri.filter(
+    (r) => r.grupaId === null || idValide.has(r.grupaId),
+  );
   if (deScris.length === 0) {
     return { eroare: "Grupele din fișier nu mai există. Încarcă fișierul din nou." };
   }
@@ -161,16 +165,8 @@ export async function importa(
   });
 
   revalidatePath("/pulsisti");
+  revalidatePath("/admin/nerepartizati");
   for (const id of idValide) revalidatePath(`/grupe/${id}`);
 
   return { adaugati: deScris.length };
-}
-
-function normalizeaza(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
 }

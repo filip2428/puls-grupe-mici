@@ -43,6 +43,8 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 - ține **calendarul întâlnirilor**: ce e în fiecare zi și dacă se stă pe grupe
   mici sau toți împreună;
 - mută pulsiști dintr-o grupă în alta, fără să piardă istoricul;
+- vede **pulsiștii nerepartizați** și le dă grupă pe blocuri, după clasă și
+  băieți/fete;
 - **șterge definitiv** un lider sau un pulsist, când chiar e nevoie;
 - vede tabloul de bord: prezență medie, evoluție pe săptămâni, grupe cu probleme;
 - vede din ce biserică e fiecare pulsist, dacă e botezat și cine cu cine e
@@ -70,6 +72,33 @@ de prezență, la secțiunea *Musafiri*, și de acolo:
   rămâne înregistrată.
 
 Merge și invers: „Trece-l înapoi la musafiri", dacă a fost primit din greșeală.
+
+---
+
+## Pulsiști fără grupă
+
+Un pulsist ține de lucrare, nu de o grupă anume. Poate să stea și fără grupă, iar
+asta se întâmplă în două situații, amândouă normale:
+
+- **s-a înscris și nu s-a hotărât încă unde merge** - așa intră tot ce vine din
+  formularul de înscriere, la început de an;
+- **grupa lui a fost desființată** - o împărțire se schimbă, oamenii rămân.
+
+Cât timp n-are grupă nu apare pe nicio foaie de prezență și nu intră în
+statistici - dar fișa lui e întreagă: biserică, botez, părinți, note, prieteni.
+
+Îi găsești la **Administrare · Nerepartizați**, strânși pe clase și pe
+băieți/fete, cu bifele gata puse: alegi grupa pentru un bloc întreg și debifezi
+excepțiile. La cincizeci de înscrieri deodată, asta înseamnă câteva apăsări, nu
+cincizeci. Un singur om se poate repartiza și de pe fișa lui, de unde stă de
+obicei cartonașul grupei.
+
+Panoul de administrare arată câți așteaptă, ca să nu rămână uitați acolo, în
+lista de pulsiști au propriul filtru (*fără grupă*) și intră în Excel ca oricare
+alții.
+
+**Un pulsist e într-o singură grupă.** „Fără grupă" e o stare de trecere, nu o a
+doua formă de apartenență.
 
 ---
 
@@ -371,14 +400,22 @@ arate la fel.
 *Administrare → Import Excel*. Descarci modelul (are coloanele potrivite, un rând
 de exemplu și o foaie cu explicații), îl completezi și îl încarci înapoi.
 
-Obligatorii sunt doar **Nume** și **Grupa**; restul (statut, sex, clasă, data
-nașterii, biserica, botezul și data lui, telefon, email, cei doi părinți cu
-telefoanele și adresele lor) se completează dacă le ai. Ordinea coloanelor
-nu contează, iar cele în plus se ignoră.
+Obligatoriu e doar **Numele**. Restul - grupa, statutul, sexul, clasa, data
+nașterii, biserica, botezul și data lui, telefonul, email-ul, cei doi părinți cu
+telefoanele și adresele lor - se completează dacă le ai.
+
+**Grupa se poate lăsa goală**, și de obicei așa e mai ușor: oamenii intră
+nerepartizați și le dai grupa în aplicație, pe blocuri, unde vezi clasele și
+vârstele deodată. Dacă totuși o scrii în fișier, trebuie să fie numele exact al
+unei grupe care există - o grupă scrisă greșit oprește rândul, nu-l trece drept
+„nerepartizat".
+
+Ordinea coloanelor nu contează, iar cele în plus se ignoră.
 
 Înainte să scrie ceva, aplicația îți arată ce a înțeles: cine intră, cine e deja
 în aplicație (îi sare, ca să poți încărca fișierul de mai multe ori fără să
-dublezi pe nimeni) și ce rânduri n-a putut citi, cu motivul. Abia după ce
+dublezi pe nimeni - potrivirea se face după nume, oriunde ar fi omul acum) și ce
+rânduri n-a putut citi, cu motivul. Abia după ce
 confirmi se scrie în baza de date.
 
 ### Din formularul de înscriere
@@ -399,9 +436,10 @@ adresele de email (una cu o paranteză după ea sau cu un spațiu în mijloc se
 salvează; ce rămâne și tot nu seamănă a adresă se lasă gol), unește scrierile
 aceleiași biserici și formează părinții ca *Mama, Maria Popa*.
 
-Două coloane rămân de completat de mână, pentru că formularul nu le întreabă:
-**Grupa** (rândurile ies sortate pe clase și pe băieți/fete, ca să se completeze
-pe blocuri) și **Botezul**. Ce nu se înnoadă nu se ghicește: ajunge într-o
+Două coloane rămân goale, pentru că formularul nu le întreabă: **Grupa** și
+**Botezul**. Niciuna nu oprește importul - grupa se dă după aceea, la
+*Nerepartizați*, iar botezul se scrie pe fișe. Rândurile ies oricum sortate pe
+clase și pe băieți/fete, dacă preferi să completezi grupa în fișier. Ce nu se înnoadă nu se ghicește: ajunge într-o
 coloană *De verificat*, pe rândul lui - ani de naștere care nu se potrivesc cu
 clasa, biserici nou apărute, părinți lăsați pe jumătate. Coloanele acelea de la
 capăt sunt galbene, iar importul le ignoră.
@@ -419,7 +457,7 @@ la fel și cea a bisericilor.
 
 | Ce ștergi | De unde | Cum se confirmă |
 | --- | --- | --- |
-| o **grupă** (cu pulsiștii și istoricul ei) | Administrare → Grupe → grupa | scrii numele grupei |
+| o **grupă** (cu întâlnirile ei; pulsiștii rămân, fără grupă) | Administrare → Grupe → grupa | scrii numele grupei |
 | un **lider** | Administrare → Lideri | scrii numele lui |
 | un **pulsist** (cu prezențe și note) | fișa lui, jos | scrii numele lui |
 | un **loc de slujire** (cu programările lui) | Slujiri → slujirea | scrii numele ei |

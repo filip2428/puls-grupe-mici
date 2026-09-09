@@ -15,7 +15,7 @@ import {
   prezenteSlujire,
   programariSlujire,
 } from "@/lib/db/schema";
-import { verificaAccesGrupa } from "@/lib/interogari/acces";
+import { verificaAccesMembru } from "@/lib/interogari/acces";
 import {
   numeConfirmat,
   pierderiEchipa,
@@ -168,7 +168,7 @@ async function poateSchimbaEchipa(echipaId: number, membruId: number) {
     .where(eq(membri.id, membruId));
   if (!m) return null;
 
-  const acces = await verificaAccesGrupa(lider, m.grupaId);
+  const acces = await verificaAccesMembru(lider, m.grupaId);
   return acces.permis ? lider : null;
 }
 

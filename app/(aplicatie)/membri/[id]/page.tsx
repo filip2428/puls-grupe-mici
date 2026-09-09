@@ -7,12 +7,13 @@ import {
 } from "@/componente/MembruFormulare";
 import { InsignaBiserica } from "@/componente/InsignaBiserica";
 import { InsignaBotez } from "@/componente/InsignaBotez";
+import { mutaMembruDinFormular } from "@/app/(aplicatie)/admin/actions";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import {
   grupeAccesibile,
   inlocuiriGrupa,
   liderilGrupei,
-  verificaAccesGrupa,
+  verificaAccesMembru,
 } from "@/lib/interogari/acces";
 import { bisericileCunoscute } from "@/lib/interogari/biserici";
 import {
@@ -20,6 +21,7 @@ import {
   pulsistiDeLegat,
 } from "@/lib/interogari/prietenii";
 import {
+  grupeActive,
   istoricMembru,
   membru as iaMembru,
   noteleMembrului,
@@ -43,7 +45,11 @@ import {
   momentLizibil,
   varsta,
 } from "@/lib/util/date";
-import { etichetaClasa, etichetaSex } from "@/lib/util/etichete";
+import {
+  etichetaClasa,
+  etichetaGrupa,
+  etichetaSex,
+} from "@/lib/util/etichete";
 import {
   adaugaPrieten,
   primesteInGrupa,
@@ -75,8 +81,15 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   const date = await iaMembru(membruId);
   if (!date) notFound();
 
-  const acces = await verificaAccesGrupa(lider, date.grupa.id);
+  const acces = await verificaAccesMembru(lider, date.membru.grupaId);
   if (!acces.permis) notFound();
+
+  /*
+    Un pulsist poate să n-aibă grupă: abia a fost înscris și nu s-a hotărât
+    unde merge, ori grupa lui a fost ștearsă. Fișa merge și așa - doar că în
+    locul cartonașului cu grupa și liderii ei apare unul de repartizare.
+  */
+  const grupa = date.grupa;
 
   /*
     Cu cine poate fi legat ca prieten: liderul alege dintre pulsiștii grupelor
@@ -101,6 +114,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     prieteni,
     deLegat,
     biserici,
+    grupeDeAles,
   ] = await Promise.all([
     istoricMembru(membruId, 16),
     noteleMembrului(membruId),
@@ -108,11 +122,12 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     slujiriDisponibilePentru(membruId),
     programariMembrului(membruId, 3),
     pierderiMembru(membruId),
-    liderilGrupei(date.grupa.id),
-    inlocuiriGrupa(date.grupa.id),
+    liderilGrupei(date.membru.grupaId),
+    inlocuiriGrupa(date.membru.grupaId),
     prieteniiMembrului(membruId),
     pulsistiDeLegat(membruId, grupePermise),
     bisericileCunoscute(),
+    grupa ? [] : grupeActive(),
   ]);
   const azi = dataAzi();
 
@@ -120,15 +135,19 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   const tinLocul = inlocuiri.filter((d) => d.deLa <= azi && d.panaLa >= azi);
 
   const candSeVede = [
-    date.grupa.oraIntalnire ? `ora ${date.grupa.oraIntalnire}` : "",
-    date.grupa.locatie ?? "",
+    grupa?.oraIntalnire ? `ora ${grupa.oraIntalnire}` : "",
+    grupa?.locatie ?? "",
   ]
     .filter(Boolean)
     .join(" · ");
 
   /* `undefined` la coordonator înseamnă „vede tot", nu „nu vede nimic". */
-  const potVedea = (grupaId: number) =>
-    grupePermise === undefined || grupePermise.includes(grupaId);
+  /*
+    Cine n-are grupă e al coordonatorilor, deci fișa lui se deschide doar de
+    către ei - `grupePermise === undefined` înseamnă chiar „e coordonator".
+  */
+  const potVedea = (grupaId: number | null) =>
+    grupePermise === undefined || (grupaId !== null && grupePermise.includes(grupaId));
 
   const m = date.membru;
   const ani = varsta(m.dataNasterii);
@@ -147,9 +166,15 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href={`/grupe/${date.grupa.id}`} className="text-sm text-cenusiu">
-          ← {date.grupa.nume}
-        </Link>
+        {grupa ? (
+          <Link href={`/grupe/${grupa.id}`} className="text-sm text-cenusiu">
+            ← {grupa.nume}
+          </Link>
+        ) : (
+          <Link href="/admin/nerepartizati" className="text-sm text-cenusiu">
+            ← Nerepartizați
+          </Link>
+        )}
         <h1 className="mt-2 flex flex-wrap items-center gap-2 text-xl font-bold">
           {m.nume}
           {esteMusafir && (
@@ -195,12 +220,56 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         )}
       </div>
 
-      {/* Grupa lui, cu liderii ei - primul lucru pe care vrei să-l știi */}
+      {/*
+        Grupa lui, cu liderii ei - primul lucru pe care vrei să-l știi.
+        Când n-are grupă, în locul cartonașului stă chiar repartizarea: e locul
+        unde te uiți oricum, și ai sub ochi clasa și vârsta când alegi.
+      */}
+      {!grupa ? (
+        <section className="card p-4">
+          <h2 className="text-sm font-bold">Nu e încă într-o grupă</h2>
+          <p className="mt-1 text-sm text-cenusiu">
+            Până e repartizat nu apare pe nicio foaie de prezență și nu intră în
+            statistici. Datele lui sunt însă toate aici.
+          </p>
+          {grupeDeAles.length === 0 ? (
+            <p className="mt-3 text-sm text-cenusiu">
+              Nu e nicio grupă activă în care să-l pui.{" "}
+              <Link href="/admin/grupe" className="text-albastru">
+                Fă una întâi
+              </Link>
+              .
+            </p>
+          ) : (
+            <form
+              action={mutaMembruDinFormular.bind(null, membruId)}
+              className="mt-3 flex flex-wrap items-end gap-2 border-t border-[#eef1f7] pt-3"
+            >
+              <div className="min-w-40 flex-1">
+                <label className="eticheta" htmlFor="grupaId">
+                  Pune-l în
+                </label>
+                <select id="grupaId" name="grupaId" className="camp" defaultValue="">
+                  <option value="">- alege grupa -</option>
+                  {grupeDeAles.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.nume}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="buton buton-principal">
+                Repartizează
+              </button>
+            </form>
+          )}
+        </section>
+      ) : (
       <section className="card p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <h2 className="text-sm font-bold">
-            <Link href={`/grupe/${date.grupa.id}`} className="text-albastru">
-              {date.grupa.nume}
+            <Link href={`/grupe/${grupa.id}`} className="text-albastru">
+              {grupa.nume}
             </Link>
           </h2>
           {candSeVede && (
@@ -287,6 +356,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           )}
         </div>
       </section>
+      )}
 
       {/* Părinții */}
       {(m.parinte1Nume ||
@@ -328,7 +398,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           <ul className="flex flex-col divide-y divide-[#eef1f7]">
             {prieteni.map((p) => {
               const detaliiPrieten = [
-                p.grupaNume,
+                etichetaGrupa(p.grupaNume),
                 etichetaClasa(p.clasa),
                 p.status === "musafir" ? "musafir" : "",
                 p.activ ? "" : "nu mai vine",
@@ -385,7 +455,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 <option value="">Alege</option>
                 {deLegat.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.nume} - {p.grupaNume}
+                    {p.nume} - {etichetaGrupa(p.grupaNume)}
                   </option>
                 ))}
               </select>

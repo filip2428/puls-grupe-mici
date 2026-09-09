@@ -43,6 +43,19 @@ export function etichetaStatus(status: "membru" | "musafir"): string {
   return status === "musafir" ? "musafir" : "membru";
 }
 
+/**
+ * Cum se cheamă lipsa unei grupe.
+ *
+ * Se scrie, nu se lasă căsuța goală: într-un tabel, gol înseamnă „n-am
+ * completat", pe când aici e un răspuns adevărat - omul e al lucrării, doar
+ * că încă nu s-a hotărât unde merge.
+ */
+export const FARA_GRUPA = "fără grupă";
+
+export function etichetaGrupa(nume: string | null): string {
+  return nume ?? FARA_GRUPA;
+}
+
 /** De unde vine pulsistul. Vezi coloana `biserica` din schemă. */
 export type Biserica = "harvest" | "alta" | "fara";
 

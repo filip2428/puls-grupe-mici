@@ -383,23 +383,36 @@ export async function golesteJurnalul(
   return { reusit: true };
 }
 
-/** Mută un pulsist în altă grupă (istoricul rămâne la el). */
+/**
+ * Pune un pulsist într-o grupă: fie îl mută din alta, fie îl repartizează
+ * prima dată. Istoricul rămâne la el - prezențele țin de întâlniri, nu de
+ * grupa lui de acum.
+ */
 export async function mutaMembru(membruId: number, grupaNouaId: number) {
   const admin = await ceruteAdmin();
   const [m] = await db.select().from(membri).where(eq(membri.id, membruId));
   if (!m) return;
 
+  const [gasita] = await db
+    .select({ id: grupe.id })
+    .from(grupe)
+    .where(eq(grupe.id, grupaNouaId));
+  if (!gasita) return;
+
   await db
     .update(membri)
     .set({ grupaId: grupaNouaId })
     .where(eq(membri.id, membruId));
-  await scrieAudit(admin.id, "membru:mutat", {
-    membruId,
-    dinGrupa: m.grupaId,
-    inGrupa: grupaNouaId,
-  });
+  await scrieAudit(
+    admin.id,
+    m.grupaId === null ? "membru:repartizat" : "membru:mutat",
+    { membruId, dinGrupa: m.grupaId, inGrupa: grupaNouaId },
+  );
 
-  revalidatePath(`/admin/grupe/${m.grupaId}`);
+  if (m.grupaId !== null) revalidatePath(`/admin/grupe/${m.grupaId}`);
   revalidatePath(`/admin/grupe/${grupaNouaId}`);
+  revalidatePath(`/admin/nerepartizati`);
+  revalidatePath(`/grupe/${grupaNouaId}`);
   revalidatePath(`/membri/${membruId}`);
+  revalidatePath("/pulsisti");
 }

@@ -9,8 +9,11 @@
  * importul sare peste cine e deja în aplicație.
  *
  * Două lucruri nu se pot scoate din formular, așa că rămân rubrici goale:
- *  - GRUPA - formularul nu întreabă cine merge la care grupă. Rândurile ies
- *    sortate pe clasă și pe băieți/fete, ca să se completeze pe blocuri.
+ *  - GRUPA - formularul nu întreabă cine merge la care grupă. Nu e nevoie s-o
+ *    completezi aici: importul primește și rânduri fără grupă, iar împărțirea
+ *    se face în aplicație, la „Administrare · Nerepartizați", unde se văd
+ *    clasele și vârstele deodată. Rândurile ies oricum sortate pe clasă și pe
+ *    băieți/fete, dacă preferi s-o scrii totuși aici.
  *  - BOTEZUL - nici asta nu se întreabă.
  * Restul se scoate din răspunsuri și se curăță: nume scrise cu Caps Lock,
  * telefoane în șapte formate, aceeași biserică scrisă în trei feluri. Ce nu se
@@ -629,7 +632,11 @@ function scriePulsisti(registru: ExcelJS.Workbook, randuri: RandIesire[]) {
     adaugat.getCell("dataNasterii").numFmt = "dd.mm.yyyy";
     adaugat.getCell("note").alignment = { wrapText: true, vertical: "top" };
     if (r.note.length > 0) adaugat.getCell("note").font = { color: { argb: CHIHLIMBAR } };
-    // Grupa e singura coloană obligatorie care nu se poate scoate din formular.
+    /*
+      Grupa se poate lăsa goală - importul o primește așa - dar rămâne colorată:
+      e singura coloană pe care formularul n-are de unde s-o știe, deci merită
+      să se vadă că e o alegere, nu o scăpare.
+    */
     adaugat.getCell("grupa").fill = {
       type: "pattern",
       pattern: "solid",
@@ -653,8 +660,8 @@ function scrieCeMaiTrebuie(registru: ExcelJS.Workbook, randuri: RandIesire[]) {
 
   const deVerificat = randuri.filter((r) => r.note.length > 0).length;
   const pasi = [
-    "Fă-ți grupele în Administrare · Grupe, dacă nu sunt deja făcute. Importul recunoaște o grupă doar după numele ei exact.",
-    `Completează coloana „Grupa" (cea roșiatică). Rândurile sunt sortate pe clase și pe băieți/fete, deci se poate completa pe blocuri.`,
+    `Coloana „Grupa" (cea roșiatică) se poate lăsa goală. Cine intră fără grupă așteaptă la Administrare · Nerepartizați, unde îi dai grupa pe blocuri - de obicei e mai ușor decât s-o scrii aici, rând cu rând.`,
+    `Dacă vrei totuși s-o completezi aici: fă-ți întâi grupele în Administrare · Grupe și scrie numele exact. Rândurile sunt sortate pe clase și pe băieți/fete, deci se poate completa pe blocuri.`,
     deVerificat > 0
       ? `Uită-te la coloana „De verificat": ${deVerificat} rânduri au ceva de lămurit - mai ales ani de naștere care nu se potrivesc cu clasa.`
       : `Coloana „De verificat" e goală - n-am găsit nimic ciudat.`,
@@ -698,8 +705,9 @@ function raporteaza(numeIntrare: string, numeIesire: string, randuri: RandIesire
   }
 
   console.log("");
-  console.log(`  Mai departe: completează coloana „Grupa", apoi încarcă fișierul la`);
-  console.log(`  Administrare · Import. Restul e scris în foaia „Ce mai trebuie".`);
+  console.log("  Mai departe: încarcă fișierul la Administrare · Import. Grupa se poate");
+  console.log(`  lăsa goală - o dai după aceea, la „Nerepartizați". Restul e scris în`);
+  console.log(`  foaia „Ce mai trebuie".`);
   console.log("");
 }
 

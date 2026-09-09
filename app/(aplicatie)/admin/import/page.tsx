@@ -55,6 +55,15 @@ export default async function PaginaImport() {
           <p className="mt-2 text-xs text-cenusiu">
             Cele marcate cu * sunt obligatorii. Ordinea coloanelor nu contează.
           </p>
+          <p className="mt-1 text-xs text-cenusiu">
+            <span className="font-medium">Grupa se poate lăsa goală.</span> Cine
+            intră fără grupă așteaptă la{" "}
+            <Link href="/admin/nerepartizati" className="text-albastru">
+              Nerepartizați
+            </Link>
+            , unde îi dai grupa pe blocuri - de obicei e mai ușor decât s-o scrii
+            rând cu rând în tabel.
+          </p>
         </div>
       </section>
 

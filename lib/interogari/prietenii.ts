@@ -21,8 +21,9 @@ function perechea(unul: number, altul: number): [number, number] {
 export type Prieten = {
   id: number;
   nume: string;
-  grupaId: number;
-  grupaNume: string;
+  /** Gol dacă prietenul nu e (încă) repartizat într-o grupă. */
+  grupaId: number | null;
+  grupaNume: string | null;
   clasa: number | null;
   activ: boolean;
   status: "membru" | "musafir";
@@ -52,7 +53,7 @@ export async function prieteniiMembrului(membruId: number): Promise<Prieten[]> {
       status: membri.status,
     })
     .from(membri)
-    .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
     .where(inArray(membri.id, ids))
     .orderBy(asc(membri.nume));
 
@@ -89,7 +90,7 @@ export async function pulsistiDeLegat(
       status: membri.status,
     })
     .from(membri)
-    .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
     .where(and(...conditii))
     .orderBy(asc(grupe.nume), asc(membri.nume));
 

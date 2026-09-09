@@ -118,8 +118,28 @@ export async function verificaAccesGrupa(
   return { permis: false };
 }
 
-/** Liderii repartizați la o grupă. */
-export async function liderilGrupei(grupaId: number) {
+/**
+ * Dacă liderul poate deschide fișa unui pulsist.
+ *
+ * Un pulsist nerepartizat n-are grupă de care să se agățe dreptul de a-l
+ * vedea, așa că rămâne al coordonatorilor până i se dă una. Nu e o
+ * restricție inventată: repartizarea e oricum treaba lor.
+ */
+export async function verificaAccesMembru(
+  lider: Lider,
+  grupaId: number | null,
+): Promise<VerificareAcces> {
+  if (grupaId === null) {
+    return lider.rol === "admin"
+      ? { permis: true, prinInlocuire: false, esteAdmin: true }
+      : { permis: false };
+  }
+  return verificaAccesGrupa(lider, grupaId);
+}
+
+/** Liderii repartizați la o grupă. Un pulsist fără grupă n-are niciunul. */
+export async function liderilGrupei(grupaId: number | null) {
+  if (grupaId === null) return [];
   return db
     .select({
       id: lideri.id,
@@ -152,7 +172,8 @@ export async function liderilPotentiali(grupaId: number) {
 }
 
 /** Înlocuirile (delegările) active sau viitoare ale unei grupe. */
-export async function inlocuiriGrupa(grupaId: number) {
+export async function inlocuiriGrupa(grupaId: number | null) {
+  if (grupaId === null) return [];
   const azi = dataAzi();
   return db
     .select({

@@ -19,6 +19,7 @@ const TEXTE: Record<string, string> = {
   "membru:inactivat": "a marcat un pulsist ca inactiv",
   "membru:reactivat": "a readus un pulsist în grupă",
   "membru:mutat": "a mutat un pulsist în altă grupă",
+  "membru:repartizat": "a repartizat un pulsist într-o grupă",
   "export:statistici": "a descărcat statisticile",
   "biserica:creata": "a adăugat o biserică",
   "biserica:modificata": "a modificat o biserică",

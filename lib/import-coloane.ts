@@ -9,7 +9,7 @@
  */
 export const COLOANE = [
   { cheie: "nume", titlu: "Nume", obligatoriu: true, exemplu: "Andrei Popa" },
-  { cheie: "grupa", titlu: "Grupa", obligatoriu: true, exemplu: "Băieți 14-16" },
+  { cheie: "grupa", titlu: "Grupa", obligatoriu: false, exemplu: "Băieți 14-16" },
   { cheie: "statut", titlu: "Statut", obligatoriu: false, exemplu: "membru" },
   { cheie: "sex", titlu: "Sex", obligatoriu: false, exemplu: "băiat" },
   { cheie: "clasa", titlu: "Clasa", obligatoriu: false, exemplu: "9" },

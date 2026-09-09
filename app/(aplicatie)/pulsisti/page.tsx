@@ -13,6 +13,7 @@ import {
   BISERICI,
   BOTEZ,
   CLASE,
+  FARA_GRUPA,
   etichetaClasa,
   etichetaSex,
 } from "@/lib/util/etichete";
@@ -39,6 +40,7 @@ export default async function PaginaPulsisti({
   const areFiltre =
     !!filtru.q ||
     !!filtru.grupaId ||
+    !!filtru.faraGrupa ||
     !!filtru.status ||
     !!filtru.sex ||
     !!filtru.clasa ||
@@ -88,7 +90,7 @@ export default async function PaginaPulsisti({
                 id="grupa"
                 name="grupa"
                 className="camp"
-                defaultValue={filtru.grupaId ?? ""}
+                defaultValue={filtru.faraGrupa ? "fara" : (filtru.grupaId ?? "")}
               >
                 <option value="">toate grupele</option>
                 {grupe.map((g) => (
@@ -96,6 +98,8 @@ export default async function PaginaPulsisti({
                     {g.nume}
                   </option>
                 ))}
+                {/* Nerepartizații n-au grupă, dar sunt tot pulsiști - se caută de aici. */}
+                <option value="fara">fără grupă</option>
               </select>
             </div>
 
@@ -288,7 +292,7 @@ export default async function PaginaPulsisti({
                     <InsignaBotez botez={a.botez} />
                   </span>
                   <span className="mt-0.5 block text-xs text-cenusiu">
-                    {a.grupaNume}
+                    {a.grupaNume ?? FARA_GRUPA}
                     {a.clasa ? ` · ${etichetaClasa(a.clasa)}` : ""}
                     {a.varsta !== null ? ` · ${a.varsta} ani` : ""}
                     {a.sex ? ` · ${etichetaSex(a.sex)}` : ""}
@@ -341,7 +345,8 @@ export default async function PaginaPulsisti({
 function sirDeParametri(filtru: FiltruPulsisti): string {
   const p = new URLSearchParams();
   if (filtru.q) p.set("q", filtru.q);
-  if (filtru.grupaId) p.set("grupa", String(filtru.grupaId));
+  if (filtru.faraGrupa) p.set("grupa", "fara");
+  else if (filtru.grupaId) p.set("grupa", String(filtru.grupaId));
   if (filtru.status) p.set("status", filtru.status);
   if (filtru.sex) p.set("sex", filtru.sex);
   if (filtru.clasa) p.set("clasa", String(filtru.clasa));

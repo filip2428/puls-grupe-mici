@@ -223,22 +223,23 @@ export default async function PaginaAdminGrupa({
   );
 }
 
-/** Ce dispare odată cu grupa, spus pe șleau înainte de confirmare. */
+/**
+ * Ce dispare odată cu grupa, spus pe șleau înainte de confirmare.
+ *
+ * Pulsiștii nu mai sunt pe lista pierderilor - ei rămân, fără grupă - dar
+ * prezența lor de la întâlnirile grupei se duce, și asta trebuie spus înainte,
+ * nu descoperit după.
+ */
 function avertismentGrupa(p: {
   pulsisti: number;
   intalniri: number;
   prezente: number;
-  note: number;
   programari: number;
 }): string {
   const bucati = [
-    p.pulsisti > 0
-      ? `${p.pulsisti === 1 ? "pulsistul din ea" : `cei ${p.pulsisti} pulsiști din ea`}`
-      : "",
     p.intalniri > 0
       ? `${p.intalniri === 1 ? "o întâlnire" : `${p.intalniri} întâlniri`} cu ${p.prezente} ${p.prezente === 1 ? "prezență" : "prezențe"}`
       : "",
-    p.note > 0 ? (p.note === 1 ? "o notă" : `${p.note} note`) : "",
     p.programari > 0
       ? `${p.programari === 1 ? "o programare" : `${p.programari} programări`} din calendarul slujirilor`
       : "",
@@ -246,12 +247,13 @@ function avertismentGrupa(p: {
 
   const lista =
     bucati.length === 0
-      ? "Grupa e goală, deci nu se pierde nimic altceva."
-      : `Dispar cu totul ${
-          bucati.length === 1
-            ? bucati[0]
-            : `${bucati.slice(0, -1).join(", ")} și ${bucati.at(-1)}`
-        }.`;
+      ? "Grupa n-are istoric, deci nu se pierde nimic."
+      : `Dispar cu totul ${bucati.join(" și ")}.`;
 
-  return `${lista} Liderii rămân în aplicație, doar nu mai sunt repartizați aici. Dacă vrei să păstrezi oamenii, mută-i întâi în altă grupă; dacă grupa doar nu se mai ține, „Arhivează" e alegerea potrivită.`;
+  const oameni =
+    p.pulsisti === 0
+      ? ""
+      : ` ${p.pulsisti === 1 ? "Pulsistul din ea rămâne" : `Cei ${p.pulsisti} pulsiști din ea rămân`} în aplicație, fără grupă, și îi găsești la „Nerepartizați" ca să le dai alta.`;
+
+  return `${lista}${oameni} Liderii rămân și ei, doar nu mai sunt repartizați aici. Dacă grupa doar nu se mai ține, „Arhivează" e alegerea potrivită: păstrează și istoricul.`;
 }

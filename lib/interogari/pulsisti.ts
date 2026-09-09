@@ -12,6 +12,8 @@ export type FiltruPulsisti = {
   /** Căutare după numele lui, al unui părinte, telefon sau email. */
   q?: string;
   grupaId?: number;
+  /** Doar cei nerepartizați. Se cere separat, nu ca `grupaId` gol. */
+  faraGrupa?: boolean;
   status?: "membru" | "musafir";
   sex?: "baiat" | "fata";
   clasa?: number;
@@ -49,8 +51,9 @@ export type PulsistDinLista = {
   parinte2Nume: string | null;
   parinte2Telefon: string | null;
   parinte2Email: string | null;
-  grupaId: number;
-  grupaNume: string;
+  /** Gol la cei nerepartizați încă într-o grupă. */
+  grupaId: number | null;
+  grupaNume: string | null;
   /** Câte întâlniri a avut și la câte a fost prezent (tot istoricul). */
   intalniri: number;
   prezente: number;
@@ -70,7 +73,8 @@ export async function cautaPulsisti(
     if (filtru.grupePermise.length === 0) return [];
     conditii.push(inArray(membri.grupaId, filtru.grupePermise));
   }
-  if (filtru.grupaId) conditii.push(eq(membri.grupaId, filtru.grupaId));
+  if (filtru.faraGrupa) conditii.push(isNull(membri.grupaId));
+  else if (filtru.grupaId) conditii.push(eq(membri.grupaId, filtru.grupaId));
   if (filtru.status) conditii.push(eq(membri.status, filtru.status));
   if (filtru.sex) conditii.push(eq(membri.sex, filtru.sex));
   if (filtru.clasa) conditii.push(eq(membri.clasa, filtru.clasa));
@@ -101,7 +105,7 @@ export async function cautaPulsisti(
   const lista = await db
     .select({ membru: membri, grupaNume: grupe.nume, bisericaNume: biserici.nume })
     .from(membri)
-    .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
     .leftJoin(biserici, eq(biserici.id, membri.bisericaId))
     .where(conditii.length ? and(...conditii) : undefined);
 
@@ -200,6 +204,8 @@ export function filtruDinParametri(
 
   return {
     q: ia("q") || undefined,
+    // „grupa=fara" e altceva decât „grupa lipsă din adresă" (= toate grupele).
+    faraGrupa: ia("grupa") === "fara" || undefined,
     grupaId: numar("grupa"),
     status: status === "membru" || status === "musafir" ? status : undefined,
     sex: sex === "baiat" || sex === "fata" ? sex : undefined,

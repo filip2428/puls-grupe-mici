@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -19,6 +19,20 @@ import { adaugaZile } from "@/lib/util/date";
 export async function grupa(grupaId: number) {
   const [g] = await db.select().from(grupe).where(eq(grupe.id, grupaId));
   return g ?? null;
+}
+
+/**
+ * Grupele în care se poate pune cineva acum.
+ *
+ * Doar cele active: o grupă arhivată nu mai primește oameni, chiar dacă
+ * rămâne pentru istoric.
+ */
+export async function grupeActive() {
+  return db
+    .select({ id: grupe.id, nume: grupe.nume })
+    .from(grupe)
+    .where(eq(grupe.activa, true))
+    .orderBy(asc(grupe.nume));
 }
 
 export type OptiuniMembri = {
@@ -178,12 +192,12 @@ export async function grupeCuPrezentaLa(
   return new Set(randuri.map((r) => r.grupaId));
 }
 
-/** Un membru împreună cu grupa lui. */
+/** Un membru împreună cu grupa lui - care poate să lipsească. */
 export async function membru(membruId: number) {
   const [rezultat] = await db
     .select({ membru: membri, grupa: grupe, bisericaNume: biserici.nume })
     .from(membri)
-    .innerJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
     .leftJoin(biserici, eq(biserici.id, membri.bisericaId))
     .where(eq(membri.id, membruId));
   return rezultat ?? null;

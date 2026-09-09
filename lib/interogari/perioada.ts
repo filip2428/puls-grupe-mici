@@ -12,7 +12,7 @@ import {
   prezente,
   programariSlujire,
 } from "@/lib/db/schema";
-import { etichetaClasa } from "@/lib/util/etichete";
+import { FARA_GRUPA, etichetaClasa } from "@/lib/util/etichete";
 import { lunaLizibila } from "@/lib/util/date";
 
 /**
@@ -125,7 +125,12 @@ type Bifa = {
   membruId: number;
   stare: "prezent" | "motivat" | "absent";
   nume: string;
-  grupaId: number;
+  /*
+    Grupa lui de ACUM, care poate lipsi. La socoteală nu se folosește ea, ci
+    grupa întâlnirii - vezi mai jos - tocmai ca prezența de atunci să rămână
+    unde a fost, chiar dacă omul a fost mutat sau a rămas fără grupă.
+  */
+  grupaId: number | null;
   clasa: number | null;
   status: "membru" | "musafir";
   biserica: "harvest" | "alta" | "fara" | null;
@@ -435,6 +440,8 @@ function peGrupe(
       prezența lui de atunci trebuie să rămână la grupa în care a fost.
     */
     const grupaId = intalnireaGrupei.get(b.intalnireId) ?? b.grupaId;
+    // N-are unde să se pună o bifă fără grupă, iar tabelul ăsta e pe grupe.
+    if (grupaId === null) continue;
     const unde = b.status === "membru" ? membriiGrupei : musafiriiGrupei;
     const set = unde.get(grupaId) ?? new Set<number>();
     set.add(b.membruId);
@@ -658,7 +665,10 @@ function fidelitatea(
   const randuri: RandPulsist[] = [...peOm.values()].map(({ bifa, n }) => ({
     membruId: bifa.membruId,
     nume: bifa.nume,
-    grupa: numeGrupe.get(bifa.grupaId) ?? "",
+    grupa:
+      bifa.grupaId === null
+        ? FARA_GRUPA
+        : (numeGrupe.get(bifa.grupaId) ?? ""),
     prezente: n.prezente,
     anuntate: n.anuntate,
     absente: n.absente,
