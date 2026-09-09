@@ -212,8 +212,11 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
               </>
             )}
             {m.email && (
-              <a href={`mailto:${m.email}`} className="buton buton-secundar">
-                {m.email}
+              <a
+                href={`mailto:${m.email}`}
+                className="buton buton-secundar max-w-full"
+              >
+                <span className="min-w-0 truncate">{m.email}</span>
               </a>
             )}
           </div>
@@ -367,7 +370,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         m.parinte2Email) && (
         <section className="card p-4">
           <h2 className="mb-3 text-sm font-bold">Părinți</h2>
-          <ul className="flex flex-col gap-3">
+          <ul className="flex flex-col">
             <Parinte
               nume={m.parinte1Nume}
               telefon={m.parinte1Telefon}
@@ -727,7 +730,13 @@ function pierderiText(p: {
   return `Dispar cu totul ${lista}.`;
 }
 
-/** Un părinte, cu butoane de contact. */
+/**
+ * Un părinte, cu butoane de contact.
+ *
+ * Numele stă singur pe rândul lui, iar butoanele dedesubt. Pe telefon, cu
+ * toate pe același rând, nu mai rămânea loc și se tăia tocmai partea care
+ * contează: „Mama, Ana Rem..." nu-i spune nimănui pe cine sună.
+ */
 function Parinte({
   nume,
   telefon,
@@ -739,32 +748,42 @@ function Parinte({
 }) {
   if (!nume && !telefon && !email) return null;
   return (
-    <li className="flex flex-wrap items-center gap-2">
-      <span className="min-w-0 flex-1 truncate text-sm font-medium">
+    <li className="flex flex-col gap-2 border-t border-[#eef1f7] py-3 first:border-0 first:pt-0 last:pb-0">
+      <span className="text-sm font-medium break-words">
         {nume ?? "Părinte"}
       </span>
-      {telefon && (
-        <>
-          <a href={`tel:${telefon}`} className="buton buton-secundar buton-mic">
-            Sună {telefon}
-          </a>
-          <a
-            href={`https://wa.me/${numarInternational(telefon)}`}
-            target="_blank"
-            rel="noreferrer"
-            className="buton buton-secundar buton-mic"
-          >
-            WhatsApp
-          </a>
-        </>
-      )}
-      {email && (
-        <a
-          href={`mailto:${email}`}
-          className="buton buton-secundar buton-mic max-w-full truncate"
-        >
-          {email}
-        </a>
+      {(telefon || email) && (
+        <div className="flex flex-wrap gap-2">
+          {telefon && (
+            <>
+              <a
+                href={`tel:${telefon}`}
+                className="buton buton-secundar buton-mic"
+              >
+                Sună {telefon}
+              </a>
+              <a
+                href={`https://wa.me/${numarInternational(telefon)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="buton buton-secundar buton-mic"
+              >
+                WhatsApp
+              </a>
+            </>
+          )}
+          {email && (
+            <a
+              href={`mailto:${email}`}
+              className="buton buton-secundar buton-mic max-w-full"
+            >
+              {/* Adresa se taie cu trei puncte la capăt, nu pe la mijloc:
+                  butonul e centrat, iar textul ar ieși în afară de amândouă
+                  părțile dacă l-am lăsa direct în el. */}
+              <span className="min-w-0 truncate">{email}</span>
+            </a>
+          )}
+        </div>
       )}
     </li>
   );
