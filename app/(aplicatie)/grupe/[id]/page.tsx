@@ -4,7 +4,10 @@ import { notFound } from "next/navigation";
 import { primesteInGrupa } from "@/app/(aplicatie)/membri/[id]/actions";
 import { anuleazaInlocuire } from "./actions";
 import { FormularInlocuire } from "@/componente/FormularInlocuire";
-import { FormularMembruNou } from "@/componente/FormularMembruNou";
+import {
+  AlegePulsistExistent,
+  FormularMembruNou,
+} from "@/componente/FormularMembruNou";
 import { RandProgramare } from "@/componente/RandProgramare";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import {
@@ -17,6 +20,7 @@ import {
   grupa as iaGrupa,
   intalniriGrupei,
   membriGrupei,
+  pulsistiFaraGrupa,
 } from "@/lib/interogari/grupe";
 import { programariGrupei, slujiriDeCompletat } from "@/lib/interogari/slujiri";
 import { alerteAbsenteGrupa } from "@/lib/interogari/statistici";
@@ -55,6 +59,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
     potentiali,
     slujiri,
     slujiriNecompletate,
+    nerepartizati,
   ] = await Promise.all([
     membriGrupei(grupaId),
     membriGrupei(grupaId, { status: "musafir" }),
@@ -65,6 +70,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
     liderilPotentiali(grupaId),
     programariGrupei(grupaId, 4),
     slujiriDeCompletat(grupaId),
+    pulsistiFaraGrupa(),
   ]);
 
   const necompletate = new Set(slujiriNecompletate.map((p) => p.id));
@@ -238,7 +244,31 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
           <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
             + Adaugă un pulsist
           </summary>
-          <div className="pt-2">
+          {nerepartizati.length > 0 && (
+            <div className="pt-2">
+              <p className="mb-3 text-xs text-cenusiu">
+                Caută-l întâi aici. Cine s-a înscris prin formular e deja în
+                aplicație, cu telefon, părinți și biserică - și le aduce cu el
+                în grupă.
+              </p>
+              <AlegePulsistExistent
+                grupaId={grupaId}
+                pulsisti={nerepartizati}
+              />
+            </div>
+          )}
+          <div
+            className={
+              nerepartizati.length > 0
+                ? "mt-4 border-t border-[#eef1f7] pt-4"
+                : "pt-2"
+            }
+          >
+            {nerepartizati.length > 0 && (
+              <p className="mb-3 text-xs font-medium">
+                Sau scrie-l de la zero, dacă nu e printre ei:
+              </p>
+            )}
             <FormularMembruNou grupaId={grupaId} />
           </div>
         </details>

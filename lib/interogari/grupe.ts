@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -13,7 +13,7 @@ import {
   prezente,
   type StarePrezenta,
 } from "@/lib/db/schema";
-import { adaugaZile } from "@/lib/util/date";
+import { adaugaZile, varsta } from "@/lib/util/date";
 
 /** Datele unei grupe (sau null dacă nu există). */
 export async function grupa(grupaId: number) {
@@ -33,6 +33,46 @@ export async function grupeActive() {
     .from(grupe)
     .where(eq(grupe.activa, true))
     .orderBy(asc(grupe.nume));
+}
+
+export type PulsistDeAdaugat = {
+  id: number;
+  nume: string;
+  clasa: number | null;
+  varsta: number | null;
+  sex: "baiat" | "fata" | null;
+  status: "membru" | "musafir";
+};
+
+/**
+ * Pulsiștii care există deja în aplicație, dar nu sunt în nicio grupă.
+ *
+ * Din ei alege liderul când primește pe cineva la grupă: de multe ori omul
+ * și-a completat formularul de înscriere cu luni în urmă și e deja aici cu
+ * telefon, părinți și biserică. Dacă l-ar scrie din nou de la zero, ar
+ * rămâne două fișe pentru același om, iar cineva ar trebui să le împace.
+ *
+ * Îi vede orice lider, nu doar adminul: până primesc o grupă, nerepartizații
+ * sunt ai lucrării întregi, iar liderul care îi ia la el are nevoie să-i
+ * găsească.
+ */
+export async function pulsistiFaraGrupa(): Promise<PulsistDeAdaugat[]> {
+  const lista = await db
+    .select({
+      id: membri.id,
+      nume: membri.nume,
+      clasa: membri.clasa,
+      dataNasterii: membri.dataNasterii,
+      sex: membri.sex,
+      status: membri.status,
+    })
+    .from(membri)
+    .where(and(isNull(membri.grupaId), eq(membri.activ, true)))
+    .orderBy(asc(membri.nume));
+
+  return lista
+    .map(({ dataNasterii, ...m }) => ({ ...m, varsta: varsta(dataNasterii) }))
+    .sort((a, b) => a.nume.localeCompare(b.nume, "ro"));
 }
 
 export type OptiuniMembri = {

@@ -6,6 +6,7 @@ import { COLOANE, type CheieColoana } from "@/lib/import-coloane";
 import { faraBiserica } from "@/lib/util/biserica-text";
 import { esteDataValida } from "@/lib/util/date";
 import { emailValid } from "@/lib/util/email";
+import { normalizeaza } from "@/lib/util/text";
 import type { Biserica, Botez } from "@/lib/util/etichete";
 
 /**
@@ -59,16 +60,6 @@ export type RezultatAnaliza = {
   existenti: ProblemaRand[];
   probleme: ProblemaRand[];
 };
-
-/** Fără diacritice, fără spații în plus, litere mici. */
-function normalizeaza(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
 
 /** Textul dintr-o celulă, oricum ar fi fost scris acolo. */
 function textDinCelula(valoare: ExcelJS.CellValue): string {
