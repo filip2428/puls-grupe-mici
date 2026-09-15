@@ -8,6 +8,13 @@
  * răspunsurile se tot adună. Rulezi asta din nou pe exportul proaspăt, iar
  * importul sare peste cine e deja în aplicație.
  *
+ * Ca să iasă doar cei veniți între timp, dă-i și exportul de data trecută:
+ *
+ *   `npm run formular -- "PULS (Responses) (1).xlsx" --fata-de "PULS (Responses).xlsx"`
+ *
+ * Așa verifici doar rândurile noi, nu toată lista de la capăt. Cine era deja
+ * în exportul vechi e sărit după nume - la fel cum face și importul.
+ *
  * Două lucruri nu se pot scoate din formular, așa că rămân rubrici goale:
  *  - GRUPA - formularul nu întreabă cine merge la care grupă. Nu e nevoie s-o
  *    completezi aici: importul primește și rânduri fără grupă, iar împărțirea
@@ -80,9 +87,20 @@ function numeFrumos(brut: string): string {
  * paranteze, cu cratime, cu spații, unul fără zeroul de la început. Le aducem
  * la aceeași formă, altfel căutarea după număr nu găsește nimic.
  */
+/**
+ * Ce scrie omul într-o căsuță obligatorie când n-are ce pune acolo: „Nu are",
+ * „/", „-". E un răspuns limpede, nu o greșeală, deci rămâne gol fără să mai
+ * apară la „De verificat".
+ */
+const NIMIC = ["-", "--", "/", ".", "x", "nu", "nu are", "nu am", "nu detine", "n/a", "na"];
+
+function eNimic(brut: string): boolean {
+  return NIMIC.includes(normalizeaza(brut));
+}
+
 function telefonCurat(brut: string): { numar: string | null; nota?: string } {
   const text = brut.replace(/\s+/g, " ").trim();
-  if (!text || text === "-") return { numar: null };
+  if (!text || eNimic(text)) return { numar: null };
 
   let cifre = text.replace(/[^\d+]/g, "");
   if (cifre.startsWith("+40")) cifre = "0" + cifre.slice(3);
@@ -104,14 +122,42 @@ function telefonCurat(brut: string): { numar: string | null; nota?: string } {
  */
 function emailCurat(brut: string): { adresa: string | null; nota?: string } {
   const text = brut.trim();
-  if (!text || text === "-") return { adresa: null };
+  if (!text || eNimic(text)) return { adresa: null };
 
   const curat = text
     .replace(/\(.*?\)/g, "")
     .replace(/\s+/g, "")
     .toLowerCase();
-  if (emailValid(curat)) return { adresa: curat.slice(0, 120) };
+  if (emailValid(curat)) {
+    const adresa = curat.slice(0, 120);
+    const domeniu = domeniuSuspect(adresa);
+    return domeniu
+      ? { adresa, nota: `Emailul „${adresa}" pare scris greșit la final (${domeniu}). Verifică-l.` }
+      : { adresa };
+  }
   return { adresa: null, nota: `Emailul „${text}" nu seamănă a adresă - l-am lăsat gol.` };
+}
+
+/**
+ * Adresele de la furnizorii mari au terminații știute. „yahoo.comt" sau
+ * „gmail.con" trec de verificarea de formă, dar anunțul nu ajunge nicăieri.
+ * Nu le reparăm singuri - nu știm sigur ce a vrut omul - doar le arătăm.
+ */
+const TERMINATII: Record<string, string[]> = {
+  gmail: ["com"],
+  yahoo: ["com", "ro", "fr", "de", "it", "co.uk", "es"],
+  icloud: ["com"],
+  hotmail: ["com", "ro", "fr", "de", "it", "co.uk", "es"],
+  outlook: ["com", "ro", "fr", "de", "it", "es"],
+};
+
+function domeniuSuspect(adresa: string): string | null {
+  const domeniu = adresa.split("@")[1] ?? "";
+  const [furnizor, ...rest] = domeniu.split(".");
+  const permise = TERMINATII[furnizor];
+  if (!permise) return null;
+  const terminatie = rest.join(".");
+  return permise.includes(terminatie) ? null : `@${domeniu}`;
 }
 
 /**
@@ -130,6 +176,8 @@ const BISERICI: { potriviri: string[]; nume: string; nota?: string }[] = [
   { potriviri: ["victory"], nume: "Victory of Christ Arad" },
   { potriviri: ["elim"], nume: "Elim Curtici" },
   { potriviri: ["oastea domnului"], nume: "Oastea Domnului" },
+  // A apărut scrisă în patru feluri în aceeași săptămână.
+  { potriviri: ["ekklesia", "ekklessia", "eklessia", "eklesia", "ecclesia"], nume: "Ekklesia" },
 ];
 
 /** Cuvintele prin care cineva spune, într-un formular, „nu ține de nicio biserică". */
@@ -173,10 +221,10 @@ function bisericaCurata(brut: string): { nume: string; nota?: string } {
  * decât o presupunere trecută ca fapt.
  */
 const BAIETI = `abel adrian albert alex alexandru alin amos andrei anton aurel beniamin bogdan
-calin catalin ciprian claudiu constantin cosmin cristi cristian damian dan daniel darius david
-denis dorel dorin dragos eduard edward elias emanuel emil eusebiu fabian filip flavius florin
-gabriel george gheorghe horia iacob ianis ilie ioan ion ionut iosif iosua isaac iulian iustin
-jhonatan jonathan kevin liviu luca lucas marcel marcu marian marius mark matei mateo matias
+caleb calin catalin ciprian claudiu constantin cosmin cristi cristian damian dan daniel darius david
+denis dorel dorin dragos eduard edward elias emanuel emil eric eusebiu ezra fabian filip flavius florin
+gabriel george gheorghe horia iacob ianis ilie ioan ioas ion ionut iosif iosua isaac iulian iustin
+jhonatan jonathan kevin liviu luca lucas marcel marcu marcus marian marius mark matei mateo matias
 mihai mircea moise natan natanael nelu nicolae noe oliver ovidiu patrick paul pavel petru radu
 rares raul rawad robert roman samuel samuil sebastian serafino seth silviu simon sorin stefan
 teodor tiberiu timotei tudor valentin vasile victor vlad vladimir`;
@@ -184,12 +232,12 @@ teodor tiberiu timotei tudor valentin vasile victor vlad vladimir`;
 const FETE = `abbigail abi abigail ada adela adina adriana agnes alesia alessia alexandra alina
 alisa amalia ana anca andreea anelisse aneta antonia ariana aurora aylin beatrice bianca camelia
 carla carmen casandra catalina cezara clara claudia corina cristina dalia damaris dana daniela
-daria debora delia denisa diana doina dorina doris elena eliana elisabeta elisabeth eliza ella
+daria debora delia denisa diana doina dorina doris elena eliana eliane elisabeta elisabeth eliza ella
 emanuela emma erika estera eva evelina fabiola flavia florina gabriela georgiana gloria hadina
 iasmina ileana ilinca ioana iulia iuliana ivona joellin julia karina larisa laura lavinia lea
 lidia ligia liliana lois loredana luiza magdalena maia mara maria mariana marta melania mihaela
 miriam monica nadia natalia nicoleta noemi oana olivia otilia patricia paula petra rahela raisa
-raluca rania rebeca rebecca roberta ruth salma samira sara sarah sefora sidonia silvia simona
+rafaela raluca rania rebeca rebecca roberta ruth salma samira sara sarah sefora sidonia silvia simona
 sofia sonia sophia sophie stefania tabita teodora tiana timea valentina vanessa veronica
 victoria viorica violeta`;
 
@@ -204,6 +252,28 @@ function sexDinPrenume(prenume: string): "băiat" | "fată" | null {
     if (gasit) return gasit;
   }
   return null;
+}
+
+/**
+ * Numele întreg, „Prenume Nume", din cele două căsuțe ale formularului.
+ *
+ * Uneori sunt completate invers - „Nume: Rafaela, Prenume: Todor". Le întoarcem
+ * doar când e limpede: în căsuța de prenume nu e niciun prenume știut, iar în
+ * cea de nume e. Altfel lăsăm cum a scris omul.
+ */
+function numeleAdolescentului(
+  numeFamilie: string,
+  prenume: string,
+): { nume: string; prenume: string; inversat: boolean } | null {
+  if (!numeFamilie && !prenume) return null;
+  const inversat = !sexDinPrenume(prenume) && sexDinPrenume(numeFamilie) !== null;
+  const [familia, primul] = inversat ? [prenume, numeFamilie] : [numeFamilie, prenume];
+  return {
+    // În aplicație numele se scriu „Prenume Nume", ca într-o agendă de telefon.
+    nume: `${numeFrumos(primul)} ${numeFrumos(familia)}`.trim(),
+    prenume: primul,
+    inversat,
+  };
 }
 
 const CLASE_ROMANE: Record<string, number> = {
@@ -396,6 +466,17 @@ async function main() {
     }
   }
 
+  // Cei din exportul trecut, dacă s-a cerut doar ce e nou. Numărăm, nu doar
+  // ținem minte: cine a completat de două ori acum și o dată atunci are un
+  // rând în plus care merită văzut.
+  const indiceFataDe = process.argv.indexOf("--fata-de");
+  const dinExportulVechi =
+    indiceFataDe === -1
+      ? null
+      : await numeleDinExport(resolve(process.argv[indiceFataDe + 1] ?? ""));
+  const saritiDinVechi = new Map<string, number>();
+  const completatDinNou: string[] = [];
+
   const text = (rand: ExcelJS.Row, cheie: CheieIntrebare): string => {
     const coloana = gasite.get(cheie);
     return coloana ? textDinCelula(rand.getCell(coloana).value).trim() : "";
@@ -407,13 +488,27 @@ async function main() {
 
   for (let nrRand = 2; nrRand <= foaie.rowCount; nrRand++) {
     const rand = foaie.getRow(nrRand);
-    const numeFamilie = text(rand, "nume");
-    const prenume = text(rand, "prenume");
-    if (!numeFamilie && !prenume) continue;
+    const scris = numeleAdolescentului(text(rand, "nume"), text(rand, "prenume"));
+    if (!scris) continue;
+    const { nume, prenume } = scris;
 
     const note: string[] = [];
-    // În aplicație numele se scriu „Prenume Nume", ca într-o agendă de telefon.
-    const nume = `${numeFrumos(prenume)} ${numeFrumos(numeFamilie)}`.trim();
+    if (scris.inversat) {
+      note.push(
+        `Numele și prenumele erau scrise invers în formular - le-am întors („${nume}"). Verifică.`,
+      );
+    }
+
+    if (dinExportulVechi) {
+      const cheie = normalizeaza(nume);
+      const atunci = dinExportulVechi.get(cheie) ?? 0;
+      if (atunci > 0) {
+        const deja = saritiDinVechi.get(cheie) ?? 0;
+        saritiDinVechi.set(cheie, deja + 1);
+        if (deja >= atunci) completatDinNou.push(`${nume} (rândul ${nrRand})`);
+        continue;
+      }
+    }
 
     const primaData = vazute.get(normalizeaza(nume));
     if (primaData) {
@@ -473,15 +568,21 @@ async function main() {
       email: string | null;
     }[] = [];
     for (const bloc of parinti) {
-      const numeP = numeFrumos(textDinCelula(rand.getCell(bloc.nume).value));
-      const prenumeP = numeFrumos(textDinCelula(rand.getCell(bloc.prenume).value));
+      const brutNumeP = textDinCelula(rand.getCell(bloc.nume).value);
+      const brutPrenumeP = textDinCelula(rand.getCell(bloc.prenume).value);
+      const numeP = eNimic(brutNumeP) ? "" : numeFrumos(brutNumeP);
+      const prenumeP = eNimic(brutPrenumeP) ? "" : numeFrumos(brutPrenumeP);
       const relatie = textDinCelula(rand.getCell(bloc.relatie).value).trim();
       const telefonP = telefonCurat(textDinCelula(rand.getCell(bloc.telefon).value));
       if (telefonP.nota) note.push(`Părinte: ${telefonP.nota}`);
       const emailP = emailCurat(textDinCelula(rand.getCell(bloc.email).value));
       if (emailP.nota) note.push(`Părinte: ${emailP.nota}`);
 
-      const numeIntreg = `${prenumeP} ${numeP}`.replace(/\s+/g, " ").trim();
+      // Și la părinți căsuțele se completează uneori invers („Todor Lidia").
+      const parinteInversat = !sexDinPrenume(prenumeP) && sexDinPrenume(numeP) !== null;
+      const numeIntreg = (parinteInversat ? `${numeP} ${prenumeP}` : `${prenumeP} ${numeP}`)
+        .replace(/\s+/g, " ")
+        .trim();
       if (!numeIntreg) continue;
 
       /*
@@ -516,6 +617,10 @@ async function main() {
       });
     }
 
+    if (contacte.length === 0) {
+      note.push("N-are niciun părinte scris în formular - cere un contact al familiei.");
+    }
+
     if (telefon.numar && contacte.some((c) => c.telefon === telefon.numar)) {
       note.push(
         "Telefonul pulsistului e același cu al unui părinte - probabil n-are telefon al lui.",
@@ -542,8 +647,39 @@ async function main() {
     });
   }
 
+  /*
+    Frații se înscriu de obicei de același părinte, pe rânduri diferite. Dacă
+    același număr apare cu două nume de părinte („Cristina Ardeu" și „Cristina
+    Ardej"), unul e greșit - și pe fișă ar rămâne așa.
+  */
+  const numeLaTelefon = new Map<string, Set<string>>();
+  for (const r of randuri) {
+    for (const [n, tel] of [
+      [r.parinte1Nume, r.parinte1Telefon],
+      [r.parinte2Nume, r.parinte2Telefon],
+    ] as const) {
+      if (!n || !tel) continue;
+      const fara = normalizeaza(n.replace(/^[^,]*,\s*/, ""));
+      numeLaTelefon.set(tel, (numeLaTelefon.get(tel) ?? new Set()).add(fara));
+    }
+  }
+  for (const r of randuri) {
+    for (const [n, tel] of [
+      [r.parinte1Nume, r.parinte1Telefon],
+      [r.parinte2Nume, r.parinte2Telefon],
+    ] as const) {
+      if (!n || !tel || (numeLaTelefon.get(tel)?.size ?? 0) < 2) continue;
+      const toate = [...numeLaTelefon.get(tel)!].join(" / ");
+      r.note.push(`Părintele cu ${tel} e scris diferit la frați (${toate}). Alege o formă.`);
+    }
+  }
+
   if (randuri.length === 0) {
-    console.error("N-am găsit niciun răspuns completat în fișier.");
+    console.error(
+      dinExportulVechi
+        ? "Nu e niciun răspuns nou față de exportul vechi."
+        : "N-am găsit niciun răspuns completat în fișier.",
+    );
     process.exit(1);
   }
 
@@ -567,11 +703,62 @@ async function main() {
   const indiceIese = process.argv.indexOf("--iese");
   const numeIesire =
     indiceIese === -1
-      ? resolve(dirname(intrare), "pulsisti-pentru-import.xlsx")
+      ? resolve(
+          dirname(intrare),
+          dinExportulVechi
+            ? "pulsisti-noi-pentru-import.xlsx"
+            : "pulsisti-pentru-import.xlsx",
+        )
       : resolve(process.argv[indiceIese + 1]);
   await iesire.xlsx.writeFile(numeIesire);
 
   raporteaza(basename(intrare), numeIesire, randuri);
+
+  if (dinExportulVechi) {
+    const sariti = [...saritiDinVechi.values()].reduce((a, b) => a + b, 0);
+    console.log(`  Săriți, fiindcă erau și în exportul vechi: ${sariti}.`);
+    if (completatDinNou.length > 0) {
+      console.log("  Au mai completat o dată formularul (poate au schimbat ceva):");
+      for (const cine of completatDinNou) console.log(`    ${cine}`);
+    }
+    console.log("");
+  }
+}
+
+/**
+ * Câte rânduri are fiecare nume într-un export mai vechi al formularului.
+ * Numele se compun la fel ca mai sus, ca „IOAS Ardeu" să fie găsit și când
+ * între timp s-a scris frumos.
+ */
+async function numeleDinExport(cale: string): Promise<Map<string, number>> {
+  const registru = new ExcelJS.Workbook();
+  try {
+    await registru.xlsx.readFile(cale);
+  } catch {
+    console.error(`Nu pot deschide exportul vechi: ${cale}`);
+    process.exit(1);
+  }
+  const foaie = registru.worksheets[0];
+  const { gasite } = gasesteColoane(foaie.getRow(1));
+  const colNume = gasite.get("nume");
+  const colPrenume = gasite.get("prenume");
+  if (!colNume || !colPrenume) {
+    console.error("Exportul vechi n-are coloanele cu numele adolescentului.");
+    process.exit(1);
+  }
+
+  const numar = new Map<string, number>();
+  for (let nrRand = 2; nrRand <= foaie.rowCount; nrRand++) {
+    const rand = foaie.getRow(nrRand);
+    const scris = numeleAdolescentului(
+      textDinCelula(rand.getCell(colNume).value).trim(),
+      textDinCelula(rand.getCell(colPrenume).value).trim(),
+    );
+    if (!scris) continue;
+    const cheie = normalizeaza(scris.nume);
+    numar.set(cheie, (numar.get(cheie) ?? 0) + 1);
+  }
+  return numar;
 }
 
 const ANTET_APLICATIE = "FFEEF1F7";
