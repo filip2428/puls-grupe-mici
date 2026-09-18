@@ -28,7 +28,13 @@ function improspateazaGrupa(grupaId: number | null) {
   else revalidatePath("/admin/nerepartizati");
 }
 
-/** Verifică dreptul de a lucra cu un anumit pulsist. */
+/**
+ * Verifică dreptul de a lucra cu un anumit pulsist.
+ *
+ * Nu e destul să-l vadă: cine are doar vedere peste toți pulsiștii citește
+ * fișa, dar n-are voie să scrie nimic în ea. De-aia `doarVede` e tratat aici
+ * ca un refuz - toate acțiunile de mai jos trec prin funcția asta.
+ */
 async function accesLaMembru(membruId: number) {
   const lider = await ceruteLider();
   const [m] = await db
@@ -37,7 +43,7 @@ async function accesLaMembru(membruId: number) {
     .where(eq(membri.id, membruId));
   if (!m) return null;
   const acces = await verificaAccesMembru(lider, m.grupaId);
-  if (!acces.permis) return null;
+  if (!acces.permis || acces.doarVede) return null;
   return { lider, membru: m };
 }
 

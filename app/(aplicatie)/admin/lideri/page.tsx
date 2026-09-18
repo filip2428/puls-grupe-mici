@@ -6,7 +6,12 @@ import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { listaLideri } from "@/lib/interogari/lideri";
 import { pierderiLider } from "@/lib/interogari/stergere";
 import { momentLizibil } from "@/lib/util/date";
-import { schimbaActivLider, schimbaRol, stergeLider } from "../actions";
+import {
+  schimbaActivLider,
+  schimbaRol,
+  schimbaVedereaPulsistilor,
+  stergeLider,
+} from "../actions";
 
 export const metadata = { title: "Lideri · Puls" };
 
@@ -28,7 +33,8 @@ export default async function PaginaLideri() {
         <h1 className="mt-2 text-xl font-bold">Lideri</h1>
         <p className="text-sm text-cenusiu">
           Fiecare lider intră cu codul lui. Repartizarea la grupe se face din
-          pagina grupei.
+          pagina grupei. Tot de aici alegi cine vede toți pulsiștii și cine
+          doar pe cei din grupele lui.
         </p>
       </div>
 
@@ -50,6 +56,11 @@ export default async function PaginaLideri() {
                       administrator
                     </span>
                   )}
+                  {l.rol !== "admin" && l.vedeTotiPulsistii && (
+                    <span className="ml-2 rounded-full bg-lime/40 px-2 py-0.5 text-[11px]">
+                      vede toți pulsiștii
+                    </span>
+                  )}
                   {!l.activ && (
                     <span className="ml-2 text-xs text-cenusiu">dezactivat</span>
                   )}
@@ -67,6 +78,26 @@ export default async function PaginaLideri() {
 
               <div className="flex flex-wrap items-center gap-2">
                 <ButonCodNou liderId={l.id} />
+
+                {/*
+                  Adminii îi văd oricum pe toți, deci lor nu le arătăm
+                  comutatorul: ar da impresia că li se poate lua ceva.
+                */}
+                {l.rol !== "admin" && (
+                  <form
+                    action={schimbaVedereaPulsistilor.bind(
+                      null,
+                      l.id,
+                      !l.vedeTotiPulsistii,
+                    )}
+                  >
+                    <button type="submit" className="buton buton-secundar buton-mic">
+                      {l.vedeTotiPulsistii
+                        ? "Lasă-i doar grupele lui"
+                        : "Arată-i toți pulsiștii"}
+                    </button>
+                  </form>
+                )}
 
                 {l.id !== admin.id && (
                   <>

@@ -13,6 +13,7 @@ import {
   grupeAccesibile,
   inlocuiriGrupa,
   liderilGrupei,
+  vedeTotiPulsistii,
   verificaAccesMembru,
 } from "@/lib/interogari/acces";
 import { bisericileCunoscute } from "@/lib/interogari/biserici";
@@ -85,6 +86,14 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   if (!acces.permis) notFound();
 
   /*
+    Adminul i-a dat vedere peste toți pulsiștii, dar ăsta nu e al lui: fișa se
+    citește, nu se schimbă. Ascundem tot ce ar duce la o modificare, în loc să
+    lăsăm butoane care oricum n-ar face nimic - și notele, care rămân între
+    liderii grupei lui.
+  */
+  const poateSchimba = !acces.doarVede;
+
+  /*
     Un pulsist poate să n-aibă grupă: abia a fost înscris și nu s-a hotărât
     unde merge, ori grupa lui a fost ștearsă. Fișa merge și așa - doar că în
     locul cartonașului cu grupa și liderii ei apare unul de repartizare.
@@ -141,13 +150,14 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     .filter(Boolean)
     .join(" · ");
 
-  /* `undefined` la coordonator înseamnă „vede tot", nu „nu vede nimic". */
   /*
-    Cine n-are grupă e al coordonatorilor, deci fișa lui se deschide doar de
-    către ei - `grupePermise === undefined` înseamnă chiar „e coordonator".
+    A cui fișă se poate deschide de aici. Cine are vedere peste toți pulsiștii
+    le deschide pe toate; ceilalți, doar pe ale grupelor lor - iar cel fără
+    grupă rămâne al coordonatorilor.
   */
   const potVedea = (grupaId: number | null) =>
-    grupePermise === undefined || (grupaId !== null && grupePermise.includes(grupaId));
+    vedeTotiPulsistii(lider) ||
+    (grupaId !== null && (grupePermise ?? []).includes(grupaId));
 
   const m = date.membru;
   const ani = varsta(m.dataNasterii);
@@ -166,7 +176,15 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
   return (
     <div className="flex flex-col gap-5">
       <div>
-        {grupa ? (
+        {/*
+          Înapoi de unde a venit. Cine doar vede fișa n-are acces nici la grupa
+          ei, nici la nerepartizați, deci l-ar duce într-un perete.
+        */}
+        {!poateSchimba ? (
+          <Link href="/pulsisti" className="text-sm text-cenusiu">
+            ← Pulsiști
+          </Link>
+        ) : grupa ? (
           <Link href={`/grupe/${grupa.id}`} className="text-sm text-cenusiu">
             ← {grupa.nume}
           </Link>
@@ -223,6 +241,14 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         )}
       </div>
 
+      {!poateSchimba && (
+        <p className="rounded-xl bg-lime/25 px-3 py-2 text-xs">
+          Îl vezi fiindcă ai vedere peste toți pulsiștii, dar nu e în grupele
+          tale. De schimbat datele, notele și prezența lui se ocupă{" "}
+          {grupa ? "liderii grupei lui" : "coordonatorii"}.
+        </p>
+      )}
+
       {/*
         Grupa lui, cu liderii ei - primul lucru pe care vrei să-l știi.
         Când n-are grupă, în locul cartonașului stă chiar repartizarea: e locul
@@ -235,7 +261,11 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             Până e repartizat nu apare pe nicio foaie de prezență și nu intră în
             statistici. Datele lui sunt însă toate aici.
           </p>
-          {grupeDeAles.length === 0 ? (
+          {!poateSchimba ? (
+            <p className="mt-3 text-sm text-cenusiu">
+              Coordonatorii îl repartizează.
+            </p>
+          ) : grupeDeAles.length === 0 ? (
             <p className="mt-3 text-sm text-cenusiu">
               Nu e nicio grupă activă în care să-l pui.{" "}
               <Link href="/admin/grupe" className="text-albastru">
@@ -271,9 +301,13 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
       <section className="card p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <h2 className="text-sm font-bold">
-            <Link href={`/grupe/${grupa.id}`} className="text-albastru">
-              {grupa.nume}
-            </Link>
+            {poateSchimba ? (
+              <Link href={`/grupe/${grupa.id}`} className="text-albastru">
+                {grupa.nume}
+              </Link>
+            ) : (
+              grupa.nume
+            )}
           </h2>
           {candSeVede && (
             <span className="text-xs text-cenusiu">{candSeVede}</span>
@@ -325,6 +359,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         ))}
 
         {/* Musafir sau membru */}
+        {poateSchimba && (
         <div className="mt-3 border-t border-[#eef1f7] pt-3">
           {esteMusafir ? (
             <>
@@ -358,6 +393,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             </>
           )}
         </div>
+        )}
       </section>
       )}
 
@@ -431,21 +467,23 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                       {detaliiPrieten}
                     </span>
                   </div>
-                  <form action={scoatePrieten.bind(null, membruId, p.id)}>
-                    <button
-                      type="submit"
-                      className="buton buton-secundar buton-mic"
-                    >
-                      Scoate
-                    </button>
-                  </form>
+                  {poateSchimba && (
+                    <form action={scoatePrieten.bind(null, membruId, p.id)}>
+                      <button
+                        type="submit"
+                        className="buton buton-secundar buton-mic"
+                      >
+                        Scoate
+                      </button>
+                    </form>
+                  )}
                 </li>
               );
             })}
           </ul>
         )}
 
-        {deLegat.length > 0 ? (
+        {!poateSchimba ? null : deLegat.length > 0 ? (
           <form
             action={adaugaPrieten.bind(null, membruId)}
             className="mt-3 flex items-end gap-2 border-t border-[#eef1f7] pt-3"
@@ -502,19 +540,21 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                     <span className="ml-2 text-xs text-cenusiu">arhivată</span>
                   )}
                 </Link>
-                <form
-                  action={scoateSlujireaMembrului.bind(null, membruId, e.echipaId)}
-                >
-                  <button type="submit" className="buton buton-secundar buton-mic">
-                    Scoate
-                  </button>
-                </form>
+                {poateSchimba && (
+                  <form
+                    action={scoateSlujireaMembrului.bind(null, membruId, e.echipaId)}
+                  >
+                    <button type="submit" className="buton buton-secundar buton-mic">
+                      Scoate
+                    </button>
+                  </form>
+                )}
               </li>
             ))}
           </ul>
         )}
 
-        {disponibile.length > 0 ? (
+        {!poateSchimba ? null : disponibile.length > 0 ? (
           <form
             action={adaugaSlujireaMembrului.bind(null, membruId)}
             className="mt-3 flex flex-col gap-3 border-t border-[#eef1f7] pt-3"
@@ -598,7 +638,8 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         </p>
       </section>
 
-      {/* Note */}
+      {/* Note - doar pentru liderii lui, nu și pentru cine trece în vizită */}
+      {poateSchimba && (
       <section className="card p-4">
         <h2 className="mb-1 text-sm font-bold">Note</h2>
         <p className="mb-3 text-xs text-cenusiu">
@@ -632,8 +673,10 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           </ul>
         )}
       </section>
+      )}
 
       {/* Editare */}
+      {poateSchimba && (
       <section className="card p-4">
         <details>
           <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
@@ -679,9 +722,10 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           </div>
         </details>
       </section>
+      )}
 
       {/* Ștergerea definitivă */}
-      {pierderi && (
+      {poateSchimba && pierderi && (
         <ZonaStergere
           actiune={stergeMembru.bind(null, membruId)}
           nume={m.nume}

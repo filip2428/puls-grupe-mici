@@ -51,6 +51,17 @@ export const lideri = sqliteTable(
     rol: text("rol", { enum: ["admin", "lider"] })
       .notNull()
       .default("lider"),
+    /**
+     * Dacă vede lista tuturor pulsiștilor, nu doar pe cei din grupele lui.
+     *
+     * E doar vedere: fișa unui pulsist din altă grupă se deschide, dar nu se
+     * poate schimba nimic în ea, iar notele rămân la liderii grupei lui. E
+     * pentru cine are treabă cu toată lucrarea - cel care ține evidența, cel
+     * care organizează tabăra - fără să-l facem administrator.
+     */
+    vedeTotiPulsistii: integer("vede_toti_pulsistii", { mode: "boolean" })
+      .notNull()
+      .default(false),
     /** Prima parte a codului de acces (ex. "7QF4") - publică, servește la căutare. */
     codPublic: text("cod_public").notNull(),
     /** Hash-ul părții secrete a codului (scrypt). Codul în clar NU se salvează nicăieri. */

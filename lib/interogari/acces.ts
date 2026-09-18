@@ -81,7 +81,27 @@ export async function grupeAccesibile(lider: Lider): Promise<GrupaAccesibila[]> 
 
 export type VerificareAcces =
   | { permis: false }
-  | { permis: true; prinInlocuire: boolean; esteAdmin: boolean };
+  | {
+      permis: true;
+      prinInlocuire: boolean;
+      esteAdmin: boolean;
+      /**
+       * Adevărat când liderul ajunge la pulsist doar fiindcă are vedere peste
+       * toți, nu fiindcă ar fi al lui. Atunci fișa se citește, dar nu se
+       * schimbă nimic în ea.
+       */
+      doarVede: boolean;
+    };
+
+/**
+ * Dacă liderul vede lista tuturor pulsiștilor, nu doar a alor lui.
+ *
+ * Adminul o vede oricum; ceilalți, doar dacă le-a dat adminul dreptul ăsta
+ * din „Administrare · Lideri".
+ */
+export function vedeTotiPulsistii(lider: Lider): boolean {
+  return lider.rol === "admin" || lider.vedeTotiPulsistii;
+}
 
 /** Verifică dacă liderul poate deschide o anumită grupă. */
 export async function verificaAccesGrupa(
@@ -89,7 +109,7 @@ export async function verificaAccesGrupa(
   grupaId: number,
 ): Promise<VerificareAcces> {
   if (lider.rol === "admin") {
-    return { permis: true, prinInlocuire: false, esteAdmin: true };
+    return { permis: true, prinInlocuire: false, esteAdmin: true, doarVede: false };
   }
 
   const [propriu] = await db
@@ -98,7 +118,9 @@ export async function verificaAccesGrupa(
     .where(
       and(eq(lideriGrupe.liderId, lider.id), eq(lideriGrupe.grupaId, grupaId)),
     );
-  if (propriu) return { permis: true, prinInlocuire: false, esteAdmin: false };
+  if (propriu) {
+    return { permis: true, prinInlocuire: false, esteAdmin: false, doarVede: false };
+  }
 
   const azi = dataAzi();
   const [inlocuire] = await db
@@ -113,7 +135,9 @@ export async function verificaAccesGrupa(
         gte(delegari.panaLa, azi),
       ),
     );
-  if (inlocuire) return { permis: true, prinInlocuire: true, esteAdmin: false };
+  if (inlocuire) {
+    return { permis: true, prinInlocuire: true, esteAdmin: false, doarVede: false };
+  }
 
   return { permis: false };
 }
@@ -124,17 +148,27 @@ export async function verificaAccesGrupa(
  * Un pulsist nerepartizat n-are grupă de care să se agățe dreptul de a-l
  * vedea, așa că rămâne al coordonatorilor până i se dă una. Nu e o
  * restricție inventată: repartizarea e oricum treaba lor.
+ *
+ * Peste toate astea trece dreptul de vedere dat de admin: cine îl are
+ * deschide orice fișă, dar cu `doarVede`, adică fără să poată schimba ceva.
  */
 export async function verificaAccesMembru(
   lider: Lider,
   grupaId: number | null,
 ): Promise<VerificareAcces> {
   if (grupaId === null) {
-    return lider.rol === "admin"
-      ? { permis: true, prinInlocuire: false, esteAdmin: true }
-      : { permis: false };
+    if (lider.rol === "admin") {
+      return { permis: true, prinInlocuire: false, esteAdmin: true, doarVede: false };
+    }
+  } else {
+    const alGrupei = await verificaAccesGrupa(lider, grupaId);
+    if (alGrupei.permis) return alGrupei;
   }
-  return verificaAccesGrupa(lider, grupaId);
+
+  if (vedeTotiPulsistii(lider)) {
+    return { permis: true, prinInlocuire: false, esteAdmin: false, doarVede: true };
+  }
+  return { permis: false };
 }
 
 /** Liderii repartizați la o grupă. Un pulsist fără grupă n-are niciunul. */

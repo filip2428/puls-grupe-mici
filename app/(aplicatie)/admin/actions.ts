@@ -109,6 +109,34 @@ export async function schimbaRol(liderId: number, rol: "lider" | "admin") {
 }
 
 /**
+ * Îi dă sau îi ia dreptul de a vedea toți pulsiștii, nu doar pe cei din
+ * grupele lui.
+ *
+ * E doar vedere: fișele celorlalți se deschid, dar nu se pot schimba, iar
+ * notele lor nu se văd. Adminii îi văd oricum pe toți, așa că lor nu li se
+ * pune întrebarea.
+ */
+export async function schimbaVedereaPulsistilor(
+  liderId: number,
+  vede: boolean,
+) {
+  const admin = await ceruteAdmin();
+
+  await db
+    .update(lideri)
+    .set({ vedeTotiPulsistii: vede })
+    .where(eq(lideri.id, liderId));
+  await scrieAudit(
+    admin.id,
+    vede ? "lider:vede-toti-pulsistii" : "lider:vede-doar-grupele-lui",
+    { liderId },
+  );
+
+  revalidatePath("/admin/lideri");
+  revalidatePath("/pulsisti");
+}
+
+/**
  * Șterge definitiv un lider.
  *
  * E ireversibil, deci cerem numele scris de mână. Prezențele pe care le-a

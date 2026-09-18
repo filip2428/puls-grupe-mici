@@ -58,6 +58,32 @@ Coordonatorii văd toată lucrarea într-un singur loc.
 
 ---
 
+## Un lider care vede toți pulsiștii
+
+Uneori cineva are treabă cu toată lucrarea fără să fie coordonator: cel care
+ține evidența, cel care organizează tabăra, cel care face grupele la început de
+an. Pentru el, adminul apasă **„Arată-i toți pulsiștii"** în *Administrare ·
+Lideri*. Se ia înapoi la fel de ușor, cu **„Lasă-i doar grupele lui"**.
+
+Cu dreptul ăsta, liderul:
+
+- are în *Pulsiști* toată lucrarea, cu filtrele obișnuite (inclusiv filtrarea
+  după orice grupă) și cu descărcarea în Excel;
+- deschide fișa oricui: datele lui de contact, ale părinților, clasa, biserica,
+  botezul, prietenii, unde slujește și istoricul prezenței.
+
+Ce **nu** primește:
+
+- nu poate schimba nimic la un pulsist din afara grupelor lui - nici datele,
+  nici statutul de musafir sau membru, nici prietenii sau slujirile, nici
+  ștergerea;
+- nu-i vede notele: alea rămân între liderii grupei lui;
+- nu intră în grupele altora și nu le face prezența.
+
+Adminii îi văd oricum pe toți, așa că lor nu li se pune întrebarea.
+
+---
+
 ## Musafiri și membri
 
 Cine vine prima dată **nu** intră automat în grupă. Liderul îl adaugă de pe foaia
@@ -686,7 +712,7 @@ app/
   intra/              pagina de intrare cu codul de acces
   (aplicatie)/
     grupe/            grupele mele, grupa, foaia de prezență
-    pulsisti/      lista cu filtre (adminul vede tot, liderul doar grupele lui)
+    pulsisti/      lista cu filtre (toți pulsiștii sau doar grupele lui)
     membri/[id]/      fișa unui pulsist (istoric, părinți, note, unde slujește)
     slujiri/          locurile de slujire și calendarul programărilor
     setari/           email, notificări, ieșire din cont

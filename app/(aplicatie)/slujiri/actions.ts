@@ -191,8 +191,9 @@ async function poateSchimbaEchipa(echipaId: number, membruId: number) {
     .where(eq(membri.id, membruId));
   if (!m) return null;
 
+  // Vederea peste toți pulsiștii nu dă și dreptul de a-i schimba slujirile.
   const acces = await verificaAccesMembru(lider, m.grupaId);
-  return acces.permis ? lider : null;
+  return acces.permis && !acces.doarVede ? lider : null;
 }
 
 /** Adaugă un pulsist într-o echipă de slujire. */

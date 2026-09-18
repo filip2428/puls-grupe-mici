@@ -1,0 +1,1 @@
+ALTER TABLE `lideri` ADD `vede_toti_pulsistii` integer DEFAULT false NOT NULL;

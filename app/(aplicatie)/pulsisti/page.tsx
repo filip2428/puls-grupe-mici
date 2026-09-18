@@ -3,7 +3,8 @@ import Link from "next/link";
 import { InsignaBiserica } from "@/componente/InsignaBiserica";
 import { InsignaBotez } from "@/componente/InsignaBotez";
 import { ceruteLider } from "@/lib/auth/sesiune";
-import { grupeAccesibile } from "@/lib/interogari/acces";
+import { grupeAccesibile, vedeTotiPulsistii } from "@/lib/interogari/acces";
+import { toateGrupele } from "@/lib/interogari/lideri";
 import {
   cautaPulsisti,
   filtruDinParametri,
@@ -27,9 +28,19 @@ export default async function PaginaPulsisti({
   const parametri = await searchParams;
   const filtru = filtruDinParametri(parametri);
 
-  const grupe = await grupeAccesibile(lider);
-  if (lider.rol !== "admin") {
-    filtru.grupePermise = grupe.map((g) => g.id);
+  /*
+    Cine n-are vedere peste toți rămâne la grupele lui. Filtrul de grupă arată
+    exact grupele ai căror pulsiști îi are în listă - altfel ar fi acolo o
+    grupă care nu întoarce niciodată pe nimeni.
+  */
+  const vedeTot = vedeTotiPulsistii(lider);
+  let grupe: { id: number; nume: string }[];
+  if (vedeTot) {
+    grupe = await toateGrupele();
+  } else {
+    const aleMele = await grupeAccesibile(lider);
+    filtru.grupePermise = aleMele.map((g) => g.id);
+    grupe = aleMele;
   }
 
   const lista = await cautaPulsisti(filtru);
@@ -55,7 +66,7 @@ export default async function PaginaPulsisti({
       <div>
         <h1 className="text-xl font-bold">Pulsiști</h1>
         <p className="text-sm text-cenusiu">
-          {lider.rol === "admin"
+          {vedeTot
             ? "Toți pulsiștii, cu filtre și export."
             : "Pulsiștii din grupele tale."}
         </p>

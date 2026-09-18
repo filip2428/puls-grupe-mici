@@ -63,6 +63,8 @@ export type LiderCuGrupe = {
   telefon: string | null;
   rol: "admin" | "lider";
   activ: boolean;
+  /** Dacă vede toți pulsiștii sau doar pe cei din grupele lui. */
+  vedeTotiPulsistii: boolean;
   ultimaAutentificare: Date | null;
   grupe: { id: number; nume: string }[];
 };
@@ -93,6 +95,7 @@ export async function listaLideri(): Promise<LiderCuGrupe[]> {
     telefon: l.telefon,
     rol: l.rol,
     activ: l.activ,
+    vedeTotiPulsistii: l.vedeTotiPulsistii,
     ultimaAutentificare: l.ultimaAutentificare,
     grupe: peLider.get(l.id) ?? [],
   }));

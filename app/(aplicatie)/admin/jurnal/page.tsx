@@ -61,6 +61,8 @@ const TEXTE: Record<string, string> = {
   "lider:activat": "a activat un lider",
   "lider:dezactivat": "a dezactivat un lider",
   "lider:rol": "a schimbat rolul unui lider",
+  "lider:vede-toti-pulsistii": "a dat unui lider vedere peste toți pulsiștii",
+  "lider:vede-doar-grupele-lui": "a lăsat un lider doar cu grupele lui",
   "grupa:creata": "a creat o grupă",
   "grupa:modificata": "a modificat o grupă",
   "grupa:arhivata": "a arhivat o grupă",

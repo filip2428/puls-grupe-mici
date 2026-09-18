@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { TON, adaugaFoaie, adaugaFoaieDespre } from "@/lib/excel";
-import { grupeAccesibile } from "@/lib/interogari/acces";
+import { grupeAccesibile, vedeTotiPulsistii } from "@/lib/interogari/acces";
 import { prieteniiMaiMultora } from "@/lib/interogari/prietenii";
 import {
   cautaPulsisti,
@@ -31,7 +31,8 @@ export async function GET(cerere: Request) {
   const parametri = new URL(cerere.url).searchParams;
   const filtru = filtruDinParametri(parametri);
 
-  if (lider.rol !== "admin") {
+  // Descarcă exact ce vede pe pagină, nici mai mult.
+  if (!vedeTotiPulsistii(lider)) {
     const aleMele = await grupeAccesibile(lider);
     filtru.grupePermise = aleMele.map((g) => g.id);
   }
