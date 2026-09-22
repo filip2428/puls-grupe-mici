@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { ceruteLider } from "@/lib/auth/sesiune";
-import { CULORI_STARE, ETICHETE_STARE, PRAG_PUTIN_IN_URMA } from "@/lib/citire";
+import { CULORI_STARE, PRAG_PUTIN_IN_URMA } from "@/lib/citire";
 import { raportCitire } from "@/lib/interogari/citire";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import {
@@ -15,6 +15,7 @@ import {
   esteDataValida,
   perioadaLizibila,
 } from "@/lib/util/date";
+import { CampData } from "@/componente/CampData";
 
 export const metadata = { title: "Statistici · Puls" };
 
@@ -72,10 +73,9 @@ export default async function PaginaStatistici({
             <label className="eticheta" htmlFor="deLa">
               De la
             </label>
-            <input
+            <CampData
               id="deLa"
               name="deLa"
-              type="date"
               className="camp"
               defaultValue={deLa}
             />
@@ -84,10 +84,9 @@ export default async function PaginaStatistici({
             <label className="eticheta" htmlFor="panaLa">
               Până la
             </label>
-            <input
+            <CampData
               id="panaLa"
               name="panaLa"
-              type="date"
               className="camp"
               defaultValue={panaLa}
             />
@@ -489,7 +488,7 @@ function SectiuneCitire({
           Față de planul de citire, până unde au bifat liderii. Nu depinde de
           perioada aleasă mai sus.
           {raport.portiuneaDeAzi
-            ? ` Azi se citește ${raport.portiuneaDeAzi.portiune}.`
+            ? ` Planul de azi: ${raport.portiuneaDeAzi.portiune}.`
             : ""}
         </p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -500,11 +499,11 @@ function SectiuneCitire({
           <Caseta valoare={String(total.laZi)} eticheta="la zi" />
           <Caseta
             valoare={String(total.putin)}
-            eticheta={`puțin în urmă (1–${PRAG_PUTIN_IN_URMA})`}
+            eticheta={`puțin în urmă (1–${PRAG_PUTIN_IN_URMA} zile)`}
           />
           <Caseta
             valoare={String(total.mult)}
-            eticheta={`mult în urmă (peste ${PRAG_PUTIN_IN_URMA})`}
+            eticheta={`mult în urmă (peste ${PRAG_PUTIN_IN_URMA} zile)`}
           />
         </div>
         {total.necompletat > 0 && (
@@ -565,7 +564,7 @@ function SectiuneCitire({
 
       <Tabel
         titlu="Cititul pe grupe"
-        explicatie="Media = cât la sută din porțiile cerute a citit, în medie, un pulsist al grupei."
+        explicatie="Media = cât la sută din zilele cerute din plan a citit, în medie, un pulsist al grupei."
         capete={["Grupa", "Media", "La zi", "Puțin", "Mult", "Bifat până la"]}
         randuri={peGrupe.map((g) => [
           g.nume,
@@ -583,7 +582,7 @@ function SectiuneCitire({
             Mult în urmă cu cititul ({multInUrma.length})
           </h2>
           <p className="mb-3 text-xs text-red-700/80">
-            Mai mult de {PRAG_PUTIN_IN_URMA} porții necitite. Poate au nevoie de
+            Mai mult de {PRAG_PUTIN_IN_URMA} zile din plan necitite. Poate au nevoie de
             un imbold, sau de un plan de recuperare.
           </p>
           <ul className="flex flex-col divide-y divide-[#eef1f7]">
@@ -596,13 +595,13 @@ function SectiuneCitire({
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium">{o.nume}</span>
                     <span className="text-xs text-cenusiu">
-                      {o.grupa} · {o.avans.citite} din {o.avans.asteptate} porții
+                      {o.grupa} · {o.avans.citite} din {o.avans.asteptate} zile din plan
                     </span>
                   </span>
                   <span
                     className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${CULORI_STARE.mult}`}
                   >
-                    {o.avans.inUrma} {ETICHETE_STARE.mult.replace("mult ", "")}
+                    {o.avans.inUrma} zile în urmă
                   </span>
                 </Link>
               </li>

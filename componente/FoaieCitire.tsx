@@ -23,9 +23,9 @@ type Rand = {
 
 /**
  * Foaia de citit a unei grupe pe o săptămână: pulsiștii pe rânduri, zilele pe
- * coloane. O bifă = a citit porția zilei.
+ * coloane. O bifă = a citit planul zilei.
  *
- * Zilele fără porție și cele care n-au venit încă nu se pot bifa. Zilele de
+ * Zilele libere și cele care n-au venit încă nu se pot bifa. Zilele de
  * dinainte de startul cuiva se pot bifa (a citit și de acolo), dar sunt
  * desenate mai stins: nu i se cer.
  */
@@ -92,7 +92,7 @@ export function FoaieCitire({
       {/* Ce se citește în fiecare zi */}
       <section className="card p-3">
         <h2 className="mb-2 text-xs font-bold text-cenusiu uppercase">
-          Porțiile săptămânii
+          Planul săptămânii
         </h2>
         <ul className="grid grid-cols-1 gap-1 text-sm sm:grid-cols-2">
           {zile.map((z, i) => (
@@ -103,7 +103,7 @@ export function FoaieCitire({
                 {ZILE_SCURTE[i]} {Number(z.data.slice(8))}
               </span>
               <span className={z.portiune ? "font-medium" : "text-cenusiu italic"}>
-                {z.portiune ?? "fără porție"}
+                {z.portiune ?? "zi liberă"}
               </span>
             </li>
           ))}
@@ -147,7 +147,7 @@ export function FoaieCitire({
                   className={`mt-0.5 inline-block rounded-full px-1.5 text-[10px] leading-4 ${CULORI_STARE[r.stare]}`}
                 >
                   {r.stare === "putin" || r.stare === "mult"
-                    ? `${r.inUrma} în urmă`
+                    ? `${r.inUrma} ${r.inUrma === 1 ? "zi" : "zile"} în urmă`
                     : ETICHETE_STARE[r.stare]}
                 </span>
               </Link>
@@ -202,7 +202,7 @@ export function FoaieCitire({
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1 text-sm">
             <span className="font-semibold text-albastru">
-              {numere.bifate} porții bifate
+              {numere.bifate} {numere.bifate === 1 ? "zi bifată" : "zile bifate"}
             </span>
             {numere.posibile > 0 && (
               <span className="text-cenusiu"> din {numere.posibile}</span>

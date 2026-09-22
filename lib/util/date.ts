@@ -79,6 +79,12 @@ export function dataLunga(data: string): string {
   return `${ZILE_SAPTAMANA[ziSaptamanii(data)]}, ${zi} ${LUNI[luna - 1]} ${an}`;
 }
 
+/** "2026-09-04" -> "04.09.2026" - forma scurtă, cu an, ca în România. */
+export function dataNumerica(data: string): string {
+  const [an, luna, zi] = data.split("-");
+  return `${zi}.${luna}.${an}`;
+}
+
 /** "2026-09-04" -> "4 sep." */
 export function dataScurta(data: string): string {
   const [, luna, zi] = data.split("-").map(Number);

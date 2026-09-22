@@ -52,7 +52,7 @@ export default async function PaginaCitire({
         </Link>
         <h1 className="mt-2 text-xl font-bold">Cititul Bibliei</h1>
         <p className="text-sm text-cenusiu">
-          Bifează porțiile pe care le-a citit fiecare. Se poate bifa și în urmă,
+          Bifează zilele din plan pe care le-a citit fiecare. Se poate bifa și în urmă,
           dacă recuperează.
         </p>
       </div>

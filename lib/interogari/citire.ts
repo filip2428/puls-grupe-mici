@@ -38,7 +38,7 @@ export const planulDeCitire = cache(async (): Promise<ZiPlan[]> => {
   return db.select().from(planCitire).orderBy(asc(planCitire.data));
 });
 
-/** Porția unei zile, dacă are. */
+/** Planul unei zile, dacă are. */
 export async function portiuneaZilei(data: string): Promise<ZiPlan | null> {
   const plan = await planulDeCitire();
   return plan.find((z) => z.data === data) ?? null;
@@ -268,7 +268,7 @@ export async function foaiaDeCitire(grupaId: number, luni: string) {
 /**
  * Scrie bifele unei săptămâni pentru o grupă.
  *
- * Se înlocuiesc doar bifele din zilele cu porție ale săptămânii, și doar ale
+ * Se înlocuiesc doar bifele din zilele din plan ale săptămânii, și doar ale
  * membrilor de acum ai grupei - un pulsist venit din altă grupă își păstrează
  * restul istoriei. Zilele din viitor nu se pot bifa.
  */
@@ -536,7 +536,7 @@ function numara(
 /**
  * Grupele care n-au completat cititul pe o săptămână încheiată, pentru
  * amintirea de luni. Doar grupele active cu membri, și doar dacă săptămâna
- * a avut porții în plan.
+ * a avut zile în plan.
  */
 export async function grupeFaraCitireCompletata(luni: string) {
   const duminica = adaugaZile(luni, 6);

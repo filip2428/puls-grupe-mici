@@ -12,6 +12,7 @@ import { pierderiGrupa } from "@/lib/interogari/stergere";
 import { dataScurta } from "@/lib/util/date";
 import {
   mutaMembruDinFormular,
+  scoateDinGrupa,
   repartizeazaLiderDinFormular,
   schimbaActivaGrupa,
   scoateLider,
@@ -164,7 +165,12 @@ export default async function PaginaAdminGrupa({
       <section className="card p-4">
         <h2 className="mb-1 text-sm font-bold">Pulsiști ({membri.length})</h2>
         <p className="mb-3 text-xs text-cenusiu">
-          Poți muta un pulsist în altă grupă - istoricul lui rămâne neatins.
+          Poți muta un pulsist în altă grupă sau să-l scoți din grupă de tot -
+          istoricul lui rămâne neatins. Cine e scos așteaptă la{" "}
+          <Link href="/admin/nerepartizati" className="text-albastru">
+            Nerepartizați
+          </Link>
+          , de unde îl pui oricând într-o grupă.
         </p>
         <ul className="flex flex-col divide-y divide-[#eef1f7]">
           {membri.map((m) => (
@@ -202,6 +208,15 @@ export default async function PaginaAdminGrupa({
                   </button>
                 </form>
               )}
+              <form action={scoateDinGrupa.bind(null, m.id)}>
+                <button
+                  type="submit"
+                  className="px-1 text-xs text-red-700 underline"
+                  aria-label={`Scoate pe ${m.nume} din grupă`}
+                >
+                  Scoate
+                </button>
+              </form>
             </li>
           ))}
           {membri.length === 0 && (

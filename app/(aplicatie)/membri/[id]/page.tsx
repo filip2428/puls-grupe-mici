@@ -7,7 +7,10 @@ import {
 } from "@/componente/MembruFormulare";
 import { InsignaBiserica } from "@/componente/InsignaBiserica";
 import { InsignaBotez } from "@/componente/InsignaBotez";
-import { mutaMembruDinFormular } from "@/app/(aplicatie)/admin/actions";
+import {
+  mutaMembruDinFormular,
+  scoateDinGrupa,
+} from "@/app/(aplicatie)/admin/actions";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import {
   grupeAccesibile,
@@ -44,6 +47,7 @@ import { CULORI_STARE, ETICHETE_STARE } from "@/lib/citire";
 import {
   dataAzi,
   dataCuAn,
+  dataNumerica,
   dataScurta,
   momentLizibil,
   varsta,
@@ -63,6 +67,7 @@ import {
   stergeNota,
   treceLaMusafiri,
 } from "./actions";
+import { CampData } from "@/componente/CampData";
 
 const CULORI: Record<string, string> = {
   prezent: "bg-albastru text-white",
@@ -141,7 +146,8 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     prieteniiMembrului(membruId),
     pulsistiDeLegat(membruId, grupePermise),
     bisericileCunoscute(),
-    grupa ? [] : grupeActive(),
+    // Adminul îl poate muta oricând; ceilalți doar îl repartizează (vezi mai jos).
+    !grupa || lider.rol === "admin" ? grupeActive() : [],
     avansulPulsistului(membruId),
     planulDeCitire(),
   ]);
@@ -401,6 +407,48 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           )}
         </div>
         )}
+
+        {/* Mutarea și scoaterea din grupă - treaba coordonatorului */}
+        {lider.rol === "admin" && (
+          <div className="mt-3 flex flex-col gap-3 border-t border-[#eef1f7] pt-3">
+            {grupeDeAles.some((g) => g.id !== grupa.id) && (
+              <form
+                action={mutaMembruDinFormular.bind(null, membruId)}
+                className="flex flex-wrap items-end gap-2"
+              >
+                <div className="min-w-40 flex-1">
+                  <label className="eticheta" htmlFor="grupaNoua">
+                    Mută-l în altă grupă
+                  </label>
+                  <select id="grupaNoua" name="grupaId" className="camp" defaultValue="">
+                    <option value="" disabled>
+                      - alege grupa -
+                    </option>
+                    {grupeDeAles
+                      .filter((g) => g.id !== grupa.id)
+                      .map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.nume}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <button type="submit" className="buton buton-secundar">
+                  Mută
+                </button>
+              </form>
+            )}
+            <form action={scoateDinGrupa.bind(null, membruId)}>
+              <button type="submit" className="text-sm text-red-700 underline">
+                Scoate-l din grupă
+              </button>
+              <p className="mt-1 text-xs text-cenusiu">
+                Nu se șterge nimic: trece la Nerepartizați, cu tot istoricul, și
+                îl pui oricând într-o grupă.
+              </p>
+            </form>
+          </div>
+        )}
       </section>
       )}
 
@@ -632,7 +680,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
               <li
                 key={i.data}
                 className={`flex w-16 flex-col items-center gap-1 rounded-lg px-2 py-2 text-xs ${CULORI[i.stare]}`}
-                title={`${i.data}${i.subiect ? ` · ${i.subiect}` : ""}`}
+                title={`${dataNumerica(i.data)}${i.subiect ? ` · ${i.subiect}` : ""}`}
               >
                 <span className="text-base font-bold">{ETICHETE[i.stare]}</span>
                 <span className="opacity-80">{dataScurta(i.data)}</span>
@@ -654,7 +702,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
               className={`rounded-full px-2 py-0.5 text-xs ${CULORI_STARE[citire.avans.stare]}`}
             >
               {citire.avans.stare === "putin" || citire.avans.stare === "mult"
-                ? `${citire.avans.inUrma} în urmă`
+                ? `${citire.avans.inUrma} ${citire.avans.inUrma === 1 ? "zi" : "zile"} în urmă`
                 : ETICHETE_STARE[citire.avans.stare]}
             </span>
           </div>
@@ -666,7 +714,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           ) : (
             <p className="text-sm">
               A citit <strong>{citire.avans.citite}</strong> din{" "}
-              {citire.avans.asteptate} porții
+              {citire.avans.asteptate} zile din plan
               {citire.avans.procent !== null ? ` (${citire.avans.procent}%)` : ""}
               <span className="text-cenusiu">
                 {" "}
@@ -678,7 +726,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             <p className="mt-1 text-xs text-cenusiu">
               I se socotește de la {dataCuAn(citire.avans.deLa)} (
               {plan.find((z) => z.data === citire.avans.deLa)?.portiune ??
-                "zi fără porție"}
+                "zi liberă"}
               ){citire.citireDeLa ? ", pus de mână" : ""}.
             </p>
           )}
@@ -688,7 +736,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
               {citire.recente.map((z) => (
                 <li
                   key={z.data}
-                  title={`${z.data} · ${z.portiune}`}
+                  title={`${dataNumerica(z.data)} · ${z.portiune}`}
                   className={`flex w-12 flex-col items-center rounded-lg px-1 py-1.5 text-[10px] ${
                     z.citit ? "bg-albastru text-white" : "bg-fundal text-cenusiu"
                   }`}
@@ -714,9 +762,8 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 action={schimbaStartCitire.bind(null, membruId)}
                 className="flex flex-wrap items-end gap-2"
               >
-                <input
+                <CampData
                   name="deLa"
-                  type="date"
                   className="camp flex-1"
                   defaultValue={citire.citireDeLa ?? ""}
                 />

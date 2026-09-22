@@ -8,6 +8,7 @@ import {
   type StareAnaliza,
   type StareImport,
 } from "@/app/(aplicatie)/admin/import/actions";
+import { dataNumerica } from "@/lib/util/date";
 import { etichetaClasaScurta } from "@/lib/util/etichete";
 
 /**
@@ -109,7 +110,7 @@ export function ImportPulsisti() {
                         {etichetaClasaScurta(r.clasa) || "-"}
                       </td>
                       <td className="py-2 pr-3 text-cenusiu">
-                        {r.dataNasterii ?? "-"}
+                        {r.dataNasterii ? dataNumerica(r.dataNasterii) : "-"}
                       </td>
                       <td className="py-2 text-cenusiu">
                         {r.parinte1Nume ?? "-"}

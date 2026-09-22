@@ -564,10 +564,10 @@ export const prezenteSlujire = sqliteTable(
  * Planul de citire a Bibliei: ce se citește în fiecare zi.
  *
  * Un singur plan, comun pentru toată lucrarea. Fiecare rând e o zi din
- * calendar; o zi care lipsește (duminică, zi de recuperare) n-are porție și
+ * calendar; o zi care lipsește (duminică, zi de recuperare) e zi liberă și
  * nu se așteaptă nimic de la nimeni în ziua aia.
  *
- * `carte` e cartea la care e planul în ziua respectivă - scoasă din porțiune
+ * `carte` e cartea la care e planul în ziua respectivă - scoasă din textul planului
  * la import, sau scrisă de mână în Excel. Din ea se socotește de unde începe
  * cineva care intră mai târziu.
  */
@@ -580,9 +580,9 @@ export const planCitire = sqliteTable("plan_citire", {
 });
 
 /**
- * Cine ce porție a citit.
+ * Cine ce zi din plan a citit.
  *
- * Un rând înseamnă „a citit porția din ziua asta a planului"; lipsa rândului
+ * Un rând înseamnă „a citit planul din ziua asta"; lipsa rândului
  * înseamnă că n-a citit-o (sau nu s-a bifat încă). Legătura cu planul e prin
  * dată, nu prin id: dacă planul se reîncarcă, bifele rămân pe zilele lor.
  */

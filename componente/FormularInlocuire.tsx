@@ -6,6 +6,7 @@ import {
   creeazaInlocuire,
   type StareFormular,
 } from "@/app/(aplicatie)/grupe/[id]/actions";
+import { CampData } from "@/componente/CampData";
 
 type LiderScurt = { id: number; nume: string };
 
@@ -62,10 +63,9 @@ export function FormularInlocuire({
           <label className="eticheta" htmlFor="deLa">
             De la
           </label>
-          <input
+          <CampData
             id="deLa"
             name="deLa"
-            type="date"
             className="camp"
             defaultValue={azi}
             required
@@ -75,10 +75,9 @@ export function FormularInlocuire({
           <label className="eticheta" htmlFor="panaLa">
             Până la
           </label>
-          <input
+          <CampData
             id="panaLa"
             name="panaLa"
-            type="date"
             className="camp"
             defaultValue={azi}
             required

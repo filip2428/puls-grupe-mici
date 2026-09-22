@@ -149,9 +149,9 @@ export async function GET(cerere: Request) {
         { antet: "Grupa", cheie: "grupa", latime: 20 },
         { antet: "Socotit de la", cheie: "deLa", latime: 14, format: "data" },
         { antet: "Bifat până la", cheie: "panaLa", latime: 14, format: "data" },
-        { antet: "Porții cerute", cheie: "asteptate", latime: 12 },
-        { antet: "Porții citite", cheie: "citite", latime: 12 },
-        { antet: "În urmă", cheie: "inUrma", latime: 10 },
+        { antet: "Zile cerute din plan", cheie: "asteptate", latime: 14 },
+        { antet: "Zile citite", cheie: "citite", latime: 12 },
+        { antet: "Zile în urmă", cheie: "inUrma", latime: 12 },
         {
           antet: "% citit",
           cheie: "procent",
@@ -192,8 +192,8 @@ export async function GET(cerere: Request) {
       { ton: "slab", text: "prezență sub 50%" },
       { ton: "aparte", text: "musafir - vine, dar nu e (încă) în grupă" },
       { ton: "stins", text: "nu mai vine (inactiv) - rămâne pentru istoric" },
-      { ton: "atentie", text: "citit: puțin în urmă (1-7 porții)" },
-      { ton: "slab", text: "citit: mult în urmă (peste 7 porții)" },
+      { ton: "atentie", text: "citit: puțin în urmă (1-7 zile din plan)" },
+      { ton: "slab", text: "citit: mult în urmă (peste 7 zile din plan)" },
     ],
   });
 

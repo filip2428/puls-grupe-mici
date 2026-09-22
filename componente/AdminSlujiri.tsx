@@ -9,6 +9,7 @@ import {
   salveazaProgramare,
   type StareSlujire,
 } from "@/app/(aplicatie)/slujiri/actions";
+import { CampData } from "@/componente/CampData";
 
 type Optiune = { id: number; nume: string };
 
@@ -229,10 +230,9 @@ function CampuriProgramare({
           <label className="eticheta" htmlFor={`${prefix}-data`}>
             Când
           </label>
-          <input
+          <CampData
             id={`${prefix}-data`}
             name="data"
-            type="date"
             className="camp"
             defaultValue={initial.data}
             required

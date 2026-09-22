@@ -33,6 +33,7 @@ import {
   varsta,
 } from "@/lib/util/date";
 import { etichetaClasaScurta } from "@/lib/util/etichete";
+import { CampData } from "@/componente/CampData";
 
 export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) {
   const { id } = await params;
@@ -129,10 +130,9 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
             <label className="eticheta" htmlFor="data">
               Sau altă dată
             </label>
-            <input
+            <CampData
               id="data"
               name="data"
-              type="date"
               defaultValue={azi}
               className="camp"
             />
@@ -148,7 +148,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
         <div className="mb-2 flex items-baseline justify-between gap-3">
           <h2 className="text-sm font-bold">Cititul Bibliei</h2>
           <span className="text-xs text-cenusiu">
-            azi: {portiuneaDeAzi ? portiuneaDeAzi.portiune : "nicio porție"}
+            planul de azi: {portiuneaDeAzi ? portiuneaDeAzi.portiune : "zi liberă"}
           </span>
         </div>
         {membri.length > 0 && (
@@ -272,9 +272,9 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
                       {citit && (citit.stare === "putin" || citit.stare === "mult") && (
                         <span
                           className={`rounded-full px-1.5 text-[10px] leading-4 ${CULORI_STARE[citit.stare]}`}
-                          title="Porții de citit rămase în urmă"
+                          title="Zile din planul de citire rămase în urmă"
                         >
-                          {citit.inUrma} în urmă
+                          {citit.inUrma} {citit.inUrma === 1 ? "zi" : "zile"} în urmă
                         </span>
                       )}
                     </span>

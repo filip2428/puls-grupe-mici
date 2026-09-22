@@ -1,14 +1,14 @@
 /**
  * Cititul Bibliei: regulile după care se socotește cât a citit cineva.
  *
- * Totul se măsoară în PORȚII, adică în zilele planului care au ceva de citit.
- * O zi fără porție (duminică, recuperare) nu se așteaptă de la nimeni.
+ * Totul se măsoară în ZILE DIN PLAN, adică zilele care au ceva de citit.
+ * O zi liberă (duminică, recuperare) nu se așteaptă de la nimeni.
  *
- *  - așteptate = porțiile planului de la ziua de start a omului până la ziua
+ *  - așteptate = zilele din plan de la ziua de start a omului până la ziua
  *    până la care liderul a completat cititul grupei (nu până azi: o
  *    săptămână încă nebifată nu înseamnă că n-a citit, ci că nu s-a întrebat);
- *  - citite = porțiile bifate în același interval;
- *  - în urmă = cât lipsește. Cine recuperează citește mai multe porții
+ *  - citite = zilele bifate în același interval;
+ *  - în urmă = cât lipsește. Cine recuperează citește mai multe zile din plan
  *    deodată, iar în urmă scade la loc.
  *
  * Fișierul nu atinge baza de date, ca să poată fi folosit oriunde.
@@ -16,7 +16,7 @@
 import { normalizeaza } from "@/lib/util/text";
 import { adaugaZile, ziSaptamanii } from "@/lib/util/date";
 
-/** Până la câte porții lipsă e „puțin în urmă"; peste, e „mult în urmă". */
+/** Până la câte zile lipsă e „puțin în urmă"; peste, e „mult în urmă". */
 export const PRAG_PUTIN_IN_URMA = 7;
 
 export type StareCitire = "la_zi" | "putin" | "mult" | "necompletat";
@@ -37,7 +37,7 @@ export const CULORI_STARE: Record<StareCitire, string> = {
 };
 
 /**
- * Cartea din care e o porțiune: „1 Samuel 3-4" -> „1 Samuel",
+ * Cartea din planul unei zile: „1 Samuel 3-4" -> „1 Samuel",
  * „Ioan 1:1-18; Psalmi 2" -> „Ioan".
  *
  * Contează doar prima parte: planurile care amestecă mai multe cărți pe zi
@@ -77,7 +77,7 @@ export function ziuaDeStart(
   if (citireDeLa) return citireDeLa;
   if (intratLa <= plan[0].data) return plan[0].data;
 
-  // Porția la care era planul când a intrat: ultima de până atunci inclusiv.
+  // Ziua la care era planul când a intrat: ultima de până atunci inclusiv.
   let i = plan.findLastIndex((z) => z.data <= intratLa);
   if (i < 0) return plan[0].data;
 
@@ -94,12 +94,12 @@ export type Avans = {
   asteptate: number;
   citite: number;
   inUrma: number;
-  /** Cât la sută din porțiile așteptate a citit; null dacă nu s-a așteptat nimic încă. */
+  /** Cât la sută din zilele așteptate a citit; null dacă nu s-a așteptat nimic încă. */
   procent: number | null;
   stare: StareCitire;
 };
 
-/** Starea după câte porții lipsesc. */
+/** Starea după câte zile din plan lipsesc. */
 export function stareDupaRestanta(inUrma: number): StareCitire {
   if (inUrma <= 0) return "la_zi";
   if (inUrma <= PRAG_PUTIN_IN_URMA) return "putin";

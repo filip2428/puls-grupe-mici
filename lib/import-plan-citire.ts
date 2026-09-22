@@ -3,7 +3,7 @@ import "server-only";
 import ExcelJS from "exceljs";
 
 import { carteDinPortiune, type ZiPlan } from "@/lib/citire";
-import { adaugaZile, esteDataValida } from "@/lib/util/date";
+import { adaugaZile, dataNumerica, esteDataValida } from "@/lib/util/date";
 import { normalizeaza } from "@/lib/util/text";
 
 /**
@@ -15,12 +15,14 @@ import { normalizeaza } from "@/lib/util/text";
  *    de Biblie. Atunci se cere data la care începe ziua 1.
  *
  * Coloanele se recunosc după numele din primul rând, oricum ar fi scrise.
- * „Carte" e opțională: dacă lipsește, cartea se scoate din porțiune.
+ * „Carte" e opțională: dacă lipsește, cartea se scoate din ce scrie la plan.
  */
 
 const NUME_DATA = ["data", "ziua din calendar", "date"];
 const NUME_ZIUA = ["ziua", "zi", "nr", "nr.", "day", "ziua planului"];
 const NUME_PORTIUNE = [
+  "plan",
+  "planul",
   "portiune",
   "portiunea",
   "pasaj",
@@ -110,7 +112,7 @@ export async function analizeazaPlan(
 
   if (colPortiune < 0) {
     return {
-      eroare: "Nu găsesc coloana „Porțiune” în primul rând al fișierului.",
+      eroare: "Nu găsesc coloana „Plan” în primul rând al fișierului.",
       zile: [],
       probleme: [],
     };
@@ -160,10 +162,10 @@ export async function analizeazaPlan(
       }
     }
 
-    // O zi fără porție e o zi liberă - pur și simplu nu intră în plan.
+    // O zi fără nimic de citit e o zi liberă - pur și simplu nu intră în plan.
     if (!portiune || portiune === "-") return;
     if (portiune.length > 200) {
-      probleme.push({ rand: numar, mesaj: "porțiunea e prea lungă" });
+      probleme.push({ rand: numar, mesaj: "textul planului e prea lung" });
       return;
     }
 
@@ -171,7 +173,7 @@ export async function analizeazaPlan(
     if (existenta) {
       probleme.push({
         rand: numar,
-        mesaj: `ziua ${data} apare deja la rândul ${existenta.rand} - păstrez primul`,
+        mesaj: `ziua ${dataNumerica(data)} apare deja la rândul ${existenta.rand} - păstrez primul`,
       });
       return;
     }
@@ -185,7 +187,7 @@ export async function analizeazaPlan(
     .map(({ data, portiune, carte }) => ({ data, portiune, carte }));
 
   if (lista.length === 0 && probleme.length === 0) {
-    return { eroare: "N-am găsit nicio zi cu porție în fișier.", zile: [], probleme };
+    return { eroare: "N-am găsit nicio zi cu ceva de citit în fișier.", zile: [], probleme };
   }
   return { zile: lista, probleme, cuZileNumerotate };
 }
@@ -198,7 +200,7 @@ export async function fisierModelPlan(): Promise<Buffer> {
   const foaie = registru.addWorksheet("Plan");
   foaie.columns = [
     { header: "Data", key: "data", width: 14, style: { numFmt: "dd.mm.yyyy" } },
-    { header: "Porțiune", key: "portiune", width: 30 },
+    { header: "Plan", key: "portiune", width: 30 },
     { header: "Carte", key: "carte", width: 18 },
   ];
   const exemple = [
@@ -224,8 +226,8 @@ export async function fisierModelPlan(): Promise<Buffer> {
     "Planul de citire a Bibliei - un rând pentru fiecare zi care are ceva de citit.",
     "",
     "Data - ziua din calendar. Se poate scrie ca dată Excel sau ca text: 01.10.2026.",
-    "Porțiune - ce se citește în ziua aia, exact cum vreți să apară în aplicație (ex. Ioan 1-2).",
-    "Carte - opțională. Dacă o lași goală, o scot din porțiune (din „1 Samuel 3” iese „1 Samuel”).",
+    "Plan - ce se citește în ziua aia, exact cum vreți să apară în aplicație (ex. Ioan 1-2).",
+    "Carte - opțională. Dacă o lași goală, o scot din plan (din „1 Samuel 3” iese „1 Samuel”).",
     "",
     "Zilele libere (duminică, recuperare) nu se scriu deloc - în exemplul din prima foaie, 4 octombrie lipsește.",
     "",

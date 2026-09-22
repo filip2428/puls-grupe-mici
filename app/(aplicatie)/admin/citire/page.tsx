@@ -38,15 +38,15 @@ export default async function PaginaPlanCitire() {
         <section className="card p-4">
           <h2 className="mb-1 text-sm font-bold">Planul de acum</h2>
           <p className="text-sm">
-            {plan.length} porții, de la {dataCuAn(plan[0].data)} până la{" "}
+            {plan.length} zile în plan, de la {dataCuAn(plan[0].data)} până la{" "}
             {dataCuAn(plan[plan.length - 1].data)}.
           </p>
           <p className="mt-2 text-sm">
-            <span className="text-cenusiu">Azi: </span>
+            <span className="text-cenusiu">Planul de azi: </span>
             {deAzi ? (
               <strong>{deAzi.portiune}</strong>
             ) : (
-              <span className="text-cenusiu">nicio porție</span>
+              <span className="text-cenusiu">zi liberă</span>
             )}
           </p>
 
@@ -87,7 +87,7 @@ export default async function PaginaPlanCitire() {
           {plan.length === 0 ? "1. Ia modelul" : "Înlocuiește planul"}
         </h2>
         <p className="mb-3 text-xs text-cenusiu">
-          Un rând pentru fiecare zi cu porție: coloanele „Data” și „Porțiune”, plus
+          Un rând pentru fiecare zi cu ceva de citit: coloanele „Data” și „Plan”, plus
           „Carte” dacă vrei s-o scrii tu. Zilele libere nu se scriu deloc. Merge
           și un plan cu „Ziua 1, 2, 3...” în loc de date.
         </p>

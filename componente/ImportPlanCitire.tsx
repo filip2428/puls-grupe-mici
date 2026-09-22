@@ -8,7 +8,8 @@ import {
   type StareAnalizaPlan,
   type StarePlan,
 } from "@/app/(aplicatie)/admin/citire/actions";
-import { dataScurta } from "@/lib/util/date";
+import { dataNumerica } from "@/lib/util/date";
+import { CampData } from "@/componente/CampData";
 
 /**
  * Încărcarea planului de citire, în doi pași: întâi arătăm ce am înțeles din
@@ -27,7 +28,7 @@ export function ImportPlanCitire({ existaPlan }: { existaPlan: boolean }) {
   if (rezultat.zile) {
     return (
       <div className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800">
-        Gata: planul are acum {rezultat.zile} de porții. Liderii îl văd pe
+        Gata: planul are acum {rezultat.zile} de zile. Liderii îl văd pe
         foaia de citit a grupei.
       </div>
     );
@@ -56,7 +57,7 @@ export function ImportPlanCitire({ existaPlan }: { existaPlan: boolean }) {
           <label className="eticheta" htmlFor="incepeLa">
             Ziua 1 începe la (doar pentru planurile cu zile numerotate)
           </label>
-          <input id="incepeLa" name="incepeLa" type="date" className="camp" />
+          <CampData id="incepeLa" name="incepeLa" className="camp" />
         </div>
 
         {analiza.eroare && (
@@ -78,13 +79,9 @@ export function ImportPlanCitire({ existaPlan }: { existaPlan: boolean }) {
         <div className="flex flex-col gap-4 border-t border-[#eef1f7] pt-4">
           {zile.length > 0 && (
             <p className="text-sm">
-              <strong>{zile.length}</strong> porții, de la{" "}
-              <strong>{dataScurta(zile[0].data)} {zile[0].data.slice(0, 4)}</strong>{" "}
-              până la{" "}
-              <strong>
-                {dataScurta(zile[zile.length - 1].data)}{" "}
-                {zile[zile.length - 1].data.slice(0, 4)}
-              </strong>
+              <strong>{zile.length}</strong> zile în plan, de la{" "}
+              <strong>{dataNumerica(zile[0].data)}</strong> până la{" "}
+              <strong>{dataNumerica(zile[zile.length - 1].data)}</strong>
               , în {carti.length} {carti.length === 1 ? "carte" : "cărți"}.
             </p>
           )}
@@ -111,14 +108,14 @@ export function ImportPlanCitire({ existaPlan }: { existaPlan: boolean }) {
                 <thead>
                   <tr className="border-b border-[#e3e7f2] text-xs text-cenusiu">
                     <th className="py-2 pr-3 font-semibold">Ziua</th>
-                    <th className="py-2 pr-3 font-semibold">Porțiune</th>
+                    <th className="py-2 pr-3 font-semibold">Plan</th>
                     <th className="py-2 font-semibold">Carte</th>
                   </tr>
                 </thead>
                 <tbody>
                   {zile.slice(0, 10).map((z) => (
                     <tr key={z.data} className="border-b border-[#eef1f7]">
-                      <td className="py-2 pr-3 text-cenusiu">{dataScurta(z.data)}</td>
+                      <td className="py-2 pr-3 text-cenusiu">{dataNumerica(z.data)}</td>
                       <td className="py-2 pr-3">{z.portiune}</td>
                       <td className="py-2 text-cenusiu">{z.carte}</td>
                     </tr>

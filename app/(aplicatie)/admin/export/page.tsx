@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { toateGrupele } from "@/lib/interogari/lideri";
+import { CampData } from "@/componente/CampData";
 
 export const metadata = { title: "Export · Puls" };
 
@@ -44,13 +45,13 @@ export default async function PaginaExport() {
               <label className="eticheta" htmlFor="deLa">
                 De la data (opțional)
               </label>
-              <input id="deLa" name="deLa" type="date" className="camp" />
+              <CampData id="deLa" name="deLa" className="camp" />
             </div>
             <div>
               <label className="eticheta" htmlFor="panaLa">
                 Până la data (opțional)
               </label>
-              <input id="panaLa" name="panaLa" type="date" className="camp" />
+              <CampData id="panaLa" name="panaLa" className="camp" />
             </div>
           </div>
 

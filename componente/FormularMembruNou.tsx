@@ -10,6 +10,7 @@ import {
 } from "@/app/(aplicatie)/grupe/[id]/actions";
 import type { PulsistDeAdaugat } from "@/lib/interogari/grupe";
 import { CLASE, etichetaClasa, etichetaClasaScurta } from "@/lib/util/etichete";
+import { CampData } from "@/componente/CampData";
 
 /**
  * Ia în grupă pe cineva care e deja în aplicație, dar n-are grupă.
@@ -136,10 +137,9 @@ export function FormularMembruNou({ grupaId }: { grupaId: number }) {
           <label className="eticheta" htmlFor="dataNasterii">
             Data nașterii
           </label>
-          <input
+          <CampData
             id="dataNasterii"
             name="dataNasterii"
-            type="date"
             className="camp"
           />
         </div>

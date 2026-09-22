@@ -309,7 +309,7 @@ export async function analizeazaFisier(
       probleme.push({
         rand: nrRand,
         nume,
-        mesaj: `Data nașterii „${textData}" nu se înțelege. Scrie-o ca 2011-04-23.`,
+        mesaj: `Data nașterii „${textData}" nu se înțelege. Scrie-o ca 23.04.2011.`,
       });
       continue;
     }

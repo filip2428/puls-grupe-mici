@@ -412,6 +412,32 @@ export async function golesteJurnalul(
 }
 
 /**
+ * Scoate un pulsist din grupa lui, fără să-l pună în alta.
+ *
+ * Nu se șterge nimic: rămâne în aplicație ca nerepartizat, cu tot istoricul,
+ * și se poate pune oricând într-o grupă din „Nerepartizați". Cât stă acolo nu
+ * apare pe nicio foaie de prezență sau de citit.
+ */
+export async function scoateDinGrupa(membruId: number) {
+  const admin = await ceruteAdmin();
+  const [m] = await db.select().from(membri).where(eq(membri.id, membruId));
+  if (!m || m.grupaId === null) return;
+
+  await db.update(membri).set({ grupaId: null }).where(eq(membri.id, membruId));
+  await scrieAudit(admin.id, "membru:scos-din-grupa", {
+    membruId,
+    dinGrupa: m.grupaId,
+  });
+
+  revalidatePath(`/admin/grupe/${m.grupaId}`);
+  revalidatePath(`/grupe/${m.grupaId}`);
+  revalidatePath("/admin/nerepartizati");
+  revalidatePath("/admin");
+  revalidatePath(`/membri/${membruId}`);
+  revalidatePath("/pulsisti");
+}
+
+/**
  * Pune un pulsist într-o grupă: fie îl mută din alta, fie îl repartizează
  * prima dată. Istoricul rămâne la el - prezențele țin de întâlniri, nu de
  * grupa lui de acum.

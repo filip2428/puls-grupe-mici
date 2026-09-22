@@ -15,6 +15,7 @@ import {
   type Biserica,
   type Botez,
 } from "@/lib/util/etichete";
+import { CampData } from "@/componente/CampData";
 
 /** Caseta în care liderul scrie o notă despre pulsist. */
 export function FormularNota({ membruId }: { membruId: number }) {
@@ -161,10 +162,9 @@ export function FormularEditareMembru({
           <label className="eticheta" htmlFor="dataNasterii">
             Data nașterii
           </label>
-          <input
+          <CampData
             id="dataNasterii"
             name="dataNasterii"
-            type="date"
             className="camp"
             defaultValue={initial.dataNasterii ?? ""}
           />
@@ -337,10 +337,9 @@ export function FormularEditareMembru({
           <label className="eticheta" htmlFor="botezatLa">
             Când s-a botezat
           </label>
-          <input
+          <CampData
             id="botezatLa"
             name="botezatLa"
-            type="date"
             className="camp"
             defaultValue={initial.botezatLa ?? ""}
           />

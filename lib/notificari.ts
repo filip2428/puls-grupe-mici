@@ -383,7 +383,7 @@ async function notificariRezumat(azi: string): Promise<NotificareNoua[]> {
  *
  * Merge pe aceeași bifă ca prezența necompletată - pentru lider e același
  * fel de treabă rămasă nefăcută. Se trimite doar dacă săptămâna a avut
- * porții în plan și grupa are pulsiști de la care să se aștepte cititul.
+ * zile în plan și grupa are pulsiști de la care să se aștepte cititul.
  */
 async function notificariCitire(azi: string): Promise<NotificareNoua[]> {
   if (ziSaptamanii(azi) !== 1) return []; // doar lunea

@@ -8,6 +8,7 @@ import {
   type StareIntalnire,
 } from "@/app/(aplicatie)/calendar/actions";
 import { adaugaZile } from "@/lib/util/date";
+import { CampData } from "@/componente/CampData";
 
 export type IntalnireDeEditat = {
   id: number;
@@ -75,10 +76,9 @@ export function FormularIntalnire({
           <label className="eticheta" htmlFor="int-data">
             Când
           </label>
-          <input
+          <CampData
             id="int-data"
             name="data"
-            type="date"
             className="camp"
             defaultValue={deEditat?.data ?? data}
             required
@@ -191,10 +191,9 @@ function Repetare({ data }: { data: string }) {
         <label className="eticheta" htmlFor="int-pana">
           Până când
         </label>
-        <input
+        <CampData
           id="int-pana"
           name="repetaPanaLa"
-          type="date"
           className="camp"
           defaultValue={adaugaZile(data, 7 * 8)}
         />

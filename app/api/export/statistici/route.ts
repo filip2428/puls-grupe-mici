@@ -12,6 +12,7 @@ import {
   esteDataValida,
   momentLizibil,
   perioadaLizibila,
+  dataNumerica,
 } from "@/lib/util/date";
 
 /**
@@ -212,7 +213,7 @@ export async function GET(cerere: Request) {
     detalii: [
       { eticheta: "Descărcat de", valoare: lider.nume },
       { eticheta: "Când", valoare: momentLizibil(new Date()) },
-      { eticheta: "Perioada", valoare: `${deLa} - ${panaLa}` },
+      { eticheta: "Perioada", valoare: `${dataNumerica(deLa)} - ${dataNumerica(panaLa)}` },
       {
         eticheta: "Grupe",
         valoare: grupaAleasa
