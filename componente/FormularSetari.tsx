@@ -28,8 +28,9 @@ const TIPURI = [
   },
   {
     camp: "notifPrezenta",
-    titlu: "Prezența necompletată",
-    explicatie: "Un ghiont, dacă a trecut ziua întâlnirii și prezența lipsește.",
+    titlu: "Prezența și cititul necompletate",
+    explicatie:
+      "Un ghiont, dacă a trecut ziua întâlnirii și prezența lipsește - sau, lunea, dacă nu e bifat cititul Bibliei de săptămâna trecută.",
   },
   {
     camp: "notifRezumat",

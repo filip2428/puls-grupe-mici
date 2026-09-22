@@ -64,7 +64,8 @@ export default async function PaginaExport() {
         <h2 className="text-sm font-bold">Tabelul cu toți pulsiștii</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Nume, grupă, statut (membru sau musafir), clasă, vârstă, telefoane și
-          datele părinților, plus totalurile de prezență.
+          datele părinților, plus totalurile de prezență și, pe o foaie
+          separată, cât a citit fiecare din planul de citire a Bibliei.
         </p>
         <div className="flex flex-wrap gap-2">
           <a

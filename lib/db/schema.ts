@@ -230,6 +230,14 @@ export const membri = sqliteTable(
     parinte2Email: text("parinte2_email"),
     /** Inactiv = nu mai vine; rămâne în istoric, dar nu apare la prezență. */
     activ: integer("activ", { mode: "boolean" }).notNull().default(true),
+    /**
+     * De la ce zi a planului de citire i se socotește cititul (AAAA-LL-ZZ).
+     *
+     * Gol înseamnă regula obișnuită (vezi `lib/citire.ts`): cine a intrat după
+     * ce a început planul pornește de la începutul cărții la care era planul
+     * atunci. Adminul îl scrie doar când regula nu se potrivește omului.
+     */
+    citireDeLa: text("citire_de_la"),
     creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
   },
   (t) => [
@@ -553,6 +561,78 @@ export const prezenteSlujire = sqliteTable(
 );
 
 /**
+ * Planul de citire a Bibliei: ce se citește în fiecare zi.
+ *
+ * Un singur plan, comun pentru toată lucrarea. Fiecare rând e o zi din
+ * calendar; o zi care lipsește (duminică, zi de recuperare) n-are porție și
+ * nu se așteaptă nimic de la nimeni în ziua aia.
+ *
+ * `carte` e cartea la care e planul în ziua respectivă - scoasă din porțiune
+ * la import, sau scrisă de mână în Excel. Din ea se socotește de unde începe
+ * cineva care intră mai târziu.
+ */
+export const planCitire = sqliteTable("plan_citire", {
+  /** Data în format AAAA-LL-ZZ. */
+  data: text("data").primaryKey(),
+  /** Ce se citește, cum e scris în plan (ex. "Ioan 1-2"). */
+  portiune: text("portiune").notNull(),
+  carte: text("carte").notNull(),
+});
+
+/**
+ * Cine ce porție a citit.
+ *
+ * Un rând înseamnă „a citit porția din ziua asta a planului"; lipsa rândului
+ * înseamnă că n-a citit-o (sau nu s-a bifat încă). Legătura cu planul e prin
+ * dată, nu prin id: dacă planul se reîncarcă, bifele rămân pe zilele lor.
+ */
+export const citiri = sqliteTable(
+  "citiri",
+  {
+    membruId: integer("membru_id")
+      .notNull()
+      .references(() => membri.id, { onDelete: "cascade" }),
+    data: text("data").notNull(),
+    marcatDeId: integer("marcat_de_id").references(() => lideri.id, {
+      onDelete: "set null",
+    }),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+  },
+  (t) => [
+    primaryKey({ columns: [t.membruId, t.data] }),
+    index("citiri_data_idx").on(t.data),
+  ],
+);
+
+/**
+ * Săptămânile de citit completate de liderii unei grupe.
+ *
+ * Liderul bifează cititul o dată pe săptămână. Până nu l-a completat, o
+ * săptămână fără bife nu spune că pulsiștii n-au citit, ci doar că nu s-a
+ * întrebat încă - de-aia ținem minte până unde s-a completat, și avansul
+ * fiecăruia se socotește doar până acolo.
+ */
+export const citireSaptamani = sqliteTable(
+  "citire_saptamani",
+  {
+    grupaId: integer("grupa_id")
+      .notNull()
+      .references(() => grupe.id, { onDelete: "cascade" }),
+    /** Lunea săptămânii (AAAA-LL-ZZ). */
+    saptamana: text("saptamana").notNull(),
+    /** Ultima zi bifată: duminica, sau ziua salvării dacă săptămâna nu s-a încheiat. */
+    completatPanaLa: text("completat_pana_la").notNull(),
+    marcatDeId: integer("marcat_de_id").references(() => lideri.id, {
+      onDelete: "set null",
+    }),
+    actualizatLa: integer("actualizat_la", { mode: "timestamp" })
+      .notNull()
+      .default(acum),
+  },
+  (t) => [primaryKey({ columns: [t.grupaId, t.saptamana] })],
+);
+
+/**
  * Calendarul lucrării: ce se întâmplă și când.
  *
  * Atenție la nume: tabelul `intalniri` de mai sus e altceva - acolo se ține
@@ -601,7 +681,7 @@ export const notificari = sqliteTable(
       .notNull()
       .references(() => lideri.id, { onDelete: "cascade" }),
     tip: text("tip", {
-      enum: ["zi_nastere", "slujire", "prezenta", "rezumat"],
+      enum: ["zi_nastere", "slujire", "prezenta", "rezumat", "citire"],
     }).notNull(),
     /** Cheie de dedublare, ex. "zi_nastere:2026:12". */
     cheie: text("cheie").notNull(),
@@ -673,3 +753,4 @@ export type Eveniment = typeof evenimente.$inferSelect;
 export type Notificare = typeof notificari.$inferSelect;
 export type AbonamentPush = typeof abonamentePush.$inferSelect;
 export type TipNotificare = Notificare["tip"];
+export type ZiPlanCitire = typeof planCitire.$inferSelect;

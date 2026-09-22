@@ -17,7 +17,8 @@ export function NavigareJos({
   necitite: number;
 }) {
   const cale = usePathname();
-  if (cale.endsWith("/prezenta")) return null;
+  // Foile de prezență și de citit au bara lor de salvare, tot jos.
+  if (cale.endsWith("/prezenta") || /^\/grupe\/\d+\/citire$/.test(cale)) return null;
 
   const linkuri = [
     { href: "/grupe", text: "Grupe", icon: <IconGrupe /> },

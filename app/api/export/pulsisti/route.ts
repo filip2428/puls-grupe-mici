@@ -4,7 +4,9 @@ import { NextResponse } from "next/server";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { scrieAudit } from "@/lib/audit";
 import { TON, adaugaFoaie, adaugaFoaieDespre } from "@/lib/excel";
+import { ETICHETE_STARE, type StareCitire } from "@/lib/citire";
 import { grupeAccesibile, vedeTotiPulsistii } from "@/lib/interogari/acces";
+import { avansulPulsistilor, planulDeCitire } from "@/lib/interogari/citire";
 import { prieteniiMaiMultora } from "@/lib/interogari/prietenii";
 import {
   cautaPulsisti,
@@ -129,6 +131,53 @@ export async function GET(cerere: Request) {
     randuri,
   });
 
+  /*
+    Cititul Bibliei, pe o foaie a lui - doar membrii cu grupă: de la musafiri
+    și de la nerepartizați nu se așteaptă, deci n-au ce căuta în socoteală.
+  */
+  const plan = await planulDeCitire();
+  if (plan.length > 0) {
+    const cititori = lista.filter(
+      (a) => a.status === "membru" && a.activ && a.grupaId !== null,
+    );
+    const avansuri = await avansulPulsistilor(cititori);
+    adaugaFoaie(registru, {
+      nume: "Cititul Bibliei",
+      inghetate: 1,
+      coloane: [
+        { antet: "Nume", cheie: "nume", latime: 26 },
+        { antet: "Grupa", cheie: "grupa", latime: 20 },
+        { antet: "Socotit de la", cheie: "deLa", latime: 14, format: "data" },
+        { antet: "Bifat până la", cheie: "panaLa", latime: 14, format: "data" },
+        { antet: "Porții cerute", cheie: "asteptate", latime: 12 },
+        { antet: "Porții citite", cheie: "citite", latime: 12 },
+        { antet: "În urmă", cheie: "inUrma", latime: 10 },
+        {
+          antet: "% citit",
+          cheie: "procent",
+          latime: 10,
+          format: "procent",
+          ton: TON.procent,
+        },
+        { antet: "Stare", cheie: "stare", latime: 16, ton: tonStareCitire },
+      ],
+      randuri: cititori.map((a) => {
+        const av = avansuri.get(a.id)!;
+        return {
+          nume: a.nume,
+          grupa: a.grupaNume ?? FARA_GRUPA,
+          deLa: av.deLa,
+          panaLa: av.panaLa,
+          asteptate: av.asteptate,
+          citite: av.citite,
+          inUrma: av.inUrma,
+          procent: av.procent,
+          stare: ETICHETE_STARE[av.stare],
+        };
+      }),
+    });
+  }
+
   adaugaFoaieDespre(registru, {
     titlu: "Lista de pulsiști",
     detalii: [
@@ -143,6 +192,8 @@ export async function GET(cerere: Request) {
       { ton: "slab", text: "prezență sub 50%" },
       { ton: "aparte", text: "musafir - vine, dar nu e (încă) în grupă" },
       { ton: "stins", text: "nu mai vine (inactiv) - rămâne pentru istoric" },
+      { ton: "atentie", text: "citit: puțin în urmă (1-7 porții)" },
+      { ton: "slab", text: "citit: mult în urmă (peste 7 porții)" },
     ],
   });
 
@@ -160,6 +211,18 @@ export async function GET(cerere: Request) {
       "Cache-Control": "no-store",
     },
   });
+}
+
+/** Culoarea stării la citit, după eticheta scrisă în celulă. */
+function tonStareCitire(valoare: unknown) {
+  const stare = (Object.keys(ETICHETE_STARE) as StareCitire[]).find(
+    (s) => ETICHETE_STARE[s] === valoare,
+  );
+  if (stare === "la_zi") return "bine" as const;
+  if (stare === "putin") return "atentie" as const;
+  if (stare === "mult") return "slab" as const;
+  if (stare === "necompletat") return "stins" as const;
+  return null;
 }
 
 /**

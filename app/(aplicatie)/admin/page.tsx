@@ -73,6 +73,7 @@ export default async function PaginaAdmin() {
         <Buton href="/admin/biserici" text="Biserici" />
         <Buton href="/slujiri" text="Slujiri" />
         <Buton href="/statistici" text="Statistici" />
+        <Buton href="/admin/citire" text="Planul de citire" />
         <Buton href="/admin/nerepartizati" text="Nerepartizați" />
         <Buton href="/admin/import" text="Import Excel" />
         <Buton href="/admin/export" text="Export" />
@@ -83,8 +84,9 @@ export default async function PaginaAdmin() {
         <h2 className="mb-1 text-sm font-bold">Notificări</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Se generează singure în fiecare dimineață: zile de naștere, slujiri
-          care urmează, prezențe necompletate și rezumatul de luni. Butonul le
-          rulează acum, dacă vrei să verifici că totul merge.
+          care urmează, prezențe necompletate, rezumatul de luni și cititul
+          Bibliei nebifat. Butonul le rulează acum, dacă vrei să verifici că
+          totul merge.
         </p>
         <ButonNotificari />
       </section>

@@ -17,6 +17,7 @@ import {
   type TipNotificare,
 } from "@/lib/db/schema";
 import { alerteAbsenteGrupa } from "@/lib/interogari/statistici";
+import { grupeFaraCitireCompletata } from "@/lib/interogari/citire";
 import { liderilDeAnuntat } from "@/lib/interogari/slujiri";
 import { pushConfigurat, trimitePush } from "@/lib/push";
 import {
@@ -377,6 +378,39 @@ async function notificariRezumat(azi: string): Promise<NotificareNoua[]> {
   return noi;
 }
 
+/**
+ * Amintirea de luni: cititul Bibliei de săptămâna trecută nu e bifat.
+ *
+ * Merge pe aceeași bifă ca prezența necompletată - pentru lider e același
+ * fel de treabă rămasă nefăcută. Se trimite doar dacă săptămâna a avut
+ * porții în plan și grupa are pulsiști de la care să se aștepte cititul.
+ */
+async function notificariCitire(azi: string): Promise<NotificareNoua[]> {
+  if (ziSaptamanii(azi) !== 1) return []; // doar lunea
+  const luni = adaugaZile(azi, -7);
+  const duminica = adaugaZile(azi, -1);
+
+  const lipsa = await grupeFaraCitireCompletata(luni);
+  if (lipsa.length === 0) return [];
+
+  const peGrupa = await liderilPeGrupa(lipsa.map((g) => g.id));
+  const noi: NotificareNoua[] = [];
+  for (const g of lipsa) {
+    for (const l of peGrupa.get(g.id) ?? []) {
+      if (!l.notifPrezenta) continue;
+      noi.push({
+        liderId: l.liderId,
+        tip: "citire",
+        cheie: `citire:${g.id}:${luni}`,
+        titlu: `Cititul Bibliei de săptămâna trecută`,
+        mesaj: `La grupa ${g.nume} nu e bifat încă cititul pentru ${dataScurta(luni)} – ${dataScurta(duminica)}. Întreabă-i cât au citit și bifează din aplicație.`,
+        link: `/grupe/${g.id}/citire?saptamana=${luni}`,
+      });
+    }
+  }
+  return noi;
+}
+
 export type RezultatGenerare = Record<TipNotificare, number> & { total: number };
 
 /**
@@ -391,6 +425,7 @@ export async function genereazaNotificari(
     notificariSlujiri(azi),
     notificariPrezentaLipsa(azi),
     notificariRezumat(azi),
+    notificariCitire(azi),
   ]);
 
   const rezultat: RezultatGenerare = {
@@ -398,6 +433,7 @@ export async function genereazaNotificari(
     slujire: 0,
     prezenta: 0,
     rezumat: 0,
+    citire: 0,
     total: 0,
   };
 

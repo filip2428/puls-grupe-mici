@@ -39,6 +39,8 @@ import {
   slujiriDisponibilePentru,
 } from "@/lib/interogari/slujiri";
 import { pierderiMembru } from "@/lib/interogari/stergere";
+import { avansulPulsistului, planulDeCitire } from "@/lib/interogari/citire";
+import { CULORI_STARE, ETICHETE_STARE } from "@/lib/citire";
 import {
   dataAzi,
   dataCuAn,
@@ -57,6 +59,7 @@ import {
   schimbaActiv,
   scoatePrieten,
   stergeMembru,
+  schimbaStartCitire,
   stergeNota,
   treceLaMusafiri,
 } from "./actions";
@@ -124,6 +127,8 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     deLegat,
     biserici,
     grupeDeAles,
+    citire,
+    plan,
   ] = await Promise.all([
     istoricMembru(membruId, 16),
     noteleMembrului(membruId),
@@ -137,6 +142,8 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     pulsistiDeLegat(membruId, grupePermise),
     bisericileCunoscute(),
     grupa ? [] : grupeActive(),
+    avansulPulsistului(membruId),
+    planulDeCitire(),
   ]);
   const azi = dataAzi();
 
@@ -637,6 +644,98 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           P = prezent · A = a anunțat că lipsește · – = absent
         </p>
       </section>
+
+      {/* Cititul Bibliei - doar la membri: de la musafiri nu se așteaptă */}
+      {!esteMusafir && citire && plan.length > 0 && (
+        <section className="card p-4">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-bold">Cititul Bibliei</h2>
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs ${CULORI_STARE[citire.avans.stare]}`}
+            >
+              {citire.avans.stare === "putin" || citire.avans.stare === "mult"
+                ? `${citire.avans.inUrma} în urmă`
+                : ETICHETE_STARE[citire.avans.stare]}
+            </span>
+          </div>
+
+          {citire.avans.panaLa === null ? (
+            <p className="text-sm text-cenusiu">
+              Liderii grupei n-au completat încă cititul, deci nu se știe unde e.
+            </p>
+          ) : (
+            <p className="text-sm">
+              A citit <strong>{citire.avans.citite}</strong> din{" "}
+              {citire.avans.asteptate} porții
+              {citire.avans.procent !== null ? ` (${citire.avans.procent}%)` : ""}
+              <span className="text-cenusiu">
+                {" "}
+                · completat până la {dataScurta(citire.avans.panaLa)}
+              </span>
+            </p>
+          )}
+          {citire.avans.deLa && (
+            <p className="mt-1 text-xs text-cenusiu">
+              I se socotește de la {dataCuAn(citire.avans.deLa)} (
+              {plan.find((z) => z.data === citire.avans.deLa)?.portiune ??
+                "zi fără porție"}
+              ){citire.citireDeLa ? ", pus de mână" : ""}.
+            </p>
+          )}
+
+          {citire.recente.length > 0 && (
+            <ul className="mt-3 flex flex-wrap gap-1.5">
+              {citire.recente.map((z) => (
+                <li
+                  key={z.data}
+                  title={`${z.data} · ${z.portiune}`}
+                  className={`flex w-12 flex-col items-center rounded-lg px-1 py-1.5 text-[10px] ${
+                    z.citit ? "bg-albastru text-white" : "bg-fundal text-cenusiu"
+                  }`}
+                >
+                  <span className="text-sm font-bold">{z.citit ? "✓" : "–"}</span>
+                  <span className="opacity-80">{dataScurta(z.data)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {lider.rol === "admin" && (
+            <details className="mt-3 border-t border-[#eef1f7] pt-3">
+              <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
+                Schimbă ziua de la care i se socotește
+              </summary>
+              <p className="mb-3 text-xs text-cenusiu">
+                De obicei nu e nevoie: cine intră mai târziu începe singur de la
+                începutul cărții la care e planul. Scrie o zi doar dacă regula
+                nu i se potrivește.
+              </p>
+              <form
+                action={schimbaStartCitire.bind(null, membruId)}
+                className="flex flex-wrap items-end gap-2"
+              >
+                <input
+                  name="deLa"
+                  type="date"
+                  className="camp flex-1"
+                  defaultValue={citire.citireDeLa ?? ""}
+                />
+                <button type="submit" className="buton buton-secundar">
+                  Salvează
+                </button>
+              </form>
+              {citire.citireDeLa && (
+                <form action={schimbaStartCitire.bind(null, membruId)} className="mt-2">
+                  <input type="hidden" name="deLa" value="" />
+                  <button type="submit" className="text-xs text-albastru underline">
+                    Înapoi la regula obișnuită
+                  </button>
+                </form>
+              )}
+            </details>
+          )}
+        </section>
+      )}
 
       {/* Note - doar pentru liderii lui, nu și pentru cine trece în vizită */}
       {poateSchimba && (

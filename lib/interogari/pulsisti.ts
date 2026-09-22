@@ -41,6 +41,9 @@ export type PulsistDinLista = {
   status: "membru" | "musafir";
   activ: boolean;
   devenitMembruLa: string | null;
+  creatLa: Date;
+  /** Startul cititului pus de mână (vezi `membri.citireDeLa`). */
+  citireDeLa: string | null;
   biserica: Biserica | null;
   bisericaNume: string | null;
   botez: Botez | null;
@@ -145,6 +148,8 @@ export async function cautaPulsisti(
       status: m.status,
       activ: m.activ,
       devenitMembruLa: m.devenitMembruLa,
+      creatLa: m.creatLa,
+      citireDeLa: m.citireDeLa,
       biserica: m.biserica,
       bisericaNume,
       botez: m.botez,

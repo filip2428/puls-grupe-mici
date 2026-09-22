@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { ceruteLider } from "@/lib/auth/sesiune";
+import { CULORI_STARE, ETICHETE_STARE, PRAG_PUTIN_IN_URMA } from "@/lib/citire";
+import { raportCitire } from "@/lib/interogari/citire";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import {
   statisticiPerioada,
@@ -9,6 +11,7 @@ import {
 import {
   anulBisericesc,
   dataAzi,
+  dataScurta,
   esteDataValida,
   perioadaLizibila,
 } from "@/lib/util/date";
@@ -42,7 +45,10 @@ export default async function PaginaStatistici({
       ? undefined
       : grupele.map((g) => g.id);
 
-  const s = await statisticiPerioada({ deLa, panaLa, grupaIds });
+  const [s, citire] = await Promise.all([
+    statisticiPerioada({ deLa, panaLa, grupaIds }),
+    raportCitire(grupaIds),
+  ]);
   const parametri = new URLSearchParams({ deLa, panaLa });
   if (grupaAleasa) parametri.set("grupa", String(grupaAleasa));
 
@@ -143,6 +149,8 @@ export default async function PaginaStatistici({
           />
         </div>
       </form>
+
+      {citire.arePlan && <SectiuneCitire raport={citire} />}
 
       {s.rezumat.intalniri === 0 ? (
         <div className="card p-6 text-center text-sm text-cenusiu">
@@ -458,5 +466,150 @@ function ListaOameni({
         ))}
       </ul>
     </section>
+  );
+}
+
+/**
+ * Cititul Bibliei. Nu ține de perioada aleasă mai sus: e mereu socotit față
+ * de plan, de la începutul lui până unde au completat liderii.
+ */
+function SectiuneCitire({
+  raport,
+}: {
+  raport: Awaited<ReturnType<typeof raportCitire>>;
+}) {
+  const { total, peGrupe, evolutie, multInUrma } = raport;
+  const maxim = Math.max(1, ...evolutie.map((e) => e.laZi + e.putin + e.mult));
+
+  return (
+    <>
+      <section className="card p-4">
+        <h2 className="text-sm font-bold">Cititul Bibliei</h2>
+        <p className="mb-3 text-xs text-cenusiu">
+          Față de planul de citire, până unde au bifat liderii. Nu depinde de
+          perioada aleasă mai sus.
+          {raport.portiuneaDeAzi
+            ? ` Azi se citește ${raport.portiuneaDeAzi.portiune}.`
+            : ""}
+        </p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Caseta
+            valoare={total.procentMediu !== null ? `${total.procentMediu}%` : "-"}
+            eticheta="citit în medie"
+          />
+          <Caseta valoare={String(total.laZi)} eticheta="la zi" />
+          <Caseta
+            valoare={String(total.putin)}
+            eticheta={`puțin în urmă (1–${PRAG_PUTIN_IN_URMA})`}
+          />
+          <Caseta
+            valoare={String(total.mult)}
+            eticheta={`mult în urmă (peste ${PRAG_PUTIN_IN_URMA})`}
+          />
+        </div>
+        {total.necompletat > 0 && (
+          <p className="mt-3 text-xs text-cenusiu">
+            La încă {total.necompletat}{" "}
+            {total.necompletat === 1 ? "pulsist" : "pulsiști"} liderii n-au
+            bifat deloc cititul, deci nu se știe unde sunt.
+          </p>
+        )}
+      </section>
+
+      {evolutie.length > 0 && (
+        <section className="card p-4">
+          <h2 className="text-sm font-bold">Cititul pe săptămâni</h2>
+          <p className="mb-4 text-xs text-cenusiu">
+            Cum stăteau pulsiștii la sfârșitul fiecărei săptămâni. Intră doar
+            grupele care au bifat săptămâna întreagă.
+          </p>
+          <ul className="flex h-32 items-end gap-2">
+            {evolutie.map((e) => {
+              const cati = e.laZi + e.putin + e.mult;
+              const inaltime = (n: number) => `${(n / maxim) * 100}%`;
+              return (
+                <li
+                  key={e.panaLa}
+                  className="flex h-full flex-1 flex-col items-center justify-end gap-1"
+                  title={`${e.laZi} la zi · ${e.putin} puțin în urmă · ${e.mult} mult în urmă`}
+                >
+                  <span className="text-[10px] font-semibold text-albastru">
+                    {cati > 0 ? `${Math.round((e.laZi / cati) * 100)}%` : ""}
+                  </span>
+                  <div className="flex w-full flex-1 flex-col justify-end overflow-hidden rounded-t">
+                    <div className="bg-red-300" style={{ height: inaltime(e.mult) }} />
+                    <div className="bg-lime" style={{ height: inaltime(e.putin) }} />
+                    <div className="bg-albastru" style={{ height: inaltime(e.laZi) }} />
+                  </div>
+                  <span className="text-[10px] text-cenusiu">{dataScurta(e.panaLa)}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <ul className="mt-3 flex flex-wrap gap-3 text-xs text-cenusiu">
+            <li className="flex items-center gap-1">
+              <span className="h-2.5 w-2.5 rounded-sm bg-albastru" /> la zi
+            </li>
+            <li className="flex items-center gap-1">
+              <span className="h-2.5 w-2.5 rounded-sm bg-lime" /> puțin în urmă
+            </li>
+            <li className="flex items-center gap-1">
+              <span className="h-2.5 w-2.5 rounded-sm bg-red-300" /> mult în urmă
+            </li>
+          </ul>
+          <p className="mt-2 text-xs text-cenusiu">
+            Procentul de deasupra = câți erau la zi.
+          </p>
+        </section>
+      )}
+
+      <Tabel
+        titlu="Cititul pe grupe"
+        explicatie="Media = cât la sută din porțiile cerute a citit, în medie, un pulsist al grupei."
+        capete={["Grupa", "Media", "La zi", "Puțin", "Mult", "Bifat până la"]}
+        randuri={peGrupe.map((g) => [
+          g.nume,
+          g.procentMediu !== null ? `${g.procentMediu}%` : "-",
+          g.laZi,
+          g.putin,
+          g.mult,
+          g.completatPanaLa ? dataScurta(g.completatPanaLa) : "niciodată",
+        ])}
+      />
+
+      {multInUrma.length > 0 && (
+        <section className="rounded-2xl border border-red-100 bg-red-50/50 p-4">
+          <h2 className="text-sm font-bold text-red-800">
+            Mult în urmă cu cititul ({multInUrma.length})
+          </h2>
+          <p className="mb-3 text-xs text-red-700/80">
+            Mai mult de {PRAG_PUTIN_IN_URMA} porții necitite. Poate au nevoie de
+            un imbold, sau de un plan de recuperare.
+          </p>
+          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+            {multInUrma.map((o) => (
+              <li key={o.membruId} className="py-2">
+                <Link
+                  href={`/membri/${o.membruId}`}
+                  className="flex items-baseline justify-between gap-3"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium">{o.nume}</span>
+                    <span className="text-xs text-cenusiu">
+                      {o.grupa} · {o.avans.citite} din {o.avans.asteptate} porții
+                    </span>
+                  </span>
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${CULORI_STARE.mult}`}
+                  >
+                    {o.avans.inUrma} {ETICHETE_STARE.mult.replace("mult ", "")}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
   );
 }

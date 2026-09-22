@@ -23,6 +23,7 @@ const ICOANE: Record<string, string> = {
   slujire: "🙌",
   prezenta: "📋",
   rezumat: "📊",
+  citire: "📖",
 };
 
 export default async function PaginaSetari() {

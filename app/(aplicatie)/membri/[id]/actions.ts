@@ -261,6 +261,27 @@ export async function schimbaActiv(membruId: number, activ: boolean) {
 }
 
 /**
+ * Ziua de la care i se socotește cititul Bibliei, pusă de mână de admin.
+ * Goală = înapoi la regula obișnuită (începutul cărții la care era planul).
+ */
+export async function schimbaStartCitire(membruId: number, formData: FormData) {
+  const acces = await accesLaMembru(membruId);
+  if (!acces || acces.lider.rol !== "admin") return;
+
+  const scris = String(formData.get("deLa") ?? "").trim();
+  const citireDeLa = esteDataValida(scris) ? scris : null;
+
+  await db.update(membri).set({ citireDeLa }).where(eq(membri.id, membruId));
+  await scrieAudit(acces.lider.id, "citire:start_schimbat", {
+    membruId,
+    deLa: citireDeLa ?? "regula obișnuită",
+  });
+
+  revalidatePath(`/membri/${membruId}`);
+  improspateazaGrupa(acces.membru.grupaId);
+}
+
+/**
  * Primește un musafir în grupă (după procedura internă a lucrării).
  * Din momentul ăsta intră în statistici și în alertele de absență.
  */

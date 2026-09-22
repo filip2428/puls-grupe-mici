@@ -24,6 +24,8 @@ import {
 } from "@/lib/interogari/grupe";
 import { programariGrupei, slujiriDeCompletat } from "@/lib/interogari/slujiri";
 import { alerteAbsenteGrupa } from "@/lib/interogari/statistici";
+import { avansulPulsistilor, portiuneaZilei } from "@/lib/interogari/citire";
+import { CULORI_STARE, ETICHETE_STARE } from "@/lib/citire";
 import {
   dataAzi,
   dataLunga,
@@ -72,6 +74,13 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
     slujiriDeCompletat(grupaId),
     pulsistiFaraGrupa(),
   ]);
+
+  const [avansuri, portiuneaDeAzi] = await Promise.all([
+    avansulPulsistilor(membri),
+    portiuneaZilei(azi),
+  ]);
+  const stariCitire = { la_zi: 0, putin: 0, mult: 0, necompletat: 0 };
+  for (const a of avansuri.values()) stariCitire[a.stare]++;
 
   const necompletate = new Set(slujiriNecompletate.map((p) => p.id));
   const slujiriDeAratat = slujiri.filter((p) => !necompletate.has(p.id));
@@ -132,6 +141,33 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
             Deschide
           </button>
         </form>
+      </section>
+
+      {/* Cititul Bibliei */}
+      <section className="card p-4">
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <h2 className="text-sm font-bold">Cititul Bibliei</h2>
+          <span className="text-xs text-cenusiu">
+            azi: {portiuneaDeAzi ? portiuneaDeAzi.portiune : "nicio porție"}
+          </span>
+        </div>
+        {membri.length > 0 && (
+          <ul className="mb-3 flex flex-wrap gap-1.5 text-xs">
+            {(["la_zi", "putin", "mult", "necompletat"] as const)
+              .filter((s) => stariCitire[s] > 0)
+              .map((s) => (
+                <li key={s} className={`rounded-full px-2 py-1 ${CULORI_STARE[s]}`}>
+                  {stariCitire[s]} {ETICHETE_STARE[s]}
+                </li>
+              ))}
+          </ul>
+        )}
+        <Link
+          href={`/grupe/${grupaId}/citire`}
+          className="buton buton-secundar w-full"
+        >
+          Bifează cititul săptămânii
+        </Link>
       </section>
 
       {/* Slujiri la care nu s-a făcut încă prezența */}
@@ -221,6 +257,7 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
           <ul className="flex flex-col divide-y divide-[#eef1f7]">
             {membri.map((m) => {
               const ani = varsta(m.dataNasterii);
+              const citit = avansuri.get(m.id);
               return (
                 <li key={m.id}>
                   <Link
@@ -228,10 +265,18 @@ export default async function PaginaGrupa({ params }: PageProps<"/grupe/[id]">) 
                     className="flex min-h-11 items-center justify-between gap-3 py-2.5"
                   >
                     <span className="truncate text-sm font-medium">{m.nume}</span>
-                    <span className="shrink-0 text-xs text-cenusiu">
+                    <span className="flex shrink-0 items-center gap-2 text-xs text-cenusiu">
                       {[etichetaClasaScurta(m.clasa), ani !== null ? `${ani} ani` : ""]
                         .filter(Boolean)
                         .join(" · ")}
+                      {citit && (citit.stare === "putin" || citit.stare === "mult") && (
+                        <span
+                          className={`rounded-full px-1.5 text-[10px] leading-4 ${CULORI_STARE[citit.stare]}`}
+                          title="Porții de citit rămase în urmă"
+                        >
+                          {citit.inUrma} în urmă
+                        </span>
+                      )}
                     </span>
                   </Link>
                 </li>
