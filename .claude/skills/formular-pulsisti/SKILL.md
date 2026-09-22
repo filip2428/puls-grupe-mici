@@ -76,6 +76,14 @@ Comentariile și numele din cod sunt în română, cu diacritice, ca în restul
 fișierului. Schimbările la convertor se fac commit (fără fișierele xlsx - au
 date personale ale unor minori și nu intră niciodată în git).
 
+**Biserica e a părinților, nu a copilului** (cerut de utilizator pe 22 sep.
+2026): copiii nu sunt botezați, deci contează dacă familia e membră undeva.
+Convertorul ia biserica unui părinte membru; „/" sau două biserici deodată
+(„Harvest/Metanoia"), „-" și orice „ortodox"/„catolic" înseamnă fără biserică.
+Dacă utilizatorul îți dă și exportul din aplicație (`puls-pulsisti-*.xlsx`),
+compară biserica de acolo cu ce iese acum pentru cei vechi și spune-i ce
+diferă - importul nu actualizează pulsiștii existenți.
+
 ## 4. Ce nu prinde convertorul - uită-te tu
 
 Citește rândurile noi cu ochii, nu doar raportul:
@@ -111,3 +119,4 @@ e deja în aplicație.
 | --- | --- | --- | --- | --- |
 | 9 sep. 2026 | `PULS 2026-2027 (Responses).xlsx` | - | 52 | 52 (lista întreagă) |
 | 15 sep. 2026 | `PULS 2026-2027 (Responses) (1).xlsx` | `(Responses).xlsx` | 70 | 17 + Jhonatan Galea completat din nou |
+| 22 sep. 2026 | `PULS 2026-2027 (Responses) (2).xlsx` | `(Responses) (1).xlsx` | 74 | 4 |

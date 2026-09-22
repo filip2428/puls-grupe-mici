@@ -169,7 +169,7 @@ function domeniuSuspect(adresa: string): string | null {
  * litere mici), în dreapta numele pe care îl ținem noi.
  */
 const BISERICI: { potriviri: string[]; nume: string; nota?: string }[] = [
-  { potriviri: ["harvest", "harveat", "hervest", "harvset"], nume: "Harvest Arad" },
+  { potriviri: ["harvest", "harveat", "harevest", "hervest", "harvset"], nume: "Harvest Arad" },
   { potriviri: ["metanoia"], nume: "Metanoia Arad" },
   { potriviri: ["adoram"], nume: "Adoram Arad" },
   { potriviri: ["betania"], nume: "Betania Arad" },
@@ -194,22 +194,83 @@ function bisericaCurata(brut: string): { nume: string; nota?: string } {
     acolo duminica", deci trec la „fără biserică". Cine chiar ține de o parohie
     scrie parohia, iar aceea intră ca orice altă biserică.
   */
-  if (faraBiserica(brut)) {
-    const scris = brut.replace(/\s+/g, " ").trim();
+  const scris = brut.replace(/\s+/g, " ").trim();
+
+  /*
+    La ortodocși și catolici mergem mai departe decât `faraBiserica`: și
+    „Biserica creștin ortodoxă Grădiște" e tot „fără biserică" pentru noi. Ne
+    interesează dacă familia e membră într-o biserică de-a noastră, iar la
+    ortodocși și catolici nu există membralitate de felul ăsta.
+  */
+  if (faraBiserica(brut) || /ortodox|catolic/.test(curat)) {
     return {
       nume: "-",
       nota: `A scris „${scris}" - o denominațiune, nu o biserică anume, deci l-am trecut fără biserică. Dacă totuși ține de o parohie și e implicat acolo, scrie-o pe fișa lui.`,
     };
   }
 
-  const stiuta = BISERICI.find((b) => b.potriviri.some((p) => curat.includes(p)));
+  /*
+    „Harvest/Metanoia", „Frecventăm Harvest și Ekklesia" - cine scrie două
+    biserici merge pe la amândouă, dar nu e membru în niciuna.
+  */
+  const stiute = BISERICI.filter((b) => b.potriviri.some((p) => curat.includes(p)));
+  if (curat.includes("/") || stiute.length > 1) {
+    return {
+      nume: "-",
+      nota: `A scris „${scris}" - două biserici, deci nu e membru în niciuna; l-am trecut fără biserică.`,
+    };
+  }
+
+  const stiuta = stiute[0];
   if (stiuta) return { nume: stiuta.nume, nota: stiuta.nota };
 
-  const scris = brut.replace(/\s+/g, " ").trim();
   return {
     nume: scris,
     nota: `Biserică nouă: „${scris}". Verifică numele, apoi pune-i localitatea și denominațiunea în Administrare · Biserici.`,
   };
+}
+
+/**
+ * Biserica pe care o trecem pe fișă e a părinților, nu a copilului.
+ *
+ * Copiii nu sunt botezați, deci nu sunt membri nicăieri; ce scriu ei spune
+ * doar unde vin duminica. Ne interesează dacă familia e membră într-o
+ * biserică: dacă măcar un părinte e, luăm biserica lui. Dacă părinții au
+ * răspuns, dar niciunul nu e membru nicăieri, e „fără biserică" - chiar dacă
+ * copilul a scris „Harvest". Doar dacă niciun părinte n-a scris nimic ne
+ * întoarcem la răspunsul copilului.
+ */
+function bisericaFamiliei(
+  brutCopil: string,
+  bruteParinti: string[],
+): { nume: string; note: string[] } {
+  const scrise = bruteParinti.filter((b) => b.trim());
+  const copil = bisericaCurata(brutCopil);
+
+  if (scrise.length === 0) {
+    const note = copil.nota ? [copil.nota] : [];
+    if (copil.nume) {
+      note.push("Părinții n-au scris biserica - am luat-o pe a copilului. Verifică.");
+    }
+    return { nume: copil.nume, note };
+  }
+
+  const aleParintilor = scrise.map(bisericaCurata);
+  const membri = aleParintilor.filter((b) => b.nume && b.nume !== "-");
+  const aleasa = membri[0] ?? aleParintilor[0];
+  const note = aleasa.nota ? [`Părinte: ${aleasa.nota}`] : [];
+
+  const altele = [...new Set(membri.map((b) => b.nume))];
+  if (altele.length > 1) {
+    note.push(`Părinții sunt în biserici diferite (${altele.join(", ")}) - am luat-o pe prima.`);
+  }
+  if (copil.nume && copil.nume !== aleasa.nume) {
+    const deLa = aleasa.nume === "-" ? "fără biserică" : aleasa.nume;
+    note.push(
+      `Copilul a scris „${brutCopil.replace(/\s+/g, " ").trim()}", dar părinții - ${deLa}. Am trecut biserica părinților.`,
+    );
+  }
+  return { nume: aleasa.nume, note };
 }
 
 /**
@@ -235,7 +296,7 @@ carla carmen casandra catalina cezara clara claudia corina cristina dalia damari
 daria debora delia denisa diana doina dorina doris elena eliana eliane elisabeta elisabeth eliza ella
 emanuela emma erika estera eva evelina fabiola flavia florina gabriela georgiana gloria hadina
 iasmina ileana ilinca ioana iulia iuliana ivona joellin julia karina larisa laura lavinia lea
-lidia ligia liliana lois loredana luiza magdalena maia mara maria mariana marta melania mihaela
+lidia ligia liliana lois loredana luiza magdalena maia mara maria mariana marta medeea melania mihaela
 miriam monica nadia natalia nicoleta noemi oana olivia otilia patricia paula petra rahela raisa
 rafaela raluca rania rebeca rebecca roberta ruth salma samira sara sarah sefora sidonia silvia simona
 sofia sonia sophia sophie stefania tabita teodora tiana timea valentina vanessa veronica
@@ -351,6 +412,7 @@ type BlocParinte = {
   relatie: number;
   telefon: number;
   email: number;
+  biserica: number;
 };
 
 function gasesteColoane(antet: ExcelJS.Row) {
@@ -385,12 +447,14 @@ function gasesteColoane(antet: ExcelJS.Row) {
       relatie: coloana,
       telefon: coloana + 1,
       email: coloana + 2,
+      biserica: coloana + 3,
     };
     const arataBine =
       (titluri.get(bloc.nume) ?? "").includes("nume") &&
       (titluri.get(bloc.prenume) ?? "").includes("prenume") &&
       (titluri.get(bloc.telefon) ?? "").includes("telefon") &&
-      (titluri.get(bloc.email) ?? "").includes("email");
+      (titluri.get(bloc.email) ?? "").includes("email") &&
+      (titluri.get(bloc.biserica) ?? "").includes("biserica");
     if (!arataBine) {
       console.warn(
         `  Atenție: coloanele părintelui din jurul coloanei ${coloana} nu arată cum mă așteptam. Verifică-le în fișierul scos.`,
@@ -547,8 +611,11 @@ async function main() {
     const sex = sexDinPrenume(prenume);
     if (!sex) note.push("Nu-mi dau seama dacă e băiat sau fată - completează coloana Sex.");
 
-    const biserica = bisericaCurata(text(rand, "biserica"));
-    if (biserica.nota) note.push(biserica.nota);
+    const biserica = bisericaFamiliei(
+      text(rand, "biserica"),
+      parinti.map((bloc) => textDinCelula(rand.getCell(bloc.biserica).value)),
+    );
+    note.push(...biserica.note);
 
     const telefon = telefonCurat(text(rand, "telefon"));
     if (telefon.nota) note.push(telefon.nota);
