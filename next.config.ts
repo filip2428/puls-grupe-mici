@@ -25,6 +25,15 @@ const nextConfig: NextConfig = {
      * cheamă `revalidatePath`, iar asta șterge pe loc ce era ținut minte.
      */
     staleTimes: { dynamic: 60, static: 300 },
+
+    /**
+     * Cât de mare poate fi un fișier trimis unei acțiuni de pe server.
+     *
+     * Implicit e 1 MB. Copia de siguranță a bazei, încărcată la restaurare,
+     * poate trece de atât după câțiva ani de prezențe. Vercel oricum nu
+     * primește mai mult de 4,5 MB într-o cerere, așa că ne oprim sub asta.
+     */
+    serverActions: { bodySizeLimit: "4mb" },
   },
 
   /*

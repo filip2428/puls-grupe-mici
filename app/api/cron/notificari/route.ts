@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 
 import { sesiuneCurenta } from "@/lib/auth/sesiune";
+import { copiaSaptamanala } from "@/lib/copie";
 import { emailActiv, emailConfigurat } from "@/lib/email";
 import {
   genereazaNotificari,
   trimiteNotificariNetrimise,
 } from "@/lib/notificari";
+import { dataAzi, ziSaptamanii } from "@/lib/util/date";
 
 /**
- * Generarea și trimiterea notificărilor.
+ * Generarea și trimiterea notificărilor - și, duminica, a copiei de
+ * siguranță a bazei de date.
  *
  * Rulează automat o dată pe zi (vezi `vercel.json`), dar poate fi pornită și
  * de un administrator din pagina de administrare - util ca să vezi imediat
@@ -37,10 +40,14 @@ async function ruleaza(cerere: Request) {
 
   const generate = await genereazaNotificari();
   const trimise = await trimiteNotificariNetrimise();
+  // Duminica pleacă și copia de siguranță la administratori.
+  const azi = dataAzi();
+  const copie = await copiaSaptamanala(azi, ziSaptamanii(azi));
 
   return NextResponse.json({
     generate,
     trimise,
+    copie,
     // Amandoua, ca sa se vada din raspuns daca lipsesc cheile sau doar
     // comutatorul EMAIL_PORNIT.
     emailConfigurat: emailConfigurat(),

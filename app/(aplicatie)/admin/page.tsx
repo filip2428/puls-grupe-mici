@@ -78,6 +78,8 @@ export default async function PaginaAdmin() {
         <Buton href="/admin/import" text="Import Excel" />
         <Buton href="/admin/export" text="Export" />
         <Buton href="/admin/jurnal" text="Jurnal" />
+        <Buton href="/admin/siguranta" text="Siguranța datelor" />
+        <Buton href="/admin/an" text="Anul bisericesc" />
       </nav>
 
       <section className="card p-4">

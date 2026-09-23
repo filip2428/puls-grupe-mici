@@ -54,6 +54,8 @@ export async function trimiteEmail(mesaj: {
   catre: string;
   subiect: string;
   text: string;
+  /** Fișiere atașate - de exemplu copia de siguranță a bazei de date. */
+  atasamente?: { nume: string; continut: Buffer }[];
 }): Promise<RezultatEmail> {
   if (!emailActiv()) {
     return {
@@ -76,6 +78,10 @@ export async function trimiteEmail(mesaj: {
         to: [mesaj.catre],
         subject: mesaj.subiect,
         text: mesaj.text,
+        attachments: mesaj.atasamente?.map((a) => ({
+          filename: a.nume,
+          content: a.continut.toString("base64"),
+        })),
       }),
     });
 

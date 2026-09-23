@@ -736,6 +736,28 @@ export const abonamentePush = sqliteTable(
   ],
 );
 
+/**
+ * Anii bisericești încheiați.
+ *
+ * La închiderea unui an se face o fotografie a lui: statisticile, cititul,
+ * lista pulsiștilor cu grupele de atunci, liderii grupelor și planul de citire.
+ * Se păstrează în `date`, ca JSON, așa cum erau în ziua închiderii - după aia
+ * oamenii se mută, urcă o clasă sau pleacă, dar anul rămâne cum a fost.
+ */
+export const aniArhivati = sqliteTable("ani_arhivati", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  /** Ex. "2025-2026". */
+  nume: text("nume").notNull(),
+  deLa: text("de_la").notNull(),
+  panaLa: text("pana_la").notNull(),
+  /** Fotografia anului (vezi `lib/arhiva.ts`). */
+  date: text("date").notNull(),
+  creatDeId: integer("creat_de_id").references(() => lideri.id, {
+    onDelete: "set null",
+  }),
+  creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+});
+
 export type Lider = typeof lideri.$inferSelect;
 export type Grupa = typeof grupe.$inferSelect;
 export type Membru = typeof membri.$inferSelect;
