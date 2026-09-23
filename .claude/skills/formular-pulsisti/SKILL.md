@@ -32,6 +32,11 @@ PULS 2026-2027 (Responses) (2).xlsx   ← cel mai nou
   Tabelul cu exporturile deja prelucrate e la finalul fișierului ăstuia; adaugă
   un rând în el de fiecare dată.
 
+Utilizatorul face curat în Downloads, deci exportul vechi poate să nu mai
+existe. Atunci uită-te în tabelul de la final câte rânduri avea, verifică în
+exportul nou că rândurile alea sunt neatinse și fă-ți din el o copie tăiată la
+numărul acela de rânduri (în scratchpad), pe care s-o dai lui `--fata-de`.
+
 Verifică repede, înainte de orice, că noul chiar îl conține pe cel vechi:
 primele rânduri identice (aceeași marcă de timp, același nume) și mai multe
 rânduri în total. Dacă un rând vechi s-a schimbat sau lipsește, spune-i
@@ -120,3 +125,4 @@ e deja în aplicație.
 | 9 sep. 2026 | `PULS 2026-2027 (Responses).xlsx` | - | 52 | 52 (lista întreagă) |
 | 15 sep. 2026 | `PULS 2026-2027 (Responses) (1).xlsx` | `(Responses).xlsx` | 70 | 17 + Jhonatan Galea completat din nou |
 | 22 sep. 2026 | `PULS 2026-2027 (Responses) (2).xlsx` | `(Responses) (1).xlsx` | 74 | 4 |
+| 23 sep. 2026 | `PULS 2026-2027 (Responses) (3).xlsx` | primele 75 de rânduri din el | 75 | 1 |

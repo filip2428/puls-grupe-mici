@@ -285,7 +285,7 @@ const BAIETI = `abel adrian albert alex alexandru alin amos andrei anton aurel b
 caleb calin catalin ciprian claudiu constantin cosmin cristi cristian damian dan daniel darius david
 denis dorel dorin dragos eduard edward elias emanuel emil eric eusebiu ezra fabian filip flavius florin
 gabriel george gheorghe horia iacob ianis ilie ioan ioas ion ionut iosif iosua isaac iulian iustin
-jhonatan jonathan kevin liviu luca lucas marcel marcu marcus marian marius mark matei mateo matias
+jeremy jhonatan jonathan kevin liviu luca lucas marcel marcu marcus marian marius mark matei mateo matias
 mihai mircea moise natan natanael nelu nicolae noe oliver ovidiu patrick paul pavel petru radu
 rares raul rawad robert roman samuel samuil sebastian serafino seth silviu simon sorin stefan
 teodor tiberiu timotei tudor valentin vasile victor vlad vladimir`;
