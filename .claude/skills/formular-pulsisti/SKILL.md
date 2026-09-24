@@ -32,6 +32,11 @@ PULS 2026-2027 (Responses) (2).xlsx   ← cel mai nou
   Tabelul cu exporturile deja prelucrate e la finalul fișierului ăstuia; adaugă
   un rând în el de fiecare dată.
 
+Numărul din nume nu spune care e cel mai nou: după ce utilizatorul șterge
+exporturile vechi, Windows refolosește numerele libere, așa că un „(1)"
+descărcat azi e mai nou decât „(3)". Mergi după data modificării și după câte
+rânduri are, niciodată după număr.
+
 Utilizatorul face curat în Downloads, deci exportul vechi poate să nu mai
 existe. Atunci uită-te în tabelul de la final câte rânduri avea, verifică în
 exportul nou că rândurile alea sunt neatinse și fă-ți din el o copie tăiată la
@@ -126,3 +131,4 @@ e deja în aplicație.
 | 15 sep. 2026 | `PULS 2026-2027 (Responses) (1).xlsx` | `(Responses).xlsx` | 70 | 17 + Jhonatan Galea completat din nou |
 | 22 sep. 2026 | `PULS 2026-2027 (Responses) (2).xlsx` | `(Responses) (1).xlsx` | 74 | 4 |
 | 23 sep. 2026 | `PULS 2026-2027 (Responses) (3).xlsx` | primele 75 de rânduri din el | 75 | 1 |
+| 24 sep. 2026 | `PULS 2026-2027 (Responses) (1).xlsx` | `(Responses) (3).xlsx` | 77 | 2 |

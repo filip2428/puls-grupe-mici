@@ -239,12 +239,22 @@ function bisericaCurata(brut: string): { nume: string; nota?: string } {
  * răspuns, dar niciunul nu e membru nicăieri, e „fără biserică" - chiar dacă
  * copilul a scris „Harvest". Doar dacă niciun părinte n-a scris nimic ne
  * întoarcem la răspunsul copilului.
+ *
+ * În al doilea bloc mai scrie și câte un unchi sau o bunică. Aceia rămân pe
+ * fișă ca persoane de contact, dar biserica lor nu spune nimic despre familie,
+ * deci n-o luăm în seamă cât timp a răspuns un părinte.
  */
+const PARINTI = ["mama", "tata", "parinte", "tutore"];
+
 function bisericaFamiliei(
   brutCopil: string,
-  bruteParinti: string[],
+  aleParintilorBrute: { relatie: string; biserica: string }[],
 ): { nume: string; note: string[] } {
-  const scrise = bruteParinti.filter((b) => b.trim());
+  const cuRaspuns = aleParintilorBrute.filter((p) => p.biserica.trim());
+  const doarParinti = cuRaspuns.filter((p) =>
+    PARINTI.some((r) => normalizeaza(p.relatie).includes(r)),
+  );
+  const scrise = (doarParinti.length > 0 ? doarParinti : cuRaspuns).map((p) => p.biserica);
   const copil = bisericaCurata(brutCopil);
 
   if (scrise.length === 0) {
@@ -613,7 +623,10 @@ async function main() {
 
     const biserica = bisericaFamiliei(
       text(rand, "biserica"),
-      parinti.map((bloc) => textDinCelula(rand.getCell(bloc.biserica).value)),
+      parinti.map((bloc) => ({
+        relatie: textDinCelula(rand.getCell(bloc.relatie).value),
+        biserica: textDinCelula(rand.getCell(bloc.biserica).value),
+      })),
     );
     note.push(...biserica.note);
 
