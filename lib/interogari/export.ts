@@ -1,15 +1,17 @@
 import "server-only";
 
-import { and, asc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, count, eq, gte, inArray, lte } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
   biserici,
+  evenimente,
   grupe,
   intalniri,
   lideri,
   membri,
   prezente,
+  prezenteEveniment,
 } from "@/lib/db/schema";
 import { prieteniiMaiMultora } from "@/lib/interogari/prietenii";
 import {
@@ -103,6 +105,8 @@ export type RandPulsist = {
   anuntate: number;
   absente: number;
   procent: number | null;
+  /** La câte întâlniri cu toți a fost bifat, în perioadă. */
+  laIntalniriCuToti: number;
   /** Prietenii apropiați, scriși unul după altul. */
   prieteni: string;
 };
@@ -161,6 +165,23 @@ export async function randuriPulsisti(
     .innerJoin(intalniri, eq(intalniri.id, prezente.intalnireId))
     .where(and(...conditiiPrezente));
 
+  const conditiiCuToti = [
+    inArray(
+      prezenteEveniment.membruId,
+      lista.map((m) => m.id),
+    ),
+  ];
+  if (filtru.deLa) conditiiCuToti.push(gte(evenimente.data, filtru.deLa));
+  if (filtru.panaLa) conditiiCuToti.push(lte(evenimente.data, filtru.panaLa));
+
+  const cuToti = await db
+    .select({ membruId: prezenteEveniment.membruId, cate: count() })
+    .from(prezenteEveniment)
+    .innerJoin(evenimente, eq(evenimente.id, prezenteEveniment.evenimentId))
+    .where(and(...conditiiCuToti))
+    .groupBy(prezenteEveniment.membruId);
+  const laCuToti = new Map(cuToti.map((r) => [r.membruId, Number(r.cate)]));
+
   const prieteni = await prieteniiMaiMultora(lista.map((m) => m.id));
 
   const totaluri = new Map<
@@ -204,6 +225,7 @@ export async function randuriPulsisti(
       anuntate: t.anuntate,
       absente: t.absente,
       procent: total ? Math.round((t.prezente / total) * 100) : null,
+      laIntalniriCuToti: laCuToti.get(m.id) ?? 0,
       prieteni: (prieteni.get(m.id) ?? []).join(", "),
     };
   });
@@ -294,4 +316,82 @@ export async function randuriIntalniri(
     prinInlocuire: i.prinInlocuire ? "da" : "",
     nota: i.nota,
   }));
+}
+
+export type RandPrezentaCuToti = {
+  /** Nu intră în Excel - ține doar întâlnirile despărțite la numărat. */
+  evenimentId: number;
+  data: string;
+  intalnire: string;
+  pulsist: string;
+  grupa: string;
+  statut: string;
+  marcatDe: string | null;
+};
+
+/**
+ * Cine a venit la întâlnirile cu toți: câte un rând pentru fiecare bifă.
+ *
+ * Întâlnirea nu e a niciunei grupe, deci exportul pe grupe ia doar pulsiștii
+ * grupelor cerute - liderul își vede copiii lui la gamenight, nu toată sala.
+ */
+export async function randuriPrezenteCuToti(
+  filtru: FiltruExport,
+): Promise<RandPrezentaCuToti[]> {
+  const conditii = [];
+  if (filtru.grupaIds?.length) {
+    conditii.push(inArray(membri.grupaId, filtru.grupaIds));
+  }
+  if (filtru.deLa) conditii.push(gte(evenimente.data, filtru.deLa));
+  if (filtru.panaLa) conditii.push(lte(evenimente.data, filtru.panaLa));
+
+  const randuri = await db
+    .select({
+      evenimentId: evenimente.id,
+      data: evenimente.data,
+      intalnire: evenimente.titlu,
+      pulsist: membri.nume,
+      grupa: grupe.nume,
+      statut: membri.status,
+      marcatDe: lideri.nume,
+    })
+    .from(prezenteEveniment)
+    .innerJoin(evenimente, eq(evenimente.id, prezenteEveniment.evenimentId))
+    .innerJoin(membri, eq(membri.id, prezenteEveniment.membruId))
+    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
+    .leftJoin(lideri, eq(lideri.id, prezenteEveniment.marcatDeId))
+    .where(conditii.length ? and(...conditii) : undefined)
+    .orderBy(asc(evenimente.data), asc(evenimente.titlu), asc(membri.nume));
+
+  return randuri.map((r) => ({
+    ...r,
+    grupa: r.grupa ?? FARA_GRUPA,
+    statut: r.statut === "musafir" ? "musafir" : "membru",
+  }));
+}
+
+export type RandIntalnireCuToti = {
+  data: string;
+  intalnire: string;
+  veniti: number;
+  musafiri: number;
+};
+
+/** Câți au venit la fiecare întâlnire cu toți, strânși din rândurile de mai sus. */
+export function intalniriCuTotiDin(
+  randuri: RandPrezentaCuToti[],
+): RandIntalnireCuToti[] {
+  const pe = new Map<number, RandIntalnireCuToti>();
+  for (const r of randuri) {
+    const i = pe.get(r.evenimentId) ?? {
+      data: r.data,
+      intalnire: r.intalnire,
+      veniti: 0,
+      musafiri: 0,
+    };
+    i.veniti++;
+    if (r.statut === "musafir") i.musafiri++;
+    pe.set(r.evenimentId, i);
+  }
+  return [...pe.values()];
 }

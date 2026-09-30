@@ -239,6 +239,26 @@ function RandZi({
       )}
 
       {/*
+        La întâlnirile cu toți prezența e a întâlnirii, nu a grupelor, și o
+        poate face orice lider - la ușă bifează cine e acolo. O întâlnire
+        mutată între timp pe grupe mici își păstrează bifele la vedere.
+      */}
+      {e.fel === "eveniment" &&
+        (!e.peGrupeMici || e.veniti > 0) &&
+        aVenitZiua && (
+          <Link
+            href={`/calendar/${e.id}/prezenta`}
+            className={`buton buton-mic mt-2 ${
+              e.veniti > 0 ? "buton-secundar" : "buton-principal"
+            }`}
+          >
+            {e.veniti > 0
+              ? `Prezența · ${e.veniti} au venit`
+              : "Fă prezența la întâlnire"}
+          </Link>
+        )}
+
+      {/*
         Prezența la grupă are rost doar în serile în care chiar se stă pe
         grupe mici. La gamenight n-are cine s-o facă și pe cine s-o treacă.
       */}
@@ -309,7 +329,9 @@ function UneltiCoordonator({ element: e }: { element: ElementCalendar }) {
 
       <form action={stergeIntalnire.bind(null, e.id)}>
         <button type="submit" className="py-1 text-xs text-red-700 underline">
-          scoate din calendar
+          {e.veniti > 0
+            ? `scoate din calendar - se pierde și prezența (${e.veniti} bifați)`
+            : "scoate din calendar"}
         </button>
       </form>
     </div>

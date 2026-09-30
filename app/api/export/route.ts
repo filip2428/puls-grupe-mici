@@ -6,9 +6,11 @@ import { scrieAudit } from "@/lib/audit";
 import { TON, adaugaFoaie, adaugaFoaieDespre } from "@/lib/excel";
 import { grupeAccesibile, verificaAccesGrupa } from "@/lib/interogari/acces";
 import {
+  intalniriCuTotiDin,
   randuriPulsisti,
   randuriIntalniri,
   randuriPrezente,
+  randuriPrezenteCuToti,
 } from "@/lib/interogari/export";
 import { dataAzi, dataLunga, esteDataValida, momentLizibil } from "@/lib/util/date";
 
@@ -50,11 +52,13 @@ export async function GET(cerere: Request) {
     panaLa: esteDataValida(panaLaBrut) ? panaLaBrut : undefined,
   };
 
-  const [prezente, pulsisti, intalniri] = await Promise.all([
+  const [prezente, pulsisti, intalniri, cuToti] = await Promise.all([
     randuriPrezente(filtru),
     randuriPulsisti(filtru),
     randuriIntalniri(filtru),
+    randuriPrezenteCuToti(filtru),
   ]);
+  const intalniriCuToti = intalniriCuTotiDin(cuToti);
 
   const registru = new ExcelJS.Workbook();
   registru.creator = "Puls · Grupe mici";
@@ -118,6 +122,11 @@ export async function GET(cerere: Request) {
         ton: TON.procent,
       },
       {
+        antet: "La întâlniri cu toți",
+        cheie: "laIntalniriCuToti",
+        latime: 12,
+      },
+      {
         antet: "Prieteni apropiați",
         cheie: "prieteni",
         latime: 34,
@@ -145,6 +154,37 @@ export async function GET(cerere: Request) {
     randuri: intalniri,
   });
 
+  /*
+    Întâlnirile cu toți stau pe foile lor: nu sunt ale niciunei grupe și se
+    bifează doar cine a venit, deci n-au absenți de pus lângă prezenții de
+    pe foile de mai sus.
+  */
+  adaugaFoaie(registru, {
+    nume: "Întâlniri cu toți",
+    inghetate: 2,
+    coloane: [
+      { antet: "Data", cheie: "data", latime: 12, format: "data" },
+      { antet: "Întâlnirea", cheie: "intalnire", latime: 28 },
+      { antet: "Au venit", cheie: "veniti", latime: 10 },
+      { antet: "Dintre ei musafiri", cheie: "musafiri", latime: 12 },
+    ],
+    randuri: intalniriCuToti,
+  });
+
+  adaugaFoaie(registru, {
+    nume: "Cine a venit cu toți",
+    inghetate: 3,
+    coloane: [
+      { antet: "Data", cheie: "data", latime: 12, format: "data" },
+      { antet: "Întâlnirea", cheie: "intalnire", latime: 24 },
+      { antet: "Pulsist", cheie: "pulsist", latime: 24 },
+      { antet: "Grupa", cheie: "grupa", latime: 22 },
+      { antet: "Statut", cheie: "statut", latime: 10, ton: TON.statut },
+      { antet: "Bifat de", cheie: "marcatDe", latime: 20 },
+    ],
+    randuri: cuToti,
+  });
+
   adaugaFoaieDespre(registru, {
     titlu: "Prezențe, pulsiști și întâlniri",
     detalii: [
@@ -155,6 +195,10 @@ export async function GET(cerere: Request) {
       { eticheta: "Rânduri de prezență", valoare: String(prezente.length) },
       { eticheta: "Pulsiști", valoare: String(pulsisti.length) },
       { eticheta: "Întâlniri", valoare: String(intalniri.length) },
+      {
+        eticheta: "Întâlniri cu toți",
+        valoare: String(intalniriCuToti.length),
+      },
     ],
     legenda: [
       { ton: "bine", text: "prezent · prezență peste 80%" },

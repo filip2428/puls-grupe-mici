@@ -11,6 +11,8 @@
  *    per membru per întâlnire;
  *  - DELEGĂRILE permit ca un lider să facă prezența la altă grupă o perioadă
  *    (când liderul titular lipsește);
+ *  - la întâlnirile CU TOȚI din calendar prezența e a întâlnirii, nu a unei
+ *    grupe (`prezenteEveniment`);
  *  - AUDIT-ul reține cine și ce a modificat.
  */
 import { sql } from "drizzle-orm";
@@ -664,6 +666,40 @@ export const evenimente = sqliteTable(
     creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
   },
   (t) => [index("evenimente_data_idx").on(t.data)],
+);
+
+/**
+ * Cine a venit la o întâlnire cu toți (gamenight, o seară de rugăciune...).
+ *
+ * E a treia prezență din aplicație, separată de celelalte două: aici nu se
+ * stă pe grupe, deci nu e a niciunei grupe, ci a întâlnirii din calendar.
+ * Pe listă sunt toți pulsiștii, iar un rând înseamnă „a venit". Lipsa
+ * rândului înseamnă că n-a venit - la o sută de oameni nu se bifează fiecare
+ * absent în parte.
+ *
+ * Bifele se scriu una câte una, pe loc, nu cu o foaie salvată la sfârșit: la
+ * ușă bifează de obicei mai mulți lideri deodată, fiecare de pe telefonul
+ * lui, iar bifele lor trebuie să se adune, nu să se calce una pe alta.
+ * `marcatDeId` spune cine a pus fiecare bifă.
+ */
+export const prezenteEveniment = sqliteTable(
+  "prezente_eveniment",
+  {
+    evenimentId: integer("eveniment_id")
+      .notNull()
+      .references(() => evenimente.id, { onDelete: "cascade" }),
+    membruId: integer("membru_id")
+      .notNull()
+      .references(() => membri.id, { onDelete: "cascade" }),
+    marcatDeId: integer("marcat_de_id").references(() => lideri.id, {
+      onDelete: "set null",
+    }),
+    creatLa: integer("creat_la", { mode: "timestamp" }).notNull().default(acum),
+  },
+  (t) => [
+    primaryKey({ columns: [t.evenimentId, t.membruId] }),
+    index("prezente_eveniment_membru_idx").on(t.membruId),
+  ],
 );
 
 /**

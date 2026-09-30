@@ -107,6 +107,7 @@ const ETICHETE: Record<string, string> = {
   lideri: "lideri",
   intalniri: "întâlniri",
   prezente: "bife de prezență",
+  prezente_eveniment: "bife la întâlnirile cu toți",
   programari_slujire: "programări de slujire",
   citiri: "zile de citit bifate",
   plan_citire: "zile în planul de citire",

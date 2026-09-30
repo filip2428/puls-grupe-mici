@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { grupeAccesibile, type GrupaAccesibila } from "@/lib/interogari/acces";
 import { grupeCuPrezentaLa } from "@/lib/interogari/grupe";
+import { intalnirileCuTotiDin } from "@/lib/interogari/prezenta-eveniment";
 import {
   rezumatGrupe,
   type RezumatGrupaAdmin,
@@ -17,12 +18,13 @@ export default async function PaginaGrupe() {
   const grupe = await grupeAccesibile(lider);
   const azi = dataAzi();
 
-  const [rezumate, cuPrezentaAzi] = await Promise.all([
+  const [rezumate, cuPrezentaAzi, cuTotiAzi] = await Promise.all([
     rezumatGrupe({ ids: grupe.map((g) => g.id) }),
     grupeCuPrezentaLa(
       grupe.map((g) => g.id),
       azi,
     ),
+    intalnirileCuTotiDin(azi),
   ]);
   const dupaId = new Map(rezumate.map((r) => [r.grupaId, r]));
 
@@ -60,6 +62,36 @@ export default async function PaginaGrupe() {
           </Link>
         </p>
       )}
+
+      {/*
+        În ziua unei întâlniri cu toți, drumul spre prezența ei stă primul:
+        liderul care deschide aplicația la ușă n-are timp să caute prin
+        calendar, iar prezența pe grupă nu e ce trebuie în seara aia.
+      */}
+      {cuTotiAzi.map((e) => (
+        <section
+          key={e.id}
+          className="card mb-4 flex flex-col gap-3 border-albastru/30 p-4"
+        >
+          <div>
+            <p className="text-xs font-semibold text-albastru">
+              Azi, toți împreună{e.ora ? ` · ora ${e.ora}` : ""}
+            </p>
+            <h2 className="text-base font-semibold">{e.titlu}</h2>
+            <p className="text-sm text-cenusiu">
+              {e.veniti > 0
+                ? `${e.veniti} au venit până acum.`
+                : "Prezența se face pe întâlnire, nu pe grupe."}
+            </p>
+          </div>
+          <Link
+            href={`/calendar/${e.id}/prezenta`}
+            className={`buton ${e.veniti > 0 ? "buton-secundar" : "buton-principal"}`}
+          >
+            {e.veniti > 0 ? "Continuă prezența" : "Fă prezența la întâlnire"}
+          </Link>
+        </section>
+      ))}
 
       {grupe.length === 0 && (
         <div className="card p-6 text-center text-sm text-cenusiu">

@@ -1,13 +1,13 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { scrieAudit } from "@/lib/audit";
 import { ceruteAdmin } from "@/lib/auth/sesiune";
 import { db } from "@/lib/db";
-import { evenimente } from "@/lib/db/schema";
+import { evenimente, prezenteEveniment } from "@/lib/db/schema";
 import { adaugaZile, esteDataValida } from "@/lib/util/date";
 
 export type StareIntalnire = { eroare?: string; reusit?: string };
@@ -165,10 +165,25 @@ export async function salveazaIntalnire(
   return { reusit: "Salvat." };
 }
 
-/** Scoate o întâlnire din calendar. */
+/**
+ * Scoate o întâlnire din calendar, cu tot cu prezența făcută la ea.
+ * Butonul spune dinainte câte bife se pierd.
+ */
 export async function stergeIntalnire(intalnireId: number) {
   const admin = await ceruteAdmin();
-  await db.delete(evenimente).where(eq(evenimente.id, intalnireId));
-  await scrieAudit(admin.id, "intalnire:stearsa", { intalnireId });
+  const [{ bife }] = await db
+    .select({ bife: count() })
+    .from(prezenteEveniment)
+    .where(eq(prezenteEveniment.evenimentId, intalnireId));
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(prezenteEveniment)
+      .where(eq(prezenteEveniment.evenimentId, intalnireId));
+    await tx.delete(evenimente).where(eq(evenimente.id, intalnireId));
+  });
+  await scrieAudit(admin.id, "intalnire:stearsa", {
+    intalnireId,
+    bife: Number(bife),
+  });
   revalidatePath("/calendar");
 }

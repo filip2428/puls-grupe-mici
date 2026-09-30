@@ -19,6 +19,7 @@ import {
   noteMembru,
   notificari,
   prezente,
+  prezenteEveniment,
   prezenteSlujire,
   prietenii,
   programariGrupe,
@@ -100,6 +101,10 @@ export async function stergeLiderDefinitiv(liderId: number) {
       .set({ marcatDeId: null })
       .where(eq(intalniri.marcatDeId, liderId));
     await tx
+      .update(prezenteEveniment)
+      .set({ marcatDeId: null })
+      .where(eq(prezenteEveniment.marcatDeId, liderId));
+    await tx
       .update(noteMembru)
       .set({ autorId: null })
       .where(eq(noteMembru.autorId, liderId));
@@ -122,6 +127,8 @@ export type PierderiMembru = {
   nume: string;
   grupaId: number | null;
   prezente: number;
+  /** De câte ori a fost bifat la întâlnirile cu toți. */
+  laIntalniriCuToti: number;
   note: number;
   echipe: number;
   prieteni: number;
@@ -134,7 +141,7 @@ export async function pierderiMembru(
   const [m] = await db.select().from(membri).where(eq(membri.id, membruId));
   if (!m) return null;
 
-  const [[p], [n], [e], [pr]] = await Promise.all([
+  const [[p], [n], [e], [pr], [t]] = await Promise.all([
     db.select({ c: count() }).from(prezente).where(eq(prezente.membruId, membruId)),
     db
       .select({ c: count() })
@@ -153,12 +160,17 @@ export async function pierderiMembru(
           eq(prietenii.membruBId, membruId),
         ),
       ),
+    db
+      .select({ c: count() })
+      .from(prezenteEveniment)
+      .where(eq(prezenteEveniment.membruId, membruId)),
   ]);
 
   return {
     nume: m.nume,
     grupaId: m.grupaId,
     prezente: Number(p?.c ?? 0),
+    laIntalniriCuToti: Number(t?.c ?? 0),
     note: Number(n?.c ?? 0),
     echipe: Number(e?.c ?? 0),
     prieteni: Number(pr?.c ?? 0),
@@ -172,6 +184,9 @@ export async function stergeMembruDefinitiv(membruId: number) {
     await tx
       .delete(prezenteSlujire)
       .where(eq(prezenteSlujire.membruId, membruId));
+    await tx
+      .delete(prezenteEveniment)
+      .where(eq(prezenteEveniment.membruId, membruId));
     await tx.delete(noteMembru).where(eq(noteMembru.membruId, membruId));
     await tx.delete(membriEchipe).where(eq(membriEchipe.membruId, membruId));
     // Prietenia poate fi scrisă în oricare din cele două coloane.

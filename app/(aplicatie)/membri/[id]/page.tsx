@@ -30,6 +30,7 @@ import {
   membru as iaMembru,
   noteleMembrului,
 } from "@/lib/interogari/grupe";
+import { istoricIntalniriCuToti } from "@/lib/interogari/prezenta-eveniment";
 import { RandProgramare } from "@/componente/RandProgramare";
 import { ZonaStergere } from "@/componente/ZonaStergere";
 import {
@@ -134,6 +135,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     grupeDeAles,
     citire,
     plan,
+    cuToti,
   ] = await Promise.all([
     istoricMembru(membruId, 16),
     noteleMembrului(membruId),
@@ -150,6 +152,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
     !grupa || lider.rol === "admin" ? grupeActive() : [],
     avansulPulsistului(membruId),
     planulDeCitire(),
+    istoricIntalniriCuToti(membruId, date.membru.creatLa, dataAzi()),
   ]);
   const azi = dataAzi();
 
@@ -693,6 +696,42 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         </p>
       </section>
 
+      {/*
+        Întâlnirile cu toți stau separat de grupă: acolo se numără altceva,
+        iar un copil care vine doar la gamenight nu e unul care lipsește de
+        la grupă. Doar întâlnirile la care s-a făcut prezența.
+      */}
+      {cuToti.length > 0 && (
+        <section className="card p-4">
+          <h2 className="mb-3 text-sm font-bold">
+            La întâlnirile cu toți
+            <span className="ml-2 font-normal text-cenusiu">
+              {cuToti.filter((i) => i.aVenit).length} din {cuToti.length}
+            </span>
+          </h2>
+          <ul className="flex flex-wrap gap-2">
+            {[...cuToti].reverse().map((i) => (
+              <li
+                key={i.id}
+                className={`flex w-16 flex-col items-center gap-1 rounded-lg px-2 py-2 text-xs ${
+                  i.aVenit ? CULORI.prezent : CULORI.absent
+                }`}
+                title={`${dataNumerica(i.data)} · ${i.titlu}`}
+              >
+                <span className="text-base font-bold">
+                  {i.aVenit ? "✓" : "–"}
+                </span>
+                <span className="opacity-80">{dataScurta(i.data)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-cenusiu">
+            ✓ = a venit · – = n-a venit. Gamenight, seri de rugăciune și alte
+            întâlniri la care nu se stă pe grupe.
+          </p>
+        </section>
+      )}
+
       {/* Cititul Bibliei - doar la membri: de la musafiri nu se așteaptă */}
       {!esteMusafir && citire && plan.length > 0 && (
         <section className="card p-4">
@@ -887,6 +926,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
 /** „Dispar cu totul 4 prezențe, 2 note și o echipă de slujire." */
 function pierderiText(p: {
   prezente: number;
+  laIntalniriCuToti: number;
   note: number;
   echipe: number;
   prieteni: number;
@@ -897,6 +937,11 @@ function pierderiText(p: {
       : p.prezente === 1
         ? "o prezență"
         : `${p.prezente} prezențe`,
+    p.laIntalniriCuToti === 0
+      ? ""
+      : p.laIntalniriCuToti === 1
+        ? "o bifă de la întâlnirile cu toți"
+        : `${p.laIntalniriCuToti} bife de la întâlnirile cu toți`,
     p.note === 0 ? "" : p.note === 1 ? "o notă" : `${p.note} note`,
     p.echipe === 0
       ? ""

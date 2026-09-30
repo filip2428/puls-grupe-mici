@@ -52,6 +52,9 @@ const TEXTE: Record<string, string> = {
   "intalnire:creata": "a trecut o întâlnire în calendar",
   "intalnire:modificata": "a modificat o întâlnire din calendar",
   "intalnire:stearsa": "a scos o întâlnire din calendar",
+  "intalnire:prezenta": "a făcut prezența la o întâlnire cu toți",
+  "intalnire:bifa-scoasa":
+    "a scos o bifă pusă de altcineva la o întâlnire cu toți",
   "notificari:rulate": "a rulat notificările",
   "notificari:sterse": "și-a șters notificările",
   "setari:salvate": "și-a schimbat setările",

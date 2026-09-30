@@ -18,8 +18,9 @@ export default async function PaginaExport() {
         </Link>
         <h1 className="mt-2 text-xl font-bold">Export în Excel</h1>
         <p className="text-sm text-cenusiu">
-          Fișierul are trei foi: prezențele una câte una, pulsiștii cu
-          totalurile lor și întâlnirile.
+          Fișierul are prezențele una câte una, pulsiștii cu totalurile lor,
+          întâlnirile grupelor și, separat, întâlnirile cu toți - câți au
+          venit la fiecare și cine anume.
         </p>
       </div>
 

@@ -10,6 +10,7 @@ import {
   programariGrupe,
   programariSlujire,
 } from "@/lib/db/schema";
+import { venitiLaIntalniri } from "@/lib/interogari/prezenta-eveniment";
 import {
   echipeleGrupelor,
   echipeleLiderului,
@@ -46,6 +47,8 @@ export type ElementCalendar = {
   cine: string | null;
   /** Doar la slujiri: prezența e deja completată. */
   prezentaFacuta: boolean;
+  /** Doar la întâlniri: câți au fost bifați la prezența pe întâlnire. */
+  veniti: number;
 };
 
 /** Întâlnirile dintr-un interval de zile (inclusiv capetele). */
@@ -59,6 +62,8 @@ async function intalniriIntre(
     .where(and(gte(evenimente.data, deLa), lte(evenimente.data, panaLa)))
     .orderBy(asc(evenimente.data), asc(evenimente.ora));
 
+  const veniti = await venitiLaIntalniri(randuri.map((e) => e.id));
+
   return randuri.map((e) => ({
     cheie: `ev-${e.id}`,
     fel: "eveniment" as const,
@@ -71,6 +76,7 @@ async function intalniriIntre(
     peGrupeMici: e.peGrupeMici,
     cine: null,
     prezentaFacuta: false,
+    veniti: veniti.get(e.id) ?? 0,
   }));
 }
 
@@ -166,6 +172,7 @@ async function slujiriIntre(optiuni: {
         .filter(Boolean)
         .join(" + ") || null,
     prezentaFacuta: p.prezentaMarcataLa !== null,
+    veniti: 0,
   }));
 }
 
