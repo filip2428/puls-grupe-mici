@@ -6,6 +6,7 @@ import { scrieAudit } from "@/lib/audit";
 import { TON, adaugaFoaie, adaugaFoaieDespre } from "@/lib/excel";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import { statisticiPerioada } from "@/lib/interogari/perioada";
+import { statisticiCuToti } from "@/lib/interogari/prezenta-eveniment";
 import {
   anulBisericesc,
   dataAzi,
@@ -43,7 +44,10 @@ export async function GET(cerere: Request) {
       ? undefined
       : grupele.map((g) => g.id);
 
-  const s = await statisticiPerioada({ deLa, panaLa, grupaIds });
+  const [s, cuToti] = await Promise.all([
+    statisticiPerioada({ deLa, panaLa, grupaIds }),
+    statisticiCuToti({ deLa, panaLa, grupaIds }),
+  ]);
 
   const registru = new ExcelJS.Workbook();
   registru.creator = "Puls · Grupe mici";
@@ -208,6 +212,60 @@ export async function GET(cerere: Request) {
     randuri: [...s.deCautat, ...s.faraLipsa],
   });
 
+  /*
+    Întâlnirile cu toți, pe foile lor. Nu se amestecă cu cele de mai sus:
+    acolo fiecare om are o bifă la fiecare seară, aici se bifează doar cine
+    a venit, iar cine lipsea se deduce.
+  */
+  adaugaFoaie(registru, {
+    nume: "Cu toți · întâlniri",
+    inghetate: 1,
+    coloane: [
+      { antet: "Întâlnirea", cheie: "titlu", latime: 26 },
+      { antet: "Data", cheie: "data", latime: 12, format: "data" },
+      { antet: "Au venit", cheie: "veniti", latime: 10 },
+      { antet: "Dintre ei musafiri", cheie: "musafiri", latime: 12 },
+    ],
+    randuri: cuToti.intalniri,
+  });
+
+  adaugaFoaie(registru, {
+    nume: "Cu toți · pe grupe",
+    inghetate: 1,
+    coloane: [
+      { antet: "Grupa", cheie: "nume", latime: 24 },
+      { antet: "Membri", cheie: "membri", latime: 10 },
+      { antet: "Veniți în medie", cheie: "venitiInMedie", latime: 16 },
+      {
+        antet: "% prezență",
+        cheie: "procent",
+        latime: 12,
+        format: "procent",
+        ton: TON.procent,
+      },
+    ],
+    randuri: cuToti.peGrupe,
+  });
+
+  adaugaFoaie(registru, {
+    nume: "Cu toți · pulsiști",
+    inghetate: 1,
+    coloane: [
+      { antet: "Nume", cheie: "nume", latime: 26 },
+      { antet: "Grupa", cheie: "grupa", latime: 22 },
+      { antet: "A venit la", cheie: "aVenit", latime: 11 },
+      { antet: "Din câte", cheie: "dinCate", latime: 11 },
+      {
+        antet: "% prezență",
+        cheie: "procent",
+        latime: 12,
+        format: "procent",
+        ton: TON.procent,
+      },
+    ],
+    randuri: cuToti.pePulsisti,
+  });
+
   adaugaFoaieDespre(registru, {
     titlu: `Statistici · ${perioadaLizibila(deLa, panaLa)}`,
     detalii: [
@@ -224,9 +282,18 @@ export async function GET(cerere: Request) {
       },
       { eticheta: "Întâlniri", valoare: String(s.rezumat.intalniri) },
       {
+        eticheta: "Întâlniri cu toți",
+        valoare: String(cuToti.rezumat.intalniri),
+      },
+      {
         eticheta: "Cum se socotesc procentele",
         valoare:
           "Doar pe membri. Musafirii se numără separat, dar nu intră în medii.",
+      },
+      {
+        eticheta: "La întâlnirile cu toți",
+        valoare:
+          "Se bifează doar cine a venit. Un membru e socotit așteptat la întâlnirile ținute de când e în aplicație.",
       },
     ],
     legenda: [

@@ -11,6 +11,7 @@ import {
   type Eveniment,
 } from "@/lib/db/schema";
 import { dataDinMoment } from "@/lib/util/date";
+import { FARA_GRUPA } from "@/lib/util/etichete";
 
 /**
  * Prezența la întâlnirile cu toți.
@@ -198,6 +199,213 @@ export async function intalnirileCuTotiDin(
 
   const veniti = await venitiLaIntalniri(aleZilei.map((e) => e.id));
   return aleZilei.map((e) => ({ ...e, veniti: veniti.get(e.id) ?? 0 }));
+}
+
+export type IntalnireCuTotiInPerioada = {
+  id: number;
+  data: string;
+  titlu: string;
+  /** Câți au venit - dintre cei pe care îi vede cel care se uită. */
+  veniti: number;
+  musafiri: number;
+};
+
+export type GrupaLaCuToti = {
+  cheie: string;
+  nume: string;
+  /** Membrii grupei așteptați măcar la o întâlnire din perioadă. */
+  membri: number;
+  venitiInMedie: number | null;
+  procent: number | null;
+};
+
+export type PulsistLaCuToti = {
+  membruId: number;
+  nume: string;
+  grupa: string;
+  aVenit: number;
+  dinCate: number;
+  procent: number;
+};
+
+export type StatisticiCuToti = {
+  intalniri: IntalnireCuTotiInPerioada[];
+  rezumat: {
+    intalniri: number;
+    /** Cu musafiri cu tot - câți au fost în sală, în medie. */
+    venitiInMedie: number | null;
+    /** Membri care au venit măcar o dată. */
+    membri: number;
+    /** Musafiri diferiți care au venit măcar o dată. */
+    musafiri: number;
+    /** Doar pe membri, ca peste tot în statistici. */
+    procent: number | null;
+  };
+  peGrupe: GrupaLaCuToti[];
+  /** Fiecare membru așteptat la măcar o întâlnire, cu cât a venit. */
+  pePulsisti: PulsistLaCuToti[];
+};
+
+/**
+ * Statisticile întâlnirilor cu toți pe o perioadă.
+ *
+ * Stau separat de cele ale grupelor și se socotesc altfel. La grupă fiecare
+ * are o bifă la fiecare seară - prezent, a anunțat, absent. Aici se bifează
+ * doar cine a venit, deci cine e „așteptat" și n-a venit se deduce: e membru
+ * al lucrării și era deja în aplicație în ziua întâlnirii. Intră doar
+ * întâlnirile la care chiar s-a făcut prezența.
+ *
+ * Aceeași regulă ca la grupe: procentele sunt doar pe membri, musafirii se
+ * numără separat. Grupa e cea de acum a pulsistului - întâlnirea n-a fost a
+ * niciunei grupe, deci n-are alta de unde s-o ia.
+ */
+export async function statisticiCuToti(filtru: {
+  deLa: string;
+  panaLa: string;
+  /** Grupele pe care le vede cel care se uită. Lipsă = toată lucrarea. */
+  grupaIds?: number[];
+}): Promise<StatisticiCuToti> {
+  const { deLa, panaLa, grupaIds } = filtru;
+  const goale: StatisticiCuToti = {
+    intalniri: [],
+    rezumat: { intalniri: 0, venitiInMedie: null, membri: 0, musafiri: 0, procent: null },
+    peGrupe: [],
+    pePulsisti: [],
+  };
+  if (grupaIds && grupaIds.length === 0) return goale;
+
+  const cuPrezenta = db
+    .selectDistinct({ id: prezenteEveniment.evenimentId })
+    .from(prezenteEveniment);
+  const intalniri = await db
+    .select({ id: evenimente.id, data: evenimente.data, titlu: evenimente.titlu })
+    .from(evenimente)
+    .where(
+      and(
+        gte(evenimente.data, deLa),
+        lte(evenimente.data, panaLa),
+        inArray(evenimente.id, cuPrezenta),
+      ),
+    )
+    .orderBy(evenimente.data, evenimente.ora);
+  if (intalniri.length === 0) return goale;
+
+  const ids = intalniri.map((i) => i.id);
+  const inScop = grupaIds ? inArray(membri.grupaId, grupaIds) : undefined;
+
+  const bife = await db
+    .select({
+      evenimentId: prezenteEveniment.evenimentId,
+      membruId: prezenteEveniment.membruId,
+      status: membri.status,
+    })
+    .from(prezenteEveniment)
+    .innerJoin(membri, eq(membri.id, prezenteEveniment.membruId))
+    .where(and(inArray(prezenteEveniment.evenimentId, ids), inScop));
+
+  /*
+    Membrii de care se așteaptă să vină: cei activi, plus cei care între timp
+    au plecat, dar au fost la vreuna - au fost acolo, deci au fost și așteptați.
+  */
+  const auVenit = [...new Set(bife.map((b) => b.membruId))];
+  const candidati = await db
+    .select({
+      id: membri.id,
+      nume: membri.nume,
+      grupaId: membri.grupaId,
+      grupaNume: grupe.nume,
+      creatLa: membri.creatLa,
+    })
+    .from(membri)
+    .leftJoin(grupe, eq(grupe.id, membri.grupaId))
+    .where(
+      and(
+        eq(membri.status, "membru"),
+        inScop,
+        auVenit.length > 0
+          ? or(eq(membri.activ, true), inArray(membri.id, auVenit))
+          : eq(membri.activ, true),
+      ),
+    );
+
+  const venitLa = new Map<number, Set<number>>();
+  for (const b of bife) {
+    const s = venitLa.get(b.membruId) ?? new Set<number>();
+    s.add(b.evenimentId);
+    venitLa.set(b.membruId, s);
+  }
+
+  const pePulsisti: (PulsistLaCuToti & { cheieGrupa: string })[] = [];
+  for (const m of candidati) {
+    const dinZiua = dataDinMoment(m.creatLa);
+    const aLui = venitLa.get(m.id) ?? new Set<number>();
+    // Așteptat de când e în aplicație - și oriunde a venit, chiar dacă înainte.
+    const dinCate = intalniri.filter((i) => i.data >= dinZiua || aLui.has(i.id)).length;
+    if (dinCate === 0) continue;
+    pePulsisti.push({
+      membruId: m.id,
+      nume: m.nume,
+      grupa: m.grupaNume ?? FARA_GRUPA,
+      cheieGrupa: m.grupaId === null ? "fara" : String(m.grupaId),
+      aVenit: aLui.size,
+      dinCate,
+      procent: Math.round((aLui.size / dinCate) * 100),
+    });
+  }
+
+  const intalnirile = intalniri.map((i) => {
+    const aleEi = bife.filter((b) => b.evenimentId === i.id);
+    return {
+      ...i,
+      veniti: aleEi.length,
+      musafiri: aleEi.filter((b) => b.status === "musafir").length,
+    };
+  });
+
+  const peGrupa = new Map<string, { nume: string; oameni: typeof pePulsisti }>();
+  for (const p of pePulsisti) {
+    const g = peGrupa.get(p.cheieGrupa) ?? { nume: p.grupa, oameni: [] };
+    g.oameni.push(p);
+    peGrupa.set(p.cheieGrupa, g);
+  }
+
+  const suma = (lista: typeof pePulsisti, camp: "aVenit" | "dinCate") =>
+    lista.reduce((s, p) => s + p[camp], 0);
+  const procentDin = (lista: typeof pePulsisti) => {
+    const asteptari = suma(lista, "dinCate");
+    return asteptari ? Math.round((suma(lista, "aVenit") / asteptari) * 100) : null;
+  };
+  const medie = (cati: number) =>
+    Math.round((cati / intalniri.length) * 10) / 10;
+
+  return {
+    intalniri: intalnirile,
+    rezumat: {
+      intalniri: intalniri.length,
+      venitiInMedie: medie(bife.length),
+      membri: pePulsisti.filter((p) => p.aVenit > 0).length,
+      musafiri: new Set(
+        bife.filter((b) => b.status === "musafir").map((b) => b.membruId),
+      ).size,
+      procent: procentDin(pePulsisti),
+    },
+    peGrupe: [...peGrupa.entries()]
+      .map(([cheie, g]) => ({
+        cheie,
+        nume: g.nume,
+        membri: g.oameni.length,
+        venitiInMedie: medie(suma(g.oameni, "aVenit")),
+        procent: procentDin(g.oameni),
+      }))
+      .sort(
+        (a, b) =>
+          Number(a.cheie === "fara") - Number(b.cheie === "fara") ||
+          a.nume.localeCompare(b.nume, "ro"),
+      ),
+    pePulsisti: pePulsisti
+      .map(({ cheieGrupa: _c, ...p }) => p)
+      .sort((a, b) => b.procent - a.procent || a.nume.localeCompare(b.nume, "ro")),
+  };
 }
 
 export type IstoricIntalnireCuToti = {

@@ -4,10 +4,11 @@ import { ceruteLider } from "@/lib/auth/sesiune";
 import { CULORI_STARE, PRAG_PUTIN_IN_URMA } from "@/lib/citire";
 import { raportCitire } from "@/lib/interogari/citire";
 import { grupeAccesibile } from "@/lib/interogari/acces";
+import { statisticiPerioada } from "@/lib/interogari/perioada";
 import {
-  statisticiPerioada,
-  type RandPulsist,
-} from "@/lib/interogari/perioada";
+  statisticiCuToti,
+  type StatisticiCuToti,
+} from "@/lib/interogari/prezenta-eveniment";
 import {
   anulBisericesc,
   dataAzi,
@@ -46,9 +47,10 @@ export default async function PaginaStatistici({
       ? undefined
       : grupele.map((g) => g.id);
 
-  const [s, citire] = await Promise.all([
+  const [s, citire, cuToti] = await Promise.all([
     statisticiPerioada({ deLa, panaLa, grupaIds }),
     raportCitire(grupaIds),
+    statisticiCuToti({ deLa, panaLa, grupaIds }),
   ]);
   const parametri = new URLSearchParams({ deLa, panaLa });
   if (grupaAleasa) parametri.set("grupa", String(grupaAleasa));
@@ -150,6 +152,11 @@ export default async function PaginaStatistici({
       </form>
 
       {citire.arePlan && <SectiuneCitire raport={citire} />}
+
+      <TitluParte
+        titlu="La grupele mici"
+        explicatie="Întâlnirile fiecărei grupe, cu prezent, a anunțat și absent."
+      />
 
       {s.rezumat.intalniri === 0 ? (
         <div className="card p-6 text-center text-sm text-cenusiu">
@@ -287,18 +294,170 @@ export default async function PaginaStatistici({
           <ListaOameni
             titlu="De căutat"
             explicatie="Au fost prezenți la mai puțin de jumătate din întâlnirile la care erau așteptați. Merită un telefon."
-            oameni={s.deCautat}
+            oameni={s.deCautat.map((o) => ({
+              ...o,
+              detaliu: `${o.grupa} · prezent la ${o.prezente} din ${o.dinCate}`,
+            }))}
             accent
           />
 
           <ListaOameni
             titlu="N-au lipsit deloc"
             explicatie="Au fost la fiecare întâlnire din perioadă. Cineva ar trebui să le-o spună."
-            oameni={s.faraLipsa}
+            oameni={s.faraLipsa.map((o) => ({
+              ...o,
+              detaliu: `${o.grupa} · prezent la ${o.prezente} din ${o.dinCate}`,
+            }))}
           />
         </>
       )}
+
+      <TitluParte
+        titlu="La întâlnirile cu toți"
+        explicatie="Gamenight, seri de rugăciune și alte întâlniri la care nu se stă pe grupe. Se socotesc separat de grupe: acolo se bifează doar cine a venit."
+      />
+      <SectiuneCuToti
+        s={cuToti}
+        dinCine={
+          grupaAleasa
+            ? "din grupa aleasă"
+            : esteAdmin
+              ? null
+              : "din grupele tale"
+        }
+      />
     </div>
+  );
+}
+
+/** Despărțitura dintre cifrele grupelor și cele ale întâlnirilor cu toți. */
+function TitluParte({ titlu, explicatie }: { titlu: string; explicatie: string }) {
+  return (
+    <div className="border-t border-[#dfe4f0] pt-4">
+      <h2 className="text-lg font-bold">{titlu}</h2>
+      <p className="text-xs text-cenusiu">{explicatie}</p>
+    </div>
+  );
+}
+
+/**
+ * Întâlnirile cu toți pe perioada aleasă.
+ *
+ * Aici nu există „absent" bifat: cine lipsește se deduce - era membru și era
+ * deja în aplicație în ziua întâlnirii. De-aia cifrele nu se amestecă cu
+ * cele de la grupe, unde fiecare om are o bifă la fiecare seară.
+ */
+function SectiuneCuToti({
+  s,
+  dinCine,
+}: {
+  s: StatisticiCuToti;
+  /**
+   * Pe cine numărăm, când nu e toată lucrarea: liderul își vede doar
+   * grupele, iar „au venit" înseamnă atunci doar ai lui.
+   */
+  dinCine: string | null;
+}) {
+  if (s.rezumat.intalniri === 0) {
+    return (
+      <div className="card p-6 text-center text-sm text-cenusiu">
+        În perioada asta nu s-a făcut prezența la nicio întâlnire cu toți.
+      </div>
+    );
+  }
+
+  const cuAsteptari = s.pePulsisti.filter((p) => p.dinCate >= 3);
+  const laToate = cuAsteptari.filter((p) => p.aVenit === p.dinCate);
+  const laNiciuna = cuAsteptari
+    .filter((p) => p.aVenit === 0)
+    .sort((a, b) => b.dinCate - a.dinCate || a.nume.localeCompare(b.nume, "ro"));
+  const detaliu = (p: (typeof s.pePulsisti)[number]) =>
+    `${p.grupa} · a venit la ${p.aVenit} din ${p.dinCate}`;
+
+  return (
+    <>
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Caseta valoare={String(s.rezumat.intalniri)} eticheta="întâlniri cu toți" />
+        <Caseta
+          valoare={String(s.rezumat.venitiInMedie ?? "-")}
+          eticheta={dinCine ? `au venit ${dinCine}, în medie` : "au venit în medie"}
+        />
+        <Caseta
+          valoare={s.rezumat.procent !== null ? `${s.rezumat.procent}%` : "-"}
+          eticheta="din membri, în medie"
+        />
+        <Caseta valoare={String(s.rezumat.musafiri)} eticheta="musafiri" />
+      </section>
+
+      {/*
+        Listă, nu tabel: titlurile întâlnirilor sunt lungi și, cu patru
+        coloane, pe telefon s-ar fi tăiat tocmai numărul. Rândul duce la
+        prezența întâlnirii, să se vadă și cine anume a venit.
+      */}
+      <section className="card p-4">
+        <h2 className="text-sm font-bold">Fiecare întâlnire</h2>
+        <p className="mb-3 text-xs text-cenusiu">
+          {dinCine
+            ? `Câți au venit ${dinCine}. Apasă ca să vezi cine.`
+            : "Câți au venit. Apasă ca să vezi cine."}
+        </p>
+        <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          {s.intalniri.map((i) => (
+            <li key={i.id} className="py-2">
+              <Link
+                href={`/calendar/${i.id}/prezenta`}
+                className="flex items-baseline justify-between gap-3"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium">
+                    {i.titlu}
+                  </span>
+                  <span className="text-xs text-cenusiu">
+                    {dataScurta(i.data)}
+                  </span>
+                </span>
+                <span className="shrink-0 text-right">
+                  <span className="block text-sm font-semibold tabular-nums">
+                    {i.veniti} au venit
+                  </span>
+                  {i.musafiri > 0 && (
+                    <span className="text-xs text-cenusiu">
+                      dintre ei {i.musafiri}{" "}
+                      {i.musafiri === 1 ? "musafir" : "musafiri"}
+                    </span>
+                  )}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <Tabel
+        titlu="Pe grupe"
+        explicatie="Cât din fiecare grupă vine și la întâlnirile cu toți. Doar membrii, pe grupa lor de acum."
+        capete={["Grupa", "Membri", "Media", "%"]}
+        randuri={s.peGrupe.map((g) => [
+          g.nume,
+          g.membri,
+          g.venitiInMedie ?? "-",
+          g.procent !== null ? `${g.procent}%` : "-",
+        ])}
+      />
+
+      <ListaOameni
+        titlu="N-au venit la niciuna"
+        explicatie="Membri așteptați la cel puțin trei întâlniri cu toți, care n-au fost la niciuna. Poate nu știu de ele sau n-au cu cine veni."
+        oameni={laNiciuna.map((p) => ({ ...p, detaliu: detaliu(p) }))}
+        accent
+      />
+
+      <ListaOameni
+        titlu="N-au lipsit de la niciuna"
+        explicatie="Au fost la toate întâlnirile cu toți din perioadă (cel puțin trei)."
+        oameni={laToate.map((p) => ({ ...p, detaliu: detaliu(p) }))}
+      />
+    </>
   );
 }
 
@@ -423,7 +582,7 @@ function ListaOameni({
 }: {
   titlu: string;
   explicatie: string;
-  oameni: RandPulsist[];
+  oameni: { membruId: number; nume: string; detaliu: string; procent: number }[];
   accent?: boolean;
 }) {
   if (oameni.length === 0) return null;
@@ -453,9 +612,7 @@ function ListaOameni({
                 <span className="block truncate text-sm font-medium">
                   {o.nume}
                 </span>
-                <span className="text-xs text-cenusiu">
-                  {o.grupa} · prezent la {o.prezente} din {o.dinCate}
-                </span>
+                <span className="text-xs text-cenusiu">{o.detaliu}</span>
               </span>
               <span className="shrink-0 text-sm font-semibold tabular-nums">
                 {o.procent}%
