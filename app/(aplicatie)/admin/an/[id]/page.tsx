@@ -23,10 +23,10 @@ export default async function PaginaAnArhivat({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin/an" className="text-sm text-cenusiu">
-          ← Anul bisericesc
+        <Link href="/admin/an" className="inapoi">
+          Anul bisericesc
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Anul {f.nume}</h1>
+        <h1 className="titlu-pagina">Anul {f.nume}</h1>
         <p className="text-sm text-cenusiu">
           {dataNumerica(f.deLa)} – {dataNumerica(f.panaLa)} · arhivat{" "}
           {momentLizibil(an.creatLa)}
@@ -102,7 +102,7 @@ export default async function PaginaAnArhivat({
       />
 
       <section className="card p-4 text-sm">
-        <h2 className="mb-2 text-sm font-bold">Ce s-a schimbat la închidere</h2>
+        <h2 className="mb-2 titlu-sectiune">Ce s-a schimbat la închidere</h2>
         <ul className="flex list-disc flex-col gap-1 pl-5 text-cenusiu">
           <li>
             {f.schimbari.auUrcatClasa
@@ -150,11 +150,11 @@ function Tabel({
   if (randuri.length === 0) return null;
   return (
     <section className="card p-4">
-      <h2 className="mb-3 text-sm font-bold">{titlu}</h2>
+      <h2 className="mb-3 titlu-sectiune">{titlu}</h2>
       <div className="-mx-4 overflow-x-auto px-4">
         <table className="w-full min-w-max text-sm">
           <thead>
-            <tr className="border-b border-[#e3e7f2] text-left text-xs text-cenusiu">
+            <tr className="border-b border-linie text-left text-xs text-cenusiu">
               {capete.map((c, i) => (
                 <th key={c} className={`py-2 font-medium ${i === 0 ? "pr-3" : "px-3 text-right"}`}>
                   {c}
@@ -164,7 +164,7 @@ function Tabel({
           </thead>
           <tbody>
             {randuri.map((r, index) => (
-              <tr key={index} className="border-b border-[#eef1f7] last:border-0">
+              <tr key={index} className="border-b border-linie last:border-0">
                 {r.map((celula, i) => (
                   <td
                     key={i}

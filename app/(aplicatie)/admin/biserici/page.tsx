@@ -26,10 +26,10 @@ export default async function PaginaAdminBiserici() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin" className="text-sm text-cenusiu">
-          ← Administrare
+        <Link href="/admin" className="inapoi">
+          Administrare
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Biserici</h1>
+        <h1 className="titlu-pagina">Biserici</h1>
         <p className="text-sm text-cenusiu">
           Bisericile din care ne vin pulsiști. Din lista asta se alege pe fișa
           fiecăruia, iar în statistici de aici vine împărțirea pe biserici.
@@ -37,7 +37,7 @@ export default async function PaginaAdminBiserici() {
       </div>
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">Biserică nouă</h2>
+        <h2 className="mb-1 titlu-sectiune">Biserică nouă</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Se poate adăuga una și direct de pe fișa unui pulsist, dacă tocmai
           atunci afli de unde vine.
@@ -57,7 +57,7 @@ export default async function PaginaAdminBiserici() {
       )}
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">
+        <h2 className="mb-1 titlu-sectiune">
           {biserici.length === 1 ? "O biserică" : `${biserici.length} biserici`}
         </h2>
         {biserici.length > 0 && (
@@ -75,7 +75,7 @@ export default async function PaginaAdminBiserici() {
             Nicio biserică scrisă încă. Prima se adaugă mai sus.
           </p>
         ) : (
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          <ul className="flex flex-col divide-y divide-linie">
             {biserici.map((b) => (
               <li key={b.id} className="py-3">
                 <details>
@@ -114,7 +114,7 @@ export default async function PaginaAdminBiserici() {
                       catastrofală, ci ca să nu se întâmple din greșeală când
                       cineva voia doar să îndrepte o literă din nume.
                     */}
-                    <details className="mt-4 border-t border-[#e3e7f2] pt-3">
+                    <details className="mt-4 border-t border-linie pt-3">
                       <summary className="min-h-11 cursor-pointer py-2 text-sm text-red-700">
                         Scoate biserica din listă
                       </summary>

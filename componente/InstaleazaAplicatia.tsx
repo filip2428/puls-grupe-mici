@@ -68,7 +68,7 @@ export function InstaleazaAplicatia() {
 
   return (
     <section className="card p-4">
-      <h2 className="mb-1 text-sm font-bold">Pune aplicația pe telefon</h2>
+      <h2 className="mb-1 titlu-sectiune">Pune aplicația pe telefon</h2>
       <p className="mb-3 text-xs text-cenusiu">
         Se deschide cu o singură atingere, pe tot ecranul, fără bara de adrese.
         Nu se descarcă nimic din magazinul de aplicații.

@@ -27,10 +27,10 @@ export default async function PaginaLideri() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin" className="text-sm text-cenusiu">
-          ← Administrare
+        <Link href="/admin" className="inapoi">
+          Administrare
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Lideri</h1>
+        <h1 className="titlu-pagina">Lideri</h1>
         <p className="text-sm text-cenusiu">
           Fiecare lider intră cu codul lui. Repartizarea la grupe se face din
           pagina grupei. Tot de aici alegi cine vede toți pulsiștii și cine
@@ -39,13 +39,13 @@ export default async function PaginaLideri() {
       </div>
 
       <section className="card p-4">
-        <h2 className="mb-3 text-sm font-bold">Adaugă un lider</h2>
+        <h2 className="mb-3 titlu-sectiune">Adaugă un lider</h2>
         <FormularLiderNou />
       </section>
 
       <section className="card p-4">
-        <h2 className="mb-3 text-sm font-bold">{lideri.length} lideri</h2>
-        <ul className="flex flex-col divide-y divide-[#eef1f7]">
+        <h2 className="mb-3 titlu-sectiune">{lideri.length} lideri</h2>
+        <ul className="flex flex-col divide-y divide-linie">
           {lideri.map((l) => (
             <li key={l.id} className="flex flex-wrap items-center gap-2 py-3">
               <div className="min-w-0 flex-1">

@@ -47,10 +47,10 @@ export default async function PaginaCitire({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Link href={`/grupe/${grupaId}`} className="text-sm text-cenusiu">
-          ← {g.nume}
+        <Link href={`/grupe/${grupaId}`} className="inapoi">
+          {g.nume}
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Cititul Bibliei</h1>
+        <h1 className="titlu-pagina">Cititul Bibliei</h1>
         <p className="text-sm text-cenusiu">
           Bifează zilele din plan pe care le-a citit fiecare. Se poate bifa și în urmă,
           dacă recuperează.

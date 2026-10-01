@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Calendar } from "@/componente/Calendar";
+import { Icoana } from "@/componente/Icoane";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import { calendarul } from "@/lib/interogari/calendar";
@@ -57,7 +58,7 @@ export default async function PaginaCalendar({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-bold">Calendar</h1>
+        <h1 className="titlu-pagina">Calendar</h1>
         <p className="text-sm text-cenusiu">
           {esteAdmin
             ? "Întâlnirile lucrării și slujirile programate. Apasă pe o zi ca s-o vezi sau să adaugi în ea."
@@ -72,14 +73,16 @@ export default async function PaginaCalendar({
           eticheta="Luna dinainte"
           semn="‹"
         />
-        <div className="min-w-0 flex-1 text-center">
-          <span className="text-base font-semibold">{lunaLizibila(luna)}</span>
+        <div className="flex min-w-0 flex-1 flex-col items-center">
+          <span className="text-lg font-bold tracking-tight first-letter:uppercase">
+            {lunaLizibila(luna)}
+          </span>
           {luna !== lunaAcum() && (
             <Link
               href="/calendar"
-              className="ml-2 text-xs text-albastru underline"
+              className="-my-1.5 inline-flex min-h-9 items-center rounded-full px-3 text-xs font-bold text-albastru"
             >
-              azi
+              înapoi la azi
             </Link>
           )}
         </div>
@@ -135,15 +138,20 @@ function SagataLuna({
 }: {
   catre: string;
   eticheta: string;
-  semn: string;
+  semn: "‹" | "›";
 }) {
   return (
     <Link
       href={`/calendar?luna=${catre}`}
       aria-label={eticheta}
-      className="buton buton-secundar shrink-0 px-4 text-lg leading-none"
+      className="buton buton-secundar h-12 w-12 shrink-0 rounded-full p-0"
     >
-      {semn}
+      <Icoana
+        nume="inainte"
+        marime={20}
+        grosime={2.2}
+        className={semn === "‹" ? "rotate-180" : ""}
+      />
     </Link>
   );
 }

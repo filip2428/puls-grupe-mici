@@ -53,7 +53,7 @@ export function FormularInchidereAn({
       }}
     >
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">1. Anul care se încheie</h2>
+        <h2 className="mb-1 titlu-sectiune">1. Anul care se încheie</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Statisticile anului se socotesc pe perioada asta și se păstrează așa cum
           sunt azi.
@@ -75,7 +75,7 @@ export function FormularInchidereAn({
       </section>
 
       <section className="card flex flex-col gap-4 p-4">
-        <h2 className="text-sm font-bold">2. Ce se schimbă pentru anul nou</h2>
+        <h2 className="titlu-sectiune">2. Ce se schimbă pentru anul nou</h2>
 
         <label className="flex items-start gap-3">
           <input
@@ -166,7 +166,7 @@ export function FormularInchidereAn({
       </section>
 
       <section className="rounded-2xl border border-red-200 bg-red-50/50 p-4">
-        <h2 className="mb-1 text-sm font-bold text-red-800">3. Confirmă</h2>
+        <h2 className="mb-1 titlu-sectiune text-red-800">3. Confirmă</h2>
         <p className="mb-3 text-xs text-red-800/90">
           Schimbările de mai sus nu se pot anula dintr-un buton. Înainte de ele,
           o copie a bazei pleacă pe email la administratori (dacă emailul e

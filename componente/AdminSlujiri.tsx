@@ -31,7 +31,7 @@ function ListaDeBifat({
 }) {
   const bifate = new Set(bifateInitial);
   return (
-    <ul className="flex max-h-64 flex-col divide-y divide-[#eef1f7] overflow-y-auto rounded-xl border border-[#d7dced] px-3">
+    <ul className="flex max-h-64 flex-col divide-y divide-linie overflow-y-auto rounded-xl border border-linie-tare px-3">
       {optiuni.map((o) => (
         <li key={o.id}>
           <label className="flex min-h-11 cursor-pointer items-center gap-3 py-2">
@@ -40,7 +40,7 @@ function ListaDeBifat({
               name={camp}
               value={o.id}
               defaultChecked={bifate.has(o.id)}
-              className="size-5 shrink-0 accent-[#2b328d]"
+              className="size-5 shrink-0 accent-albastru"
             />
             <span className="min-w-0 flex-1 text-sm">{o.nume}</span>
           </label>

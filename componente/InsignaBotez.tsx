@@ -11,7 +11,7 @@ import { etichetaBotez, type Botez } from "@/lib/util/etichete";
 const STILURI: Record<string, string> = {
   botezat: "bg-albastru/10 text-albastru",
   nebotezat: "bg-fundal text-cenusiu",
-  nescris: "border border-dashed border-[#d7dced] text-cenusiu",
+  nescris: "border border-dashed border-linie-tare text-cenusiu",
 };
 
 export function InsignaBotez({ botez }: { botez: Botez | null }) {

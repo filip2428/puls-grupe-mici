@@ -13,7 +13,7 @@ const STILURI: Record<string, string> = {
   harvest: "bg-albastru/10 text-albastru",
   alta: "bg-lime/40 text-carbune",
   fara: "bg-fundal text-cenusiu",
-  nescris: "border border-dashed border-[#d7dced] text-cenusiu",
+  nescris: "border border-dashed border-linie-tare text-cenusiu",
 };
 
 export function InsignaBiserica({

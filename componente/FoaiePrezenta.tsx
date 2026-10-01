@@ -8,6 +8,7 @@ import {
   salveazaFoaia,
   type StarePrezentaFormular,
 } from "@/app/(aplicatie)/grupe/[id]/prezenta/actions";
+import { Icoana } from "@/componente/Icoane";
 import { RandPrezenta } from "@/componente/RandPrezenta";
 import type { StarePrezenta } from "@/lib/db/schema";
 
@@ -84,12 +85,16 @@ export function FoaiePrezenta({
       <input type="hidden" name="stari" value={JSON.stringify(stari)} />
 
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-cenusiu">{membri.length} în grupă</p>
+        <p className="text-sm text-cenusiu">
+          <span className="font-semibold text-carbune">{membri.length}</span> în
+          grupă
+        </p>
         <button
           type="button"
           onClick={totiPrezenti}
           className="buton buton-secundar buton-mic"
         >
+          <Icoana nume="bifa" marime={16} grosime={2.2} />
           Toți prezenți
         </button>
       </div>
@@ -117,7 +122,7 @@ export function FoaiePrezenta({
       {/* Musafirii */}
       <section className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-2 pt-2">
-          <h2 className="text-sm font-bold">Musafiri</h2>
+          <h2 className="titlu-sectiune">Musafiri</h2>
           <span className="text-xs text-cenusiu">nu intră în statistici</span>
         </div>
 
@@ -173,19 +178,37 @@ export function FoaiePrezenta({
       </div>
 
       {/* Bara de salvare, lipită jos */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e3e7f2] bg-hartie/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <div className="bara-jos">
+        {/* Cât din grupă e marcat: se umple pe măsură ce bifezi. */}
+        <div
+          aria-hidden
+          className="h-1 bg-linie"
+        >
+          <div
+            className="h-full bg-albastru transition-[width] duration-200"
+            style={{
+              width: `${
+                membri.length
+                  ? Math.round(
+                      ((membri.length - numere.nemarcati) / membri.length) * 100,
+                    )
+                  : 0
+              }%`,
+            }}
+          />
+        </div>
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1 text-sm">
-            <span className="font-semibold text-albastru">
-              {numere.prezenti} prezenți
-            </span>
-            <span className="text-cenusiu">
-              {" "}
-              · {numere.anuntati} anunțați · {numere.absenti} absenți
+            <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+              <span className="font-bold text-albastru">
+                {numere.prezenti} prezenți
+              </span>
+              <span className="text-cenusiu">{numere.anuntati} anunțați</span>
+              <span className="text-cenusiu">{numere.absenti} absenți</span>
             </span>
             {numere.nemarcati > 0 && (
-              <span className="block text-xs text-red-600">
-                {numere.nemarcati} nemarcați
+              <span className="block text-xs font-semibold text-red-700">
+                Mai ai {numere.nemarcati} nemarcați
               </span>
             )}
             {stare.eroare && (

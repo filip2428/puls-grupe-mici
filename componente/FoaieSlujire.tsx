@@ -105,7 +105,7 @@ export function FoaieSlujire({
       {peGrupe.map(([numeGrupa, aiEi]) => (
         <section key={numeGrupa} className="flex flex-col gap-2">
           {peGrupe.length > 1 && (
-            <h2 className="pt-2 text-sm font-bold">{numeGrupa}</h2>
+            <h2 className="pt-2 titlu-sectiune">{numeGrupa}</h2>
           )}
           <ul className="flex flex-col gap-2">
             {aiEi.map((p) => (
@@ -123,7 +123,7 @@ export function FoaieSlujire({
       {dinEchipa.length > 0 && (
         <section className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between gap-2 pt-2">
-            <h2 className="text-sm font-bold">
+            <h2 className="titlu-sectiune">
               {numeEchipa ? `Din echipa ${numeEchipa}` : "Din echipă"}
             </h2>
             <span className="text-xs text-cenusiu">nu sunt din grupa ta</span>
@@ -159,7 +159,7 @@ export function FoaieSlujire({
       )}
 
       {/* Bara de salvare, lipită jos - la fel ca la grupa mică. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e3e7f2] bg-hartie/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <div className="bara-jos">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1 text-sm">
             <span className="font-semibold text-albastru">

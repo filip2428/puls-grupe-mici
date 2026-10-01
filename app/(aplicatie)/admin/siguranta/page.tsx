@@ -19,10 +19,10 @@ export default async function PaginaSiguranta() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin" className="text-sm text-cenusiu">
-          ← Administrare
+        <Link href="/admin" className="inapoi">
+          Administrare
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Siguranța datelor</h1>
+        <h1 className="titlu-pagina">Siguranța datelor</h1>
         <p className="text-sm text-cenusiu">
           O copie a întregii baze de date - pulsiști, prezențe, slujiri, citit,
           lideri - dintr-un singur fișier. Cu ea, orice greșeală se poate da
@@ -31,7 +31,7 @@ export default async function PaginaSiguranta() {
       </div>
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">Descarcă o copie acum</h2>
+        <h2 className="mb-1 titlu-sectiune">Descarcă o copie acum</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Un fișier .json.gz, de obicei câteva sute de KB. Ține-l undeva în afara
           telefonului - pe laptop, în Drive.
@@ -42,7 +42,7 @@ export default async function PaginaSiguranta() {
       </section>
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">Copia săptămânală pe email</h2>
+        <h2 className="mb-1 titlu-sectiune">Copia săptămânală pe email</h2>
         {emailPornit ? (
           destinatari.length > 0 ? (
             <p className="mb-3 text-xs text-cenusiu">
@@ -70,7 +70,7 @@ export default async function PaginaSiguranta() {
       </section>
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">Restaurează dintr-o copie</h2>
+        <h2 className="mb-1 titlu-sectiune">Restaurează dintr-o copie</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Pentru când s-a șters ceva din greșeală sau s-a stricat ceva. Datele
           aplicației devin exact cele din momentul copiei.

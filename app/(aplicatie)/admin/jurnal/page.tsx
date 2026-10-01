@@ -82,10 +82,10 @@ export default async function PaginaJurnal() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin" className="text-sm text-cenusiu">
-          ← Administrare
+        <Link href="/admin" className="inapoi">
+          Administrare
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Jurnal</h1>
+        <h1 className="titlu-pagina">Jurnal</h1>
         <p className="text-sm text-cenusiu">
           Ultimele modificări din aplicație. Util dacă ceva pare schimbat fără
           explicație.
@@ -93,7 +93,7 @@ export default async function PaginaJurnal() {
       </div>
 
       <section className="card p-4">
-        <ul className="flex flex-col divide-y divide-[#eef1f7]">
+        <ul className="flex flex-col divide-y divide-linie">
           {intrari.map((i) => (
             <li key={i.id} className="py-2.5">
               <p className="text-sm">

@@ -13,10 +13,10 @@ export default function PaginaFaraSemnal() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-5 py-10 text-center">
       <div className="w-full max-w-sm">
-        <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-albastru text-2xl font-black text-lime">
+        <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-[1.25rem] bg-albastru text-3xl font-extrabold text-lime shadow-[0_12px_28px_-14px_rgb(43_50_141/0.8)]">
           P
         </div>
-        <h1 className="text-xl font-bold text-albastru">Nu ai semnal</h1>
+        <h1 className="titlu-pagina">Nu ai semnal</h1>
         <p className="mt-2 text-sm text-cenusiu">
           Pagina asta n-a mai fost deschisă pe telefonul tău, așa că nu e
           salvată aici. Paginile pe care le-ai vizitat deja se văd și fără net.

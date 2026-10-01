@@ -48,10 +48,10 @@ export default async function PaginaAdminGrupa({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin/grupe" className="text-sm text-cenusiu">
-          ← Grupe
+        <Link href="/admin/grupe" className="inapoi">
+          Grupe
         </Link>
-        <h1 className="mt-2 text-xl font-bold">{g.nume}</h1>
+        <h1 className="titlu-pagina">{g.nume}</h1>
         <p className="text-sm text-cenusiu">
           <Link href={`/grupe/${grupaId}`} className="text-albastru underline">
             Vezi grupa ca lider
@@ -60,7 +60,7 @@ export default async function PaginaAdminGrupa({
       </div>
 
       <section className="card p-4">
-        <h2 className="mb-3 text-sm font-bold">Datele grupei</h2>
+        <h2 className="mb-3 titlu-sectiune">Datele grupei</h2>
         <FormularEditareGrupa
           grupaId={grupaId}
           initial={{
@@ -71,7 +71,7 @@ export default async function PaginaAdminGrupa({
         />
         <form
           action={schimbaActivaGrupa.bind(null, grupaId, !g.activa)}
-          className="mt-4 border-t border-[#eef1f7] pt-4"
+          className="mt-4 border-t border-linie pt-4"
         >
           <button type="submit" className="buton buton-secundar">
             {g.activa ? "Arhivează grupa" : "Reactivează grupa"}
@@ -84,8 +84,8 @@ export default async function PaginaAdminGrupa({
       </section>
 
       <section className="card p-4">
-        <h2 className="mb-3 text-sm font-bold">Liderii grupei</h2>
-        <ul className="mb-4 flex flex-col divide-y divide-[#eef1f7]">
+        <h2 className="mb-3 titlu-sectiune">Liderii grupei</h2>
+        <ul className="mb-4 flex flex-col divide-y divide-linie">
           {lideriAiGrupei.map((l) => (
             <li key={l.id} className="flex items-center gap-3 py-2">
               <span className="flex-1 text-sm">{l.nume}</span>
@@ -106,7 +106,7 @@ export default async function PaginaAdminGrupa({
         {disponibili.length > 0 && (
           <form
             action={repartizeazaLiderDinFormular.bind(null, grupaId)}
-            className="flex items-end gap-2 border-t border-[#eef1f7] pt-4"
+            className="flex items-end gap-2 border-t border-linie pt-4"
           >
             <div className="flex-1">
               <label className="eticheta" htmlFor="liderId">
@@ -140,7 +140,7 @@ export default async function PaginaAdminGrupa({
         )}
 
         {inlocuiri.length > 0 && (
-          <div className="mt-4 border-t border-[#eef1f7] pt-3">
+          <div className="mt-4 border-t border-linie pt-3">
             <h3 className="mb-2 text-xs font-bold uppercase text-cenusiu">
               Înlocuiri active
             </h3>
@@ -163,7 +163,7 @@ export default async function PaginaAdminGrupa({
       </section>
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">Pulsiști ({membri.length})</h2>
+        <h2 className="mb-1 titlu-sectiune">Pulsiști ({membri.length})</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Poți muta un pulsist în altă grupă sau să-l scoți din grupă de tot -
           istoricul lui rămâne neatins. Cine e scos așteaptă la{" "}
@@ -172,7 +172,7 @@ export default async function PaginaAdminGrupa({
           </Link>
           , de unde îl pui oricând într-o grupă.
         </p>
-        <ul className="flex flex-col divide-y divide-[#eef1f7]">
+        <ul className="flex flex-col divide-y divide-linie">
           {membri.map((m) => (
             <li key={m.id} className="flex flex-wrap items-center gap-2 py-2">
               <Link href={`/membri/${m.id}`} className="flex-1 text-sm">
@@ -193,7 +193,7 @@ export default async function PaginaAdminGrupa({
                 >
                   <select
                     name="grupaId"
-                    className="camp min-h-9 w-auto py-1.5 text-sm"
+                    className="camp min-h-10 w-auto py-1.5"
                     defaultValue={alteGrupe[0].id}
                     aria-label={`Mută pe ${m.nume} în altă grupă`}
                   >

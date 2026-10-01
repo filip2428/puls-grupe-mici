@@ -178,7 +178,7 @@ function Repetare({ data }: { data: string }) {
         type="checkbox"
         name="repeta"
         value="saptamanal"
-        className="peer h-5 w-5 align-middle accent-[#2b328d]"
+        className="peer h-5 w-5 align-middle accent-albastru"
       />
       <label
         htmlFor="int-repeta"
@@ -219,7 +219,7 @@ function AlegereGrupe({
   explicatie: string;
 }) {
   return (
-    <label className="flex min-h-16 cursor-pointer flex-col justify-center rounded-xl border border-[#d7dced] bg-hartie px-3 py-2 has-[:checked]:border-albastru has-[:checked]:bg-albastru/10 has-[:checked]:text-albastru has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-albastru-deschis/40">
+    <label className="flex min-h-16 cursor-pointer flex-col justify-center rounded-xl border border-linie-tare bg-hartie px-3 py-2 has-[:checked]:border-albastru has-[:checked]:bg-albastru/10 has-[:checked]:text-albastru has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-albastru-deschis/40">
       <input
         type="radio"
         name="peGrupeMici"

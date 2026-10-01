@@ -15,10 +15,10 @@ export default async function PaginaImport() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin" className="text-sm text-cenusiu">
-          ← Administrare
+        <Link href="/admin" className="inapoi">
+          Administrare
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Import din Excel</h1>
+        <h1 className="titlu-pagina">Import din Excel</h1>
         <p className="text-sm text-cenusiu">
           Bun când începi anul cu o listă gata făcută, ca să nu îi adaugi pe
           rând.
@@ -26,7 +26,7 @@ export default async function PaginaImport() {
       </div>
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">1. Ia modelul</h2>
+        <h2 className="mb-1 titlu-sectiune">1. Ia modelul</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Are coloanele potrivite, un rând de exemplu și o foaie cu explicații.
           Completează-l și șterge rândul de exemplu.
@@ -35,7 +35,7 @@ export default async function PaginaImport() {
           Descarcă modelul
         </a>
 
-        <div className="mt-4 border-t border-[#eef1f7] pt-3">
+        <div className="mt-4 border-t border-linie pt-3">
           <p className="text-xs font-bold text-cenusiu uppercase">Coloanele</p>
           <ul className="mt-2 flex flex-wrap gap-1.5">
             {COLOANE.map((c) => (
@@ -76,7 +76,7 @@ export default async function PaginaImport() {
       ) : (
         <>
           <section className="card p-4">
-            <h2 className="mb-1 text-sm font-bold">2. Încarcă fișierul</h2>
+            <h2 className="mb-1 titlu-sectiune">2. Încarcă fișierul</h2>
             <p className="mb-3 text-xs text-cenusiu">
               Îți arăt întâi ce am înțeles. Nu se scrie nimic până nu confirmi.
             </p>
@@ -84,7 +84,7 @@ export default async function PaginaImport() {
           </section>
 
           <section className="card p-4">
-            <h2 className="mb-2 text-sm font-bold">Grupele în care poți importa</h2>
+            <h2 className="mb-2 titlu-sectiune">Grupele în care poți importa</h2>
             <p className="mb-2 text-xs text-cenusiu">
               În coloana „Grupa” scrie exact unul dintre numele astea:
             </p>

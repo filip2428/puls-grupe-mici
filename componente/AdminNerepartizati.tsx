@@ -48,14 +48,14 @@ export function FormularRepartizare({
   return (
     <section className="card p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-        <h2 className="text-sm font-bold">{titlu}</h2>
+        <h2 className="titlu-sectiune">{titlu}</h2>
         <span className="text-xs text-cenusiu">
           {pulsisti.length} {pulsisti.length === 1 ? "pulsist" : "pulsiști"}
         </span>
       </div>
 
       <form action={actiune} className="mt-3">
-        <ul className="flex flex-col divide-y divide-[#eef1f7] border-t border-[#eef1f7]">
+        <ul className="flex flex-col divide-y divide-linie border-t border-linie">
           {pulsisti.map((p) => (
             <li key={p.id}>
               <label className="flex min-h-12 cursor-pointer items-center gap-3 py-2">
@@ -64,7 +64,7 @@ export function FormularRepartizare({
                   name="pulsist"
                   value={p.id}
                   defaultChecked
-                  className="size-5 shrink-0 accent-[#2b328d]"
+                  className="size-5 shrink-0 accent-albastru"
                 />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">
@@ -90,7 +90,7 @@ export function FormularRepartizare({
           ))}
         </ul>
 
-        <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-[#eef1f7] pt-3">
+        <div className="mt-3 flex flex-wrap items-end gap-2 border-t border-linie pt-3">
           <div className="min-w-40 flex-1">
             <label className="eticheta" htmlFor={`grupa-${titlu}`}>
               Pune-i în

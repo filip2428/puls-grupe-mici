@@ -76,7 +76,7 @@ export function ImportPlanCitire({ existaPlan }: { existaPlan: boolean }) {
       </form>
 
       {analiza.gata && !analiza.eroare && (
-        <div className="flex flex-col gap-4 border-t border-[#eef1f7] pt-4">
+        <div className="flex flex-col gap-4 border-t border-linie pt-4">
           {zile.length > 0 && (
             <p className="text-sm">
               <strong>{zile.length}</strong> zile în plan, de la{" "}
@@ -106,7 +106,7 @@ export function ImportPlanCitire({ existaPlan }: { existaPlan: boolean }) {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-[#e3e7f2] text-xs text-cenusiu">
+                  <tr className="border-b border-linie text-xs text-cenusiu">
                     <th className="py-2 pr-3 font-semibold">Ziua</th>
                     <th className="py-2 pr-3 font-semibold">Plan</th>
                     <th className="py-2 font-semibold">Carte</th>
@@ -114,7 +114,7 @@ export function ImportPlanCitire({ existaPlan }: { existaPlan: boolean }) {
                 </thead>
                 <tbody>
                   {zile.slice(0, 10).map((z) => (
-                    <tr key={z.data} className="border-b border-[#eef1f7]">
+                    <tr key={z.data} className="border-b border-linie">
                       <td className="py-2 pr-3 text-cenusiu">{dataNumerica(z.data)}</td>
                       <td className="py-2 pr-3">{z.portiune}</td>
                       <td className="py-2 text-cenusiu">{z.carte}</td>

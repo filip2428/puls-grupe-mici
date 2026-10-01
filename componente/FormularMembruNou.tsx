@@ -152,7 +152,7 @@ export function FormularMembruNou({ grupaId }: { grupaId: number }) {
             type="checkbox"
             name="confirmDuplicat"
             value="da"
-            className="mt-0.5 size-5 shrink-0 accent-[#2b328d]"
+            className="mt-0.5 size-5 shrink-0 accent-albastru"
           />
           <span>E altcineva, doar că îl cheamă la fel. Scrie-l ca pulsist nou.</span>
         </label>

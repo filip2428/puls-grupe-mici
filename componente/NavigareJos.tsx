@@ -4,41 +4,37 @@ import Link from "next/link";
 import { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 
+import { Icoana, type NumeIcoana } from "@/componente/Icoane";
+
 /**
  * Bara de navigare de jos - locul unde ajunge degetul mare pe telefon.
  * Se ascunde pe foaia de prezență, ca să nu se bată cu bara de salvare.
- * „Ieși" stă în Setări: e un gest rar, n-are ce căuta lângă degetul mare.
+ *
+ * Cel mult cinci locuri: cu șase, etichetele ajung la 10px și degetul nimerește
+ * vecinul. Setările (și „Ieși", odată cu ele) stau în antet, la inițiale -
+ * e un gest rar, n-are ce căuta lângă degetul mare.
+ *
+ * Tabul deschis nu se recunoaște doar după culoare: are și o pastilă în
+ * spatele iconiței, ca să se vadă și de cine nu deosebește bine culorile.
  */
-export function NavigareJos({
-  esteAdmin,
-  necitite,
-}: {
-  esteAdmin: boolean;
-  necitite: number;
-}) {
+export function NavigareJos({ esteAdmin }: { esteAdmin: boolean }) {
   const cale = usePathname();
   // Foile de prezență și de citit au bara lor de salvare, tot jos.
   if (cale.endsWith("/prezenta") || /^\/grupe\/\d+\/citire$/.test(cale)) return null;
 
-  const linkuri = [
-    { href: "/grupe", text: "Grupe", icon: <IconGrupe /> },
-    { href: "/pulsisti", text: "Pulsiști", icon: <IconOameni /> },
-    { href: "/calendar", text: "Calendar", icon: <IconCalendar /> },
-    { href: "/slujiri", text: "Slujiri", icon: <IconSlujiri /> },
+  const linkuri: { href: string; text: string; icoana: NumeIcoana }[] = [
+    { href: "/grupe", text: "Grupe", icoana: "grupe" },
+    { href: "/pulsisti", text: "Pulsiști", icoana: "oameni" },
+    { href: "/calendar", text: "Calendar", icoana: "calendar" },
+    { href: "/slujiri", text: "Slujiri", icoana: "slujiri" },
     ...(esteAdmin
-      ? [{ href: "/admin", text: "Admin", icon: <IconAdmin /> }]
+      ? [{ href: "/admin", text: "Admin", icoana: "admin" as const }]
       : []),
-    {
-      href: "/setari",
-      text: "Setări",
-      icon: <IconSetari />,
-      bulina: necitite,
-    },
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e3e7f2] bg-hartie/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
-      <ul className="mx-auto flex max-w-3xl items-stretch">
+    <nav aria-label="Navigare principală" className="bara-jos">
+      <ul className="mx-auto flex max-w-3xl items-stretch px-1">
         {linkuri.map((l) => {
           const activ =
             cale === l.href || (l.href !== "/grupe" && cale.startsWith(l.href));
@@ -46,18 +42,18 @@ export function NavigareJos({
             <li key={l.href} className="flex-1">
               <Link
                 href={l.href}
-                className={`relative flex min-h-14 flex-col items-center justify-center gap-1 px-1 text-[10px] font-medium ${
-                  activ ? "text-albastru" : "text-cenusiu"
+                aria-current={activ ? "page" : undefined}
+                className={`relative flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-xs ${
+                  activ ? "font-bold text-albastru" : "font-medium text-cenusiu"
                 }`}
               >
-                <DunguliteAsteptare />
-                <span className="relative">
-                  {l.icon}
-                  {!!l.bulina && (
-                    <span className="absolute -top-1 -right-2 min-w-4 rounded-full bg-red-600 px-1 text-[9px] leading-4 font-bold text-white">
-                      {l.bulina > 9 ? "9+" : l.bulina}
-                    </span>
-                  )}
+                <span
+                  className={`relative flex h-8 w-14 items-center justify-center rounded-full transition-colors duration-150 ${
+                    activ ? "bg-albastru-pal" : ""
+                  }`}
+                >
+                  <DunguliteAsteptare />
+                  <Icoana nume={l.icoana} marime={22} grosime={activ ? 2 : 1.7} />
                 </span>
                 {l.text}
               </Link>
@@ -82,106 +78,9 @@ function DunguliteAsteptare() {
   return (
     <span
       aria-hidden
-      className={`absolute inset-x-3 top-0 h-0.5 rounded-full bg-albastru transition-opacity duration-150 ${
+      className={`absolute inset-x-3 -top-2 h-0.5 rounded-full bg-albastru transition-opacity duration-150 ${
         pending ? "opacity-100" : "opacity-0"
       }`}
     />
-  );
-}
-
-/* Iconițe simple, desenate cu linii - fără biblioteci externe. */
-
-function IconGrupe() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="3" y="4" width="18" height="7" rx="2" stroke="currentColor" strokeWidth="1.7" />
-      <rect x="3" y="14" width="18" height="6" rx="2" stroke="currentColor" strokeWidth="1.7" />
-    </svg>
-  );
-}
-
-function IconOameni() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="9" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.7" />
-      <path
-        d="M3.5 19c.6-3 2.9-4.6 5.5-4.6s4.9 1.6 5.5 4.6"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-      <path
-        d="M16 5.5a3 3 0 0 1 0 5.6M18 14.8c1.6.7 2.7 2.1 3 4.2"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-/** Două mâini ridicate - slujire. */
-function IconSlujiri() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M8 20v-4.5C8 13 6.5 12 6.5 10.5V4.8a1.3 1.3 0 0 1 2.6 0V9"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M16 20v-4.5c0-2.5 1.5-3.5 1.5-5V4.8a1.3 1.3 0 0 0-2.6 0V9"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M9.1 9V3.3a1.45 1.45 0 0 1 2.9 0V9M14.9 9V3.3a1.45 1.45 0 0 0-2.9 0"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-/** Foaie de calendar cu două urechi. */
-function IconCalendar() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconAdmin() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 20v-5M10 20V9M16 20v-8M22 20V5"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-      <path d="M2 20h20" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconSetari() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.7" />
-      <path
-        d="M12 3v2.2M12 18.8V21M21 12h-2.2M5.2 12H3M18.4 5.6l-1.6 1.6M7.2 16.8l-1.6 1.6M18.4 18.4l-1.6-1.6M7.2 7.2 5.6 5.6"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }

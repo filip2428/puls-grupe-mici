@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Icoana, initiale } from "@/componente/Icoane";
 import { InsignaBiserica } from "@/componente/InsignaBiserica";
 import { InsignaBotez } from "@/componente/InsignaBotez";
 import { ceruteLider } from "@/lib/auth/sesiune";
@@ -64,7 +65,7 @@ export default async function PaginaPulsisti({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="text-xl font-bold">Pulsiști</h1>
+        <h1 className="titlu-pagina">Pulsiști</h1>
         <p className="text-sm text-cenusiu">
           {vedeTot
             ? "Toți pulsiștii, cu filtre și export."
@@ -272,15 +273,25 @@ export default async function PaginaPulsisti({
           {musafiriNr > 0 && ` · ${membriNr} membri, ${musafiriNr} musafiri`}
         </p>
         <a href={adresaExport} className="buton buton-secundar buton-mic">
+          <Icoana nume="descarca" marime={15} />
           Descarcă în Excel
         </a>
       </div>
 
       <ul className="flex flex-col gap-2">
         {lista.map((a) => (
-          <li key={a.id} className="card">
+          <li key={a.id} className="card overflow-hidden">
             <Link href={`/membri/${a.id}`} className="block p-3">
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-3">
+                <span
+                  className={`avatar ${
+                    a.status === "musafir"
+                      ? "border border-dashed border-lime bg-lime-pal text-carbune"
+                      : ""
+                  } ${a.activ ? "" : "opacity-60"}`}
+                >
+                  {initiale(a.nume)}
+                </span>
                 <div className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm font-semibold">
@@ -315,18 +326,22 @@ export default async function PaginaPulsisti({
                   )}
                 </div>
                 {a.procent !== null && (
-                  <span className="shrink-0 text-xs text-cenusiu">
+                  <span
+                    className="shrink-0 rounded-full bg-albastru-pal px-2 py-0.5 text-xs font-bold text-albastru"
+                    title="Prezența la grupa mică"
+                  >
                     {a.procent}%
                   </span>
                 )}
               </div>
             </Link>
             {a.telefon && (
-              <div className="flex gap-2 border-t border-[#eef1f7] px-3 py-2">
+              <div className="flex gap-2 border-t border-linie px-3 py-2.5 pl-16">
                 <a
                   href={`tel:${a.telefon}`}
                   className="buton buton-secundar buton-mic"
                 >
+                  <Icoana nume="telefon" marime={15} />
                   Sună
                 </a>
                 {a.parinte1Telefon && (
@@ -334,6 +349,7 @@ export default async function PaginaPulsisti({
                     href={`tel:${a.parinte1Telefon}`}
                     className="buton buton-secundar buton-mic"
                   >
+                    <Icoana nume="telefon" marime={15} />
                     Sună părintele
                   </a>
                 )}

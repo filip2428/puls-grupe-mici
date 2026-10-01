@@ -19,10 +19,10 @@ export default async function PaginaAn() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin" className="text-sm text-cenusiu">
-          ← Administrare
+        <Link href="/admin" className="inapoi">
+          Administrare
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Anul bisericesc</h1>
+        <h1 className="titlu-pagina">Anul bisericesc</h1>
         <p className="text-sm text-cenusiu">
           La sfârșit de an, anul se arhivează - statisticile rămân cum au fost -
           și aplicația se pregătește pentru anul nou.
@@ -31,8 +31,8 @@ export default async function PaginaAn() {
 
       {ani.length > 0 && (
         <section className="card p-4">
-          <h2 className="mb-3 text-sm font-bold">Anii arhivați</h2>
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          <h2 className="mb-3 titlu-sectiune">Anii arhivați</h2>
+          <ul className="flex flex-col divide-y divide-linie">
             {ani.map((a) => (
               <li key={a.id}>
                 <Link

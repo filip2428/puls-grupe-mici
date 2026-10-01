@@ -2,30 +2,172 @@
 
 /*
   Culorile lucrării Puls (aceleași ca la tabăra Seen).
-  Dacă vrei alt aspect, schimbi doar valorile de aici.
+
+  Albastrul, lime-ul și albastrul deschis sunt ale lucrării și nu se ating.
+  Restul sunt nuanțele din jurul lor: textul e un bleumarin foarte închis, nu
+  gri-cărbune, ca să stea în aceeași familie cu albastrul; fundalul e un alb
+  rece, iar liniile dintre lucruri sunt subțiri și abia albăstrui.
+
+  Dacă vrei alt aspect, schimbi doar valorile de aici - restul aplicației le
+  folosește prin nume (`text-cenusiu`, `border-linie`, `bg-albastru-pal`...).
 */
 @theme {
   --color-albastru: #2b328d;
   --color-albastru-inchis: #1d2266;
   --color-albastru-deschis: #22a5de;
   --color-lime: #c1d82f;
-  --color-carbune: #2e3236;
-  --color-fundal: #eef1f7;
+
+  /* Fundaluri pale pentru ce iese puțin în evidență, fără să strige. */
+  --color-albastru-pal: #eef0fb;
+  --color-lime-pal: #f4f8dc;
+
+  /* Textul: aproape negru, cu o umbră de albastru. */
+  --color-carbune: #1b1f3b;
+  /* Textul de-al doilea rând. 5,9:1 pe alb, 5,4:1 pe fundal - citibil afară. */
+  --color-cenusiu: #5b6378;
+
+  --color-fundal: #f4f5fa;
   --color-hartie: #ffffff;
-  --color-cenusiu: #6b7280;
+  /* Liniile: cea subțire între rânduri, cea tare în jurul câmpurilor. */
+  --color-linie: #e7e9f2;
+  --color-linie-tare: #d4d9e8;
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-card: 1.25rem;
 }
 
-html {
-  -webkit-tap-highlight-color: transparent;
+/*
+  Straturile contează: tot ce e mai jos stă în `@layer base` sau
+  `@layer components`, ca o clasă Tailwind pusă pe același element să
+  câștige. Fără strat, `.card` ar acoperi `bg-red-50` sau `border-dashed` și
+  cardul ar ieși alb și plin, oricât ai scrie în `className`.
+*/
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-fundal);
+    color: var(--color-carbune);
+  }
+
+  /* Bifele și butoanele rotunde, în albastrul lucrării, nu în albastrul browserului. */
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--color-albastru);
+  }
+
+  /*
+    Inelul de focus: cine merge cu tastatura (sau cu un cititor de ecran)
+    vede mereu unde e. Degetul nu-l declanșează - doar `:focus-visible`.
+  */
+  :focus-visible {
+    outline: 3px solid rgb(34 165 222 / 0.55);
+    outline-offset: 2px;
+  }
+
+  /*
+    Ce se deschide și se închide („+ Adaugă un pulsist", „Filtre"...). În
+    locul triunghiului pus de browser, o săgeată după text care se întoarce
+    când e deschis - se vede că e ceva acolo, fără să se bată cu „+"-ul din
+    text.
+  */
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: "";
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    background-color: currentColor;
+    opacity: 0.7;
+    mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    transition: transform 160ms ease-out;
+  }
+  details[open] > summary::after {
+    transform: rotate(180deg);
+  }
+
+  /*
+    `touch-action: manipulation` spune browserului că aici nu se face
+    niciodată dublu-clic pentru mărire, deci n-are de ce să mai aștepte
+    ~300ms înainte de a trimite atingerea mai departe.
+  */
+  a,
+  button,
+  [role="button"],
+  summary {
+    touch-action: manipulation;
+  }
 }
 
-body {
-  background-color: var(--color-fundal);
+@layer components {
+/* ───────────────────────── Titluri ───────────────────────── */
+
+/* Titlul mare al paginii. Unul pe pagină. */
+.titlu-pagina {
+  font-size: 1.625rem;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--color-carbune);
+  text-wrap: balance;
+}
+/* Rândul de explicație de sub titlu, la aceeași distanță pe toate paginile. */
+.titlu-pagina + p {
+  margin-top: 0.375rem;
+}
+
+/* Titlul unei secțiuni dintr-o pagină - de obicei primul rând dintr-un card. */
+.titlu-sectiune {
+  font-size: 1rem;
+  line-height: 1.35;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--color-carbune);
 }
+
+/*
+  „Înapoi": săgeata și locul de unde ai venit, deasupra titlului. E o țintă
+  de deget întreagă (44px), nu doar cele câteva litere.
+*/
+.inapoi {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.75rem;
+  margin-left: -0.375rem;
+  margin-top: -0.5rem;
+  padding-right: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-cenusiu);
+  border-radius: 0.75rem;
+}
+.inapoi::before {
+  content: "";
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: currentColor;
+  mask: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m14.5 6-6 6 6 6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+.inapoi:active {
+  color: var(--color-albastru);
+}
+
+/* ───────────────────────── Câmpuri ───────────────────────── */
 
 /*
   Câmpurile de formular au un aspect comun peste tot în aplicație.
@@ -34,55 +176,36 @@ body {
 */
 .camp {
   width: 100%;
-  min-height: 2.75rem; /* 44px - minimul confortabil pentru deget */
-  border-radius: 0.75rem;
-  border: 1px solid #d7dced;
+  min-height: 3rem; /* 48px - confortabil pentru deget */
+  border-radius: 0.875rem;
+  border: 1px solid var(--color-linie-tare);
   background-color: var(--color-hartie);
-  padding: 0.625rem 0.875rem;
+  padding: 0.6875rem 0.875rem;
   font-size: 1rem;
   outline: none;
+  transition:
+    border-color 120ms ease-out,
+    box-shadow 120ms ease-out;
+}
+.camp::placeholder {
+  color: #8a91a5;
+}
+@media (hover: hover) {
+  .camp:hover {
+    border-color: #b9c0d6;
+  }
+}
+.camp:focus {
+  border-color: var(--color-albastru);
+  box-shadow: 0 0 0 4px rgb(43 50 141 / 0.12);
 }
 
 select.camp {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%235b6378' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  padding-right: 2.25rem;
-}
-
-/* Butoane: toate suficient de mari cât să fie apăsate cu degetul. */
-.buton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 2.75rem;
-  border-radius: 0.75rem;
-  padding: 0.625rem 1rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
-}
-.buton:disabled {
-  opacity: 0.45;
-}
-.buton-principal {
-  background-color: var(--color-albastru);
-  color: #fff;
-}
-.buton-secundar {
-  border: 1px solid #d7dced;
-  background-color: var(--color-hartie);
-  color: var(--color-carbune);
-}
-.buton-mic {
-  min-height: 2.25rem;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.8125rem;
-}
-.camp:focus {
-  border-color: var(--color-albastru-deschis);
-  box-shadow: 0 0 0 3px rgb(34 165 222 / 0.18);
+  background-position: right 0.875rem center;
+  padding-right: 2.5rem;
 }
 
 .eticheta {
@@ -93,10 +216,119 @@ select.camp {
   margin-bottom: 0.375rem;
 }
 
+/* ───────────────────────── Butoane ───────────────────────── */
+
+/* Butoane: toate suficient de mari cât să fie apăsate cu degetul. */
+.buton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  border-radius: 0.875rem;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  text-align: center;
+}
+.buton:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+}
+.buton-principal {
+  background-color: var(--color-albastru);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 6px 16px -8px rgb(43 50 141 / 0.7);
+}
+.buton-secundar {
+  border: 1px solid var(--color-linie-tare);
+  background-color: var(--color-hartie);
+  color: var(--color-carbune);
+}
+@media (hover: hover) {
+  .buton-principal:not(:disabled):hover {
+    background-color: var(--color-albastru-inchis);
+  }
+  .buton-secundar:not(:disabled):hover {
+    background-color: var(--color-fundal);
+  }
+}
+/* „Mic" doar ca text și lățime: înălțimea rămâne de deget (44px). */
+.buton-mic {
+  min-height: 2.75rem;
+  border-radius: 0.75rem;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.8125rem;
+}
+
+/*
+  Linkurile de text din pagini („Toate", „Descarcă în Excel"...) - le dăm
+  măcar înălțimea unui deget, fără să le schimbăm locul.
+*/
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-albastru);
+}
+
+/* ───────────────────────── Carduri ───────────────────────── */
+
 .card {
   background-color: var(--color-hartie);
-  border-radius: 1rem;
-  border: 1px solid #e3e7f2;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-linie);
+  box-shadow:
+    0 1px 2px rgb(27 31 59 / 0.04),
+    0 8px 24px -16px rgb(27 31 59 / 0.12);
+}
+
+/* Inițialele cuiva într-un cerc - fața din listă, până la poze. */
+.avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: var(--color-albastru-pal);
+  color: var(--color-albastru);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Iconița dintr-un pătrățel colorat, în fața titlului unei secțiuni. */
+.icoana-sectiune {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.75rem;
+  background-color: var(--color-albastru-pal);
+  color: var(--color-albastru);
+}
+
+/* Bara lipită jos: navigarea, sau bara de salvare a foilor de prezență. */
+.bara-jos {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 30;
+  border-top: 1px solid var(--color-linie);
+  background-color: rgb(255 255 255 / 0.92);
+  padding-bottom: env(safe-area-inset-bottom);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: 0 -8px 24px -18px rgb(27 31 59 / 0.25);
 }
 
 /*
@@ -105,44 +337,40 @@ select.camp {
   Mai sus am scos evidențierea pe care o pune telefonul singur la atingere
   (`-webkit-tap-highlight-color`), pentru că e un dreptunghi gri urât. Dar dacă
   nu punem nimic în loc, apăsarea nu se vede deloc și aplicația pare moartă
-  o secundă. Deci: fiecare lucru apăsabil se strânge puțin sub deget.
-
-  `touch-action: manipulation` spune browserului că aici nu se face niciodată
-  dublu-clic pentru mărire, deci n-are de ce să mai aștepte ~300ms înainte de
-  a trimite atingerea mai departe.
+  o secundă. Deci: fiecare lucru apăsabil se strânge puțin sub deget, iar
+  rândurile-link din carduri se colorează scurt.
 */
-.buton,
-.card a,
-nav a,
-button,
-[role="button"],
-summary {
-  touch-action: manipulation;
-}
-
 .buton:active,
 button:not(:disabled):active,
 [role="button"]:active {
   transform: scale(0.97);
 }
 
-.card a:active {
+/* Nu și butoanele-link: un buton albastru cu fundal gri ar pierde textul alb. */
+.card a:not(.buton):active {
   background-color: var(--color-fundal);
+}
+@media (hover: hover) {
+  .card a:not(.buton):hover {
+    background-color: rgb(244 245 250 / 0.6);
+  }
 }
 
 .buton,
 .card a {
   transition:
-    transform 80ms ease-out,
-    background-color 80ms ease-out;
+    transform 90ms ease-out,
+    background-color 120ms ease-out,
+    box-shadow 120ms ease-out;
 }
 
 /* Schijele cenușii din locul conținutului care încă vine. */
 .schelet {
   border-radius: 0.5rem;
-  background-color: #e3e7f2;
+  background-color: #e6e9f3;
   animation: puls-schelet 1.4s ease-in-out infinite;
 }
+} /* @layer components */
 
 @keyframes puls-schelet {
   0%,
@@ -161,7 +389,9 @@ button:not(:disabled):active,
     opacity: 0.75;
   }
   .buton,
-  .card a {
+  .card a,
+  .camp,
+  summary::after {
     transition: none;
   }
   .buton:active,

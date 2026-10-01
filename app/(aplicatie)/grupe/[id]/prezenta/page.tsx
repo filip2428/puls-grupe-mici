@@ -33,10 +33,10 @@ export default async function PaginaPrezenta({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Link href={`/grupe/${grupaId}`} className="text-sm text-cenusiu">
-          ← {g.nume}
+        <Link href={`/grupe/${grupaId}`} className="inapoi">
+          {g.nume}
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Prezența</h1>
+        <h1 className="titlu-pagina">Prezența</h1>
         <p className="text-sm text-cenusiu">{dataLunga(data)}</p>
         {acces.prinInlocuire && (
           <p className="mt-2 rounded-xl bg-lime/25 px-3 py-2 text-xs">

@@ -94,14 +94,14 @@ export function FormularSetari({
         {TIPURI.map((t) => (
           <label
             key={t.camp}
-            className="flex min-h-11 items-start gap-3 border-b border-[#eef1f7] py-2 last:border-0"
+            className="flex min-h-11 items-start gap-3 border-b border-linie py-2 last:border-0"
           >
             <input
               type="checkbox"
               name={t.camp}
               value="da"
               defaultChecked={initial[t.camp]}
-              className="mt-0.5 h-5 w-5 shrink-0 accent-[#2b328d]"
+              className="mt-0.5 h-5 w-5 shrink-0 accent-albastru"
             />
             <span className="min-w-0">
               <span className="block text-sm font-medium">{t.titlu}</span>

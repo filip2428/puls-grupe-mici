@@ -82,7 +82,7 @@ export function Calendar({
           ))}
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-[#eef1f7] pt-3 text-[11px] text-cenusiu">
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-linie pt-3 text-[11px] text-cenusiu">
           <Explicatie culoare="bg-lime" text="pe grupe mici" />
           <Explicatie culoare="bg-albastru" text="toți împreună" />
           <Explicatie culoare="bg-albastru-deschis" text="slujire" />
@@ -91,7 +91,7 @@ export function Calendar({
 
       {/* Ziua deschisă */}
       <section className="card p-4">
-        <h2 className="text-sm font-bold">
+        <h2 className="titlu-sectiune">
           {ziAleasa === azi ? "Azi" : dataLunga(ziAleasa)}
         </h2>
 
@@ -100,7 +100,7 @@ export function Calendar({
             Nu e nimic în calendar în ziua asta.
           </p>
         ) : (
-          <ul className="mt-3 flex flex-col divide-y divide-[#eef1f7]">
+          <ul className="mt-3 flex flex-col divide-y divide-linie">
             {aleZilei.map((e) => (
               <li key={e.cheie} className="py-3 first:pt-0 last:pb-0">
                 <RandZi
@@ -115,7 +115,7 @@ export function Calendar({
         )}
 
         {esteAdmin && (
-          <details className="mt-3 border-t border-[#eef1f7] pt-2">
+          <details className="mt-3 border-t border-linie pt-2">
             <summary className="min-h-11 cursor-pointer py-2 text-sm font-bold text-albastru">
               + Adaugă o întâlnire pe {dataScurta(ziAleasa)}
             </summary>
@@ -158,14 +158,20 @@ function Zi({
       aria-label={`${dataLunga(zi)}${
         elemente.length > 0 ? `, ${elemente.length} în calendar` : ""
       }`}
-      className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl border py-1 ${
-        aleasa ? "border-albastru bg-albastru/10" : "border-transparent"
-      } ${esteAzi && !aleasa ? "bg-fundal" : ""}`}
+      className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl py-1 transition-colors duration-100 ${
+        aleasa
+          ? "bg-albastru text-white shadow-[0_6px_14px_-8px_rgb(43_50_141/0.9)]"
+          : esteAzi
+            ? "bg-albastru-pal"
+            : ""
+      }`}
     >
       <span
         className={`text-sm leading-none ${
-          esteAzi ? "font-bold text-albastru" : ""
-        } ${inLuna ? "" : "text-cenusiu/50"}`}
+          esteAzi || aleasa ? "font-extrabold" : "font-medium"
+        } ${esteAzi && !aleasa ? "text-albastru" : ""} ${
+          inLuna || aleasa ? "" : "text-cenusiu/50"
+        }`}
       >
         {Number(zi.slice(8))}
       </span>
@@ -175,11 +181,15 @@ function Zi({
             key={e.cheie}
             className={`h-1.5 w-1.5 rounded-full ${culoarea(e)} ${
               inLuna ? "" : "opacity-40"
-            }`}
+            } ${aleasa ? "ring-1 ring-white" : ""}`}
           />
         ))}
         {elemente.length > 3 && (
-          <span className="text-[9px] leading-none text-cenusiu">+</span>
+          <span
+            className={`text-[10px] leading-none ${aleasa ? "text-white" : "text-cenusiu"}`}
+          >
+            +
+          </span>
         )}
       </span>
     </button>

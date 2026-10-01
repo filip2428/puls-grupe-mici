@@ -34,10 +34,10 @@ export default async function PaginaNerepartizati() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin" className="text-sm text-cenusiu">
-          ← Administrare
+        <Link href="/admin" className="inapoi">
+          Administrare
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Nerepartizați</h1>
+        <h1 className="titlu-pagina">Nerepartizați</h1>
         <p className="text-sm text-cenusiu">
           Pulsiștii care încă n-au grupă. Până primesc una nu apar pe nicio
           foaie de prezență și nu intră în statistici, dar datele lor sunt

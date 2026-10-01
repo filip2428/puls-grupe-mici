@@ -58,7 +58,7 @@ export default async function PaginaStatistici({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-xl font-bold">Statistici</h1>
+        <h1 className="titlu-pagina">Statistici</h1>
         <p className="text-sm text-cenusiu">
           Cum a mers lucrarea în perioada aleasă. {perioadaLizibila(deLa, panaLa)}
           {grupaAleasa
@@ -129,7 +129,7 @@ export default async function PaginaStatistici({
         </div>
 
         {/* Perioadele pe care le ceri cel mai des, la o apăsare. */}
-        <div className="flex flex-wrap gap-2 border-t border-[#eef1f7] pt-3">
+        <div className="flex flex-wrap gap-2 border-t border-linie pt-3">
           <Scurtatura
             eticheta="anul bisericesc"
             deLa={anul.deLa}
@@ -180,8 +180,8 @@ export default async function PaginaStatistici({
           </section>
 
           <section className="card p-4">
-            <h2 className="mb-3 text-sm font-bold">Ce s-a mai întâmplat</h2>
-            <dl className="flex flex-col divide-y divide-[#eef1f7] text-sm">
+            <h2 className="mb-3 titlu-sectiune">Ce s-a mai întâmplat</h2>
+            <dl className="flex flex-col divide-y divide-linie text-sm">
               <Rand
                 cheie="Musafiri care au trecut pragul"
                 valoare={s.rezumat.musafiri}
@@ -333,7 +333,7 @@ export default async function PaginaStatistici({
 /** Despărțitura dintre cifrele grupelor și cele ale întâlnirilor cu toți. */
 function TitluParte({ titlu, explicatie }: { titlu: string; explicatie: string }) {
   return (
-    <div className="border-t border-[#dfe4f0] pt-4">
+    <div className="border-t border-linie-tare pt-4">
       <h2 className="text-lg font-bold">{titlu}</h2>
       <p className="text-xs text-cenusiu">{explicatie}</p>
     </div>
@@ -395,13 +395,13 @@ function SectiuneCuToti({
         prezența întâlnirii, să se vadă și cine anume a venit.
       */}
       <section className="card p-4">
-        <h2 className="text-sm font-bold">Fiecare întâlnire</h2>
+        <h2 className="titlu-sectiune">Fiecare întâlnire</h2>
         <p className="mb-3 text-xs text-cenusiu">
           {dinCine
             ? `Câți au venit ${dinCine}. Apasă ca să vezi cine.`
             : "Câți au venit. Apasă ca să vezi cine."}
         </p>
-        <ul className="flex flex-col divide-y divide-[#eef1f7]">
+        <ul className="flex flex-col divide-y divide-linie">
           {s.intalniri.map((i) => (
             <li key={i.id} className="py-2">
               <Link
@@ -533,12 +533,12 @@ function Tabel({
 
   return (
     <section className="card p-4">
-      <h2 className="text-sm font-bold">{titlu}</h2>
+      <h2 className="titlu-sectiune">{titlu}</h2>
       <p className="mb-3 text-xs text-cenusiu">{explicatie}</p>
       <div className="-mx-4 overflow-x-auto px-4">
         <table className="w-full min-w-max text-sm">
           <thead>
-            <tr className="border-b border-[#e3e7f2] text-left text-xs text-cenusiu">
+            <tr className="border-b border-linie text-left text-xs text-cenusiu">
               {capete.map((c, i) => (
                 <th
                   key={c}
@@ -551,7 +551,7 @@ function Tabel({
           </thead>
           <tbody>
             {randuri.map((r, index) => (
-              <tr key={index} className="border-b border-[#eef1f7] last:border-0">
+              <tr key={index} className="border-b border-linie last:border-0">
                 {r.map((celula, i) => (
                   <td
                     key={i}
@@ -601,7 +601,7 @@ function ListaOameni({
       >
         {explicatie}
       </p>
-      <ul className="flex flex-col divide-y divide-[#eef1f7]">
+      <ul className="flex flex-col divide-y divide-linie">
         {oameni.map((o) => (
           <li key={o.membruId} className="py-2">
             <Link
@@ -640,7 +640,7 @@ function SectiuneCitire({
   return (
     <>
       <section className="card p-4">
-        <h2 className="text-sm font-bold">Cititul Bibliei</h2>
+        <h2 className="titlu-sectiune">Cititul Bibliei</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Față de planul de citire, până unde au bifat liderii. Nu depinde de
           perioada aleasă mai sus.
@@ -674,7 +674,7 @@ function SectiuneCitire({
 
       {evolutie.length > 0 && (
         <section className="card p-4">
-          <h2 className="text-sm font-bold">Cititul pe săptămâni</h2>
+          <h2 className="titlu-sectiune">Cititul pe săptămâni</h2>
           <p className="mb-4 text-xs text-cenusiu">
             Cum stăteau pulsiștii la sfârșitul fiecărei săptămâni. Intră doar
             grupele care au bifat săptămâna întreagă.
@@ -689,7 +689,7 @@ function SectiuneCitire({
                   className="flex h-full flex-1 flex-col items-center justify-end gap-1"
                   title={`${e.laZi} la zi · ${e.putin} puțin în urmă · ${e.mult} mult în urmă`}
                 >
-                  <span className="text-[10px] font-semibold text-albastru">
+                  <span className="text-[11px] font-semibold text-albastru">
                     {cati > 0 ? `${Math.round((e.laZi / cati) * 100)}%` : ""}
                   </span>
                   <div className="flex w-full flex-1 flex-col justify-end overflow-hidden rounded-t">
@@ -697,7 +697,7 @@ function SectiuneCitire({
                     <div className="bg-lime" style={{ height: inaltime(e.putin) }} />
                     <div className="bg-albastru" style={{ height: inaltime(e.laZi) }} />
                   </div>
-                  <span className="text-[10px] text-cenusiu">{dataScurta(e.panaLa)}</span>
+                  <span className="text-[11px] text-cenusiu">{dataScurta(e.panaLa)}</span>
                 </li>
               );
             })}
@@ -735,14 +735,14 @@ function SectiuneCitire({
 
       {multInUrma.length > 0 && (
         <section className="rounded-2xl border border-red-100 bg-red-50/50 p-4">
-          <h2 className="text-sm font-bold text-red-800">
+          <h2 className="titlu-sectiune text-red-800">
             Mult în urmă cu cititul ({multInUrma.length})
           </h2>
           <p className="mb-3 text-xs text-red-700/80">
             Mai mult de {PRAG_PUTIN_IN_URMA} zile din plan necitite. Poate au nevoie de
             un imbold, sau de un plan de recuperare.
           </p>
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          <ul className="flex flex-col divide-y divide-linie">
             {multInUrma.map((o) => (
               <li key={o.membruId} className="py-2">
                 <Link

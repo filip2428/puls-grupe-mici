@@ -47,10 +47,10 @@ export default async function PaginaEchipa({
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/slujiri" className="text-sm text-cenusiu">
-          ← Slujiri
+        <Link href="/slujiri" className="inapoi">
+          Slujiri
         </Link>
-        <h1 className="mt-2 flex flex-wrap items-center gap-2 text-xl font-bold">
+        <h1 className="titlu-pagina flex flex-wrap items-center gap-2">
           {date.echipa.nume}
           {!date.echipa.activa && (
             <span className="rounded-full bg-fundal px-2 py-0.5 text-xs text-cenusiu">
@@ -73,8 +73,8 @@ export default async function PaginaEchipa({
       {/* Ce urmează pentru echipa asta */}
       {programari.length > 0 && (
         <section className="card p-4">
-          <h2 className="mb-3 text-sm font-bold">Ce urmează</h2>
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          <h2 className="mb-3 titlu-sectiune">Ce urmează</h2>
+          <ul className="flex flex-col divide-y divide-linie">
             {programari.map((p) => (
               <li key={p.id} className="py-3">
                 <RandProgramare programare={p} azi={azi} />
@@ -86,7 +86,7 @@ export default async function PaginaEchipa({
 
       {/* Cine e implicat */}
       <section className="card p-4">
-        <h2 className="mb-3 text-sm font-bold">
+        <h2 className="mb-3 titlu-sectiune">
           Cine slujește ({date.membri.filter((m) => m.activ).length})
         </h2>
 
@@ -96,7 +96,7 @@ export default async function PaginaEchipa({
             pulsistului.
           </p>
         ) : (
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          <ul className="flex flex-col divide-y divide-linie">
             {date.membri.map((m) => (
               <li key={m.membruId} className="flex flex-wrap items-center gap-2 py-2.5">
                 <Link href={`/membri/${m.membruId}`} className="min-w-0 flex-1">
@@ -121,7 +121,7 @@ export default async function PaginaEchipa({
           </ul>
         )}
 
-        <details className="mt-3 border-t border-[#eef1f7] pt-3">
+        <details className="mt-3 border-t border-linie pt-3">
           <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
             + Adaugă pe cineva aici
           </summary>
@@ -197,7 +197,7 @@ export default async function PaginaEchipa({
                   echipaId,
                   !date.echipa.activa,
                 )}
-                className="mt-4 border-t border-[#eef1f7] pt-4"
+                className="mt-4 border-t border-linie pt-4"
               >
                 <button type="submit" className="buton buton-secundar">
                   {date.echipa.activa ? "Arhivează" : "Reactivează"}

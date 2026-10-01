@@ -43,10 +43,10 @@ export default async function PaginaPrezentaSlujire({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Link href={inapoi} className="text-sm text-cenusiu">
-          ← {singuraGrupa?.nume ?? "Slujiri"}
+        <Link href={inapoi} className="inapoi">
+          {singuraGrupa?.nume ?? "Slujiri"}
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Prezența la slujire</h1>
+        <h1 className="titlu-pagina">Prezența la slujire</h1>
         <p className="text-sm text-cenusiu">
           {p.titlu}
           {cine ? ` · ${cine}` : ""}

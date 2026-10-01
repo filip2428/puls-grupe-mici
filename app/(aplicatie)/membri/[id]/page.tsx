@@ -197,19 +197,19 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           ei, nici la nerepartizați, deci l-ar duce într-un perete.
         */}
         {!poateSchimba ? (
-          <Link href="/pulsisti" className="text-sm text-cenusiu">
-            ← Pulsiști
+          <Link href="/pulsisti" className="inapoi">
+            Pulsiști
           </Link>
         ) : grupa ? (
-          <Link href={`/grupe/${grupa.id}`} className="text-sm text-cenusiu">
-            ← {grupa.nume}
+          <Link href={`/grupe/${grupa.id}`} className="inapoi">
+            {grupa.nume}
           </Link>
         ) : (
-          <Link href="/admin/nerepartizati" className="text-sm text-cenusiu">
-            ← Nerepartizați
+          <Link href="/admin/nerepartizati" className="inapoi">
+            Nerepartizați
           </Link>
         )}
-        <h1 className="mt-2 flex flex-wrap items-center gap-2 text-xl font-bold">
+        <h1 className="titlu-pagina flex flex-wrap items-center gap-2">
           {m.nume}
           {esteMusafir && (
             <span className="rounded-full bg-lime/40 px-2 py-0.5 text-xs font-semibold">
@@ -272,7 +272,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
       */}
       {!grupa ? (
         <section className="card p-4">
-          <h2 className="text-sm font-bold">Nu e încă într-o grupă</h2>
+          <h2 className="titlu-sectiune">Nu e încă într-o grupă</h2>
           <p className="mt-1 text-sm text-cenusiu">
             Până e repartizat nu apare pe nicio foaie de prezență și nu intră în
             statistici. Datele lui sunt însă toate aici.
@@ -292,7 +292,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           ) : (
             <form
               action={mutaMembruDinFormular.bind(null, membruId)}
-              className="mt-3 flex flex-wrap items-end gap-2 border-t border-[#eef1f7] pt-3"
+              className="mt-3 flex flex-wrap items-end gap-2 border-t border-linie pt-3"
             >
               <div className="min-w-40 flex-1">
                 <label className="eticheta" htmlFor="grupaId">
@@ -316,7 +316,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
       ) : (
       <section className="card p-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          <h2 className="text-sm font-bold">
+          <h2 className="titlu-sectiune">
             {poateSchimba ? (
               <Link href={`/grupe/${grupa.id}`} className="text-albastru">
                 {grupa.nume}
@@ -330,7 +330,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           )}
         </div>
 
-        <ul className="mt-3 flex flex-col gap-2 border-t border-[#eef1f7] pt-3">
+        <ul className="mt-3 flex flex-col gap-2 border-t border-linie pt-3">
           {lideriiGrupei.length === 0 && (
             <li className="text-sm text-cenusiu">
               Grupa n-are niciun lider repartizat.
@@ -376,7 +376,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
 
         {/* Musafir sau membru */}
         {poateSchimba && (
-        <div className="mt-3 border-t border-[#eef1f7] pt-3">
+        <div className="mt-3 border-t border-linie pt-3">
           {esteMusafir ? (
             <>
               <p className="mb-3 text-xs text-cenusiu">
@@ -413,7 +413,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
 
         {/* Mutarea și scoaterea din grupă - treaba coordonatorului */}
         {lider.rol === "admin" && (
-          <div className="mt-3 flex flex-col gap-3 border-t border-[#eef1f7] pt-3">
+          <div className="mt-3 flex flex-col gap-3 border-t border-linie pt-3">
             {grupeDeAles.some((g) => g.id !== grupa.id) && (
               <form
                 action={mutaMembruDinFormular.bind(null, membruId)}
@@ -463,7 +463,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         m.parinte2Telefon ||
         m.parinte2Email) && (
         <section className="card p-4">
-          <h2 className="mb-3 text-sm font-bold">Părinți</h2>
+          <h2 className="mb-3 titlu-sectiune">Părinți</h2>
           <ul className="flex flex-col">
             <Parinte
               nume={m.parinte1Nume}
@@ -481,7 +481,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
 
       {/* Prietenii apropiați - de ei ținem cont când împărțim camerele */}
       <section className="card p-4">
-        <h2 className="text-sm font-bold">Prieteni apropiați</h2>
+        <h2 className="titlu-sectiune">Prieteni apropiați</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Cu cine se are bine. Prietenia merge în amândouă părțile: apare și pe
           fișa celuilalt.
@@ -492,7 +492,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             Nu e legat încă de nimeni.
           </p>
         ) : (
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          <ul className="flex flex-col divide-y divide-linie">
             {prieteni.map((p) => {
               const detaliiPrieten = [
                 etichetaGrupa(p.grupaNume),
@@ -544,7 +544,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         {!poateSchimba ? null : deLegat.length > 0 ? (
           <form
             action={adaugaPrieten.bind(null, membruId)}
-            className="mt-3 flex items-end gap-2 border-t border-[#eef1f7] pt-3"
+            className="mt-3 flex items-end gap-2 border-t border-linie pt-3"
           >
             <div className="min-w-0 flex-1">
               <label className="eticheta" htmlFor="prietenId">
@@ -564,7 +564,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             </button>
           </form>
         ) : (
-          <p className="mt-3 border-t border-[#eef1f7] pt-3 text-xs text-cenusiu">
+          <p className="mt-3 border-t border-linie pt-3 text-xs text-cenusiu">
             {lider.rol === "admin"
               ? "Nu mai e nimeni de legat."
               : "Poți lega doar pulsiști din grupele tale. Pentru prietenii din alte grupe, cere-i coordonatorului."}
@@ -574,7 +574,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
 
       {/* Unde slujește */}
       <section className="card p-4">
-        <h2 className="text-sm font-bold">Unde slujește</h2>
+        <h2 className="titlu-sectiune">Unde slujește</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Locurile în care e implicat: Harvest Kids, cafeneaua, laudă și
           așa mai departe.
@@ -583,7 +583,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         {echipe.length === 0 ? (
           <p className="text-sm text-cenusiu">Nu slujește nicăieri deocamdată.</p>
         ) : (
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          <ul className="flex flex-col divide-y divide-linie">
             {echipe.map((e) => (
               <li key={e.echipaId} className="flex items-center gap-2 py-2.5">
                 <Link
@@ -615,7 +615,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         {!poateSchimba ? null : disponibile.length > 0 ? (
           <form
             action={adaugaSlujireaMembrului.bind(null, membruId)}
-            className="mt-3 flex flex-col gap-3 border-t border-[#eef1f7] pt-3"
+            className="mt-3 flex flex-col gap-3 border-t border-linie pt-3"
           >
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -649,7 +649,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             </button>
           </form>
         ) : (
-          <p className="mt-3 border-t border-[#eef1f7] pt-3 text-xs text-cenusiu">
+          <p className="mt-3 border-t border-linie pt-3 text-xs text-cenusiu">
             {echipe.length > 0
               ? "E deja în toate locurile de slujire din aplicație."
               : "Nu e creat niciun loc de slujire încă. Coordonatorul le adaugă din pagina Slujiri."}
@@ -657,11 +657,11 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         )}
 
         {slujiri.length > 0 && (
-          <div className="mt-4 border-t border-[#eef1f7] pt-3">
+          <div className="mt-4 border-t border-linie pt-3">
             <h3 className="mb-2 text-xs font-bold text-cenusiu uppercase">
               Ce urmează
             </h3>
-            <ul className="flex flex-col divide-y divide-[#eef1f7]">
+            <ul className="flex flex-col divide-y divide-linie">
               {slujiri.map((p) => (
                 <li key={p.id} className="py-3">
                   <RandProgramare programare={p} azi={azi} />
@@ -674,7 +674,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
 
       {/* Istoricul prezenței */}
       <section className="card p-4">
-        <h2 className="mb-3 text-sm font-bold">Ultimele întâlniri</h2>
+        <h2 className="mb-3 titlu-sectiune">Ultimele întâlniri</h2>
         {istoric.length === 0 ? (
           <p className="text-sm text-cenusiu">Nu are încă nicio prezență trecută.</p>
         ) : (
@@ -703,7 +703,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
       */}
       {cuToti.length > 0 && (
         <section className="card p-4">
-          <h2 className="mb-3 text-sm font-bold">
+          <h2 className="mb-3 titlu-sectiune">
             La întâlnirile cu toți
             <span className="ml-2 font-normal text-cenusiu">
               {cuToti.filter((i) => i.aVenit).length} din {cuToti.length}
@@ -736,7 +736,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
       {!esteMusafir && citire && plan.length > 0 && (
         <section className="card p-4">
           <div className="mb-2 flex items-center justify-between gap-3">
-            <h2 className="text-sm font-bold">Cititul Bibliei</h2>
+            <h2 className="titlu-sectiune">Cititul Bibliei</h2>
             <span
               className={`rounded-full px-2 py-0.5 text-xs ${CULORI_STARE[citire.avans.stare]}`}
             >
@@ -776,7 +776,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 <li
                   key={z.data}
                   title={`${dataNumerica(z.data)} · ${z.portiune}`}
-                  className={`flex w-12 flex-col items-center rounded-lg px-1 py-1.5 text-[10px] ${
+                  className={`flex w-12 flex-col items-center rounded-lg px-1 py-1.5 text-[11px] ${
                     z.citit ? "bg-albastru text-white" : "bg-fundal text-cenusiu"
                   }`}
                 >
@@ -788,7 +788,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
           )}
 
           {lider.rol === "admin" && (
-            <details className="mt-3 border-t border-[#eef1f7] pt-3">
+            <details className="mt-3 border-t border-linie pt-3">
               <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
                 Schimbă ziua de la care i se socotește
               </summary>
@@ -826,7 +826,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
       {/* Note - doar pentru liderii lui, nu și pentru cine trece în vizită */}
       {poateSchimba && (
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">Note</h2>
+        <h2 className="mb-1 titlu-sectiune">Note</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Le văd doar liderii grupei și coordonatorii.
         </p>
@@ -834,7 +834,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
         <FormularNota membruId={membruId} />
 
         {note.length > 0 && (
-          <ul className="mt-4 flex flex-col divide-y divide-[#eef1f7]">
+          <ul className="mt-4 flex flex-col divide-y divide-linie">
             {note.map((n) => (
               <li key={n.id} className="py-3">
                 <p className="text-sm whitespace-pre-wrap">{n.text}</p>
@@ -893,7 +893,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
 
             <form
               action={schimbaActiv.bind(null, membruId, !m.activ)}
-              className="mt-4 border-t border-[#eef1f7] pt-4"
+              className="mt-4 border-t border-linie pt-4"
             >
               <button type="submit" className="buton buton-secundar">
                 {m.activ
@@ -983,7 +983,7 @@ function Parinte({
 }) {
   if (!nume && !telefon && !email) return null;
   return (
-    <li className="flex flex-col gap-2 border-t border-[#eef1f7] py-3 first:border-0 first:pt-0 last:pb-0">
+    <li className="flex flex-col gap-2 border-t border-linie py-3 first:border-0 first:pt-0 last:pb-0">
       <span className="text-sm font-medium break-words">
         {nume ?? "Părinte"}
       </span>

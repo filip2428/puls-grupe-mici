@@ -5,7 +5,9 @@ import {
   FormularProgramareEditare,
   FormularProgramareNoua,
 } from "@/componente/AdminSlujiri";
+import { Icoana } from "@/componente/Icoane";
 import { RandProgramare } from "@/componente/RandProgramare";
+import { TitluSectiune } from "@/componente/TitluSectiune";
 import { ceruteLider } from "@/lib/auth/sesiune";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import { listaLideri, toateGrupele } from "@/lib/interogari/lideri";
@@ -51,7 +53,7 @@ export default async function PaginaSlujiri() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h1 className="text-xl font-bold">Slujiri</h1>
+        <h1 className="titlu-pagina">Slujiri</h1>
         <p className="text-sm text-cenusiu">
           {esteAdmin
             ? "Calendarul slujirilor și locurile în care sunt implicați pulsiștii."
@@ -61,7 +63,9 @@ export default async function PaginaSlujiri() {
 
       {/* Ce urmează */}
       <section className="card p-4">
-        <h2 className="mb-3 text-sm font-bold">Ce urmează</h2>
+        <TitluSectiune icoana="calendar" className="mb-2">
+          Ce urmează
+        </TitluSectiune>
         {urmatoarele.length === 0 ? (
           <p className="text-sm text-cenusiu">
             {esteAdmin
@@ -69,7 +73,7 @@ export default async function PaginaSlujiri() {
               : "Grupa ta nu e programată la nimic deocamdată."}
           </p>
         ) : (
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          <ul className="flex flex-col divide-y divide-linie">
             {urmatoarele.map((p) => (
               <li key={p.id} className="py-3">
                 <RandProgramare programare={p} azi={azi} poateFacePrezenta />
@@ -95,7 +99,7 @@ export default async function PaginaSlujiri() {
                       />
                       <form
                         action={stergeProgramare.bind(null, p.id)}
-                        className="mt-3 border-t border-[#eef1f7] pt-3"
+                        className="mt-3 border-t border-linie pt-3"
                       >
                         <button
                           type="submit"
@@ -115,8 +119,10 @@ export default async function PaginaSlujiri() {
 
       {/* Echipele */}
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">Locuri de slujire</h2>
-        <p className="mb-3 text-xs text-cenusiu">
+        <TitluSectiune icoana="slujiri" className="mb-1">
+          Locuri de slujire
+        </TitluSectiune>
+        <p className="mb-3 pl-12 text-xs text-cenusiu">
           Harvest Kids, cafeneaua, laudă... Intră într-unul ca să vezi cine slujește acolo.
         </p>
 
@@ -125,7 +131,7 @@ export default async function PaginaSlujiri() {
             Nu e creat niciun loc de slujire încă.
           </p>
         ) : (
-          <ul className="flex flex-col divide-y divide-[#eef1f7]">
+          <ul className="flex flex-col divide-y divide-linie">
             {echipe.map((e) => (
               <li key={e.id}>
                 <Link
@@ -147,9 +153,11 @@ export default async function PaginaSlujiri() {
                       {e.descriere ? ` · ${e.descriere}` : ""}
                     </span>
                   </div>
-                  <span aria-hidden className="shrink-0 text-cenusiu">
-                    ›
-                  </span>
+                  <Icoana
+                    nume="inainte"
+                    marime={18}
+                    className="shrink-0 text-cenusiu"
+                  />
                 </Link>
               </li>
             ))}
@@ -161,7 +169,7 @@ export default async function PaginaSlujiri() {
         <>
           {faraProgramare.length > 0 && (
             <section className="card border-lime bg-lime/15 p-4">
-              <h2 className="text-sm font-bold">Grupe neprogramate</h2>
+              <h2 className="titlu-sectiune">Grupe neprogramate</h2>
               <p className="mt-1 text-xs text-carbune/80">
                 N-au nimic în calendar de acum înainte:{" "}
                 {faraProgramare.map((g) => g.nume).join(", ")}.

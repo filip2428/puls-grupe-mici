@@ -30,7 +30,7 @@ export function ButonEmailProba({ areAdresa }: { areAdresa: boolean }) {
   }
 
   return (
-    <div className="mt-4 border-t border-[#eef1f7] pt-4">
+    <div className="mt-4 border-t border-linie pt-4">
       <button
         type="button"
         onClick={trimite}

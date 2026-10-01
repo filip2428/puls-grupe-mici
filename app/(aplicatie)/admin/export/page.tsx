@@ -13,10 +13,10 @@ export default async function PaginaExport() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin" className="text-sm text-cenusiu">
-          ← Administrare
+        <Link href="/admin" className="inapoi">
+          Administrare
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Export în Excel</h1>
+        <h1 className="titlu-pagina">Export în Excel</h1>
         <p className="text-sm text-cenusiu">
           Fișierul are prezențele una câte una, pulsiștii cu totalurile lor,
           întâlnirile grupelor și, separat, întâlnirile cu toți - câți au
@@ -63,7 +63,7 @@ export default async function PaginaExport() {
       </section>
 
       <section className="card p-4">
-        <h2 className="text-sm font-bold">Tabelul cu toți pulsiștii</h2>
+        <h2 className="titlu-sectiune">Tabelul cu toți pulsiștii</h2>
         <p className="mb-3 text-xs text-cenusiu">
           Nume, grupă, statut (membru sau musafir), clasă, vârstă, telefoane și
           datele părinților, plus totalurile de prezență și, pe o foaie

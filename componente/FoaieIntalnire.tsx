@@ -202,7 +202,8 @@ export function FoaieIntalnire({
       </p>
 
       {/* Căutarea rămâne sus cât derulezi - la ușă cauți, nu derulezi. */}
-      <div className="sticky top-[49px] z-10 -mx-4 flex flex-col gap-2 bg-fundal/95 px-4 py-2 backdrop-blur">
+      {/* 57px = antetul aplicației (h-14) plus linia lui de jos. */}
+      <div className="sticky top-[57px] z-10 -mx-4 flex flex-col gap-2 bg-fundal/95 px-4 py-2 backdrop-blur">
         <input
           type="search"
           className="camp"
@@ -265,7 +266,7 @@ export function FoaieIntalnire({
           return (
             <section key={s.cheie} className="flex flex-col gap-2">
               <div className="flex items-baseline justify-between gap-2 pt-1">
-                <h2 className="text-sm font-bold">
+                <h2 className="titlu-sectiune">
                   {s.titlu}
                   {s.aMea && (
                     <span className="ml-2 text-xs font-normal text-cenusiu">
@@ -322,7 +323,7 @@ export function FoaieIntalnire({
       )}
 
       {/* Bara de jos: câți au venit și dacă s-a salvat tot. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e3e7f2] bg-hartie/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <div className="bara-jos">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1 text-sm">
             <span className="font-semibold text-albastru">
@@ -423,7 +424,7 @@ function RandVenit({
         className={`flex min-h-14 w-full items-center gap-3 rounded-2xl border px-3 py-2 text-left transition-colors ${
           venit
             ? "border-albastru bg-albastru/10"
-            : "border-[#e3e7f2] bg-hartie"
+            : "border-linie bg-hartie"
         } ${punctat && !venit ? "border-dashed" : ""}`}
       >
         <span
@@ -431,7 +432,7 @@ function RandVenit({
           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 ${
             venit
               ? "border-albastru bg-albastru text-white"
-              : "border-[#cfd6e6] bg-hartie"
+              : "border-linie-tare bg-hartie"
           }`}
         >
           {venit && (

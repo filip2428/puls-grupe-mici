@@ -69,7 +69,7 @@ export function ImportPulsisti() {
       </form>
 
       {analiza.gata && !analiza.eroare && (
-        <div className="flex flex-col gap-4 border-t border-[#eef1f7] pt-4">
+        <div className="flex flex-col gap-4 border-t border-linie pt-4">
           <p className="text-sm">
             <strong>{analiza.deImportat.length}</strong> de adăugat
             {analiza.existenti.length > 0 &&
@@ -82,7 +82,7 @@ export function ImportPulsisti() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[520px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-[#e3e7f2] text-xs text-cenusiu">
+                  <tr className="border-b border-linie text-xs text-cenusiu">
                     <th className="py-2 pr-3 font-semibold">Nume</th>
                     <th className="py-2 pr-3 font-semibold">Grupa</th>
                     <th className="py-2 pr-3 font-semibold">Clasa</th>
@@ -92,11 +92,11 @@ export function ImportPulsisti() {
                 </thead>
                 <tbody>
                   {analiza.deImportat.map((r) => (
-                    <tr key={r.rand} className="border-b border-[#eef1f7]">
+                    <tr key={r.rand} className="border-b border-linie">
                       <td className="py-2 pr-3">
                         {r.nume}
                         {r.status === "musafir" && (
-                          <span className="ml-2 rounded-full bg-lime/40 px-1.5 py-0.5 text-[10px]">
+                          <span className="ml-2 rounded-full bg-lime/40 px-1.5 py-0.5 text-[11px]">
                             musafir
                           </span>
                         )}

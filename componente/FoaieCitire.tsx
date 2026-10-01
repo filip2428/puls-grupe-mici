@@ -112,7 +112,7 @@ export function FoaieCitire({
 
       {/* Grila */}
       <section className="card p-2">
-        <div className="flex items-end gap-1 border-b border-[#eef1f7] pb-2">
+        <div className="flex items-end gap-1 border-b border-linie pb-2">
           <span className="min-w-0 flex-1 px-1 text-xs text-cenusiu">
             Apasă pe o zi ca s-o bifezi la toți
           </span>
@@ -135,7 +135,7 @@ export function FoaieCitire({
           })}
         </div>
 
-        <ul className="flex flex-col divide-y divide-[#eef1f7]">
+        <ul className="flex flex-col divide-y divide-linie">
           {randuri.map((r) => (
             <li key={r.id} className="flex items-center gap-1 py-1.5">
               <Link
@@ -144,7 +144,7 @@ export function FoaieCitire({
               >
                 <span className="block truncate text-sm font-medium">{r.nume}</span>
                 <span
-                  className={`mt-0.5 inline-block rounded-full px-1.5 text-[10px] leading-4 ${CULORI_STARE[r.stare]}`}
+                  className={`mt-0.5 inline-block rounded-full px-1.5 text-[11px] leading-4 ${CULORI_STARE[r.stare]}`}
                 >
                   {r.stare === "putin" || r.stare === "mult"
                     ? `${r.inUrma} ${r.inUrma === 1 ? "zi" : "zile"} în urmă`
@@ -178,8 +178,8 @@ export function FoaieCitire({
                           ? "border-albastru/40 bg-albastru/40 text-white"
                           : "border-albastru bg-albastru text-white"
                         : optionala
-                          ? "border-dashed border-[#d5dbe8] bg-hartie"
-                          : "border-[#d5dbe8] bg-hartie"
+                          ? "border-dashed border-linie-tare bg-hartie"
+                          : "border-linie-tare bg-hartie"
                     }`}
                   >
                     {bifat ? "✓" : ""}
@@ -198,7 +198,7 @@ export function FoaieCitire({
       </p>
 
       {/* Bara de salvare, lipită jos */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[#e3e7f2] bg-hartie/95 pb-[env(safe-area-inset-bottom)] backdrop-blur">
+      <div className="bara-jos">
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1 text-sm">
             <span className="font-semibold text-albastru">

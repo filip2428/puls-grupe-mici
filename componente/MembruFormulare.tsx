@@ -193,7 +193,7 @@ export function FormularEditareMembru({
         De unde vine. Cartonașele nu sunt ținute în React: ce arată apăsat
         se hotărăște din CSS, după `:checked`.
       */}
-      <fieldset className="rounded-xl border border-[#e3e7f2] p-3">
+      <fieldset className="rounded-xl border border-linie p-3">
         <legend className="px-1 text-xs font-bold text-cenusiu uppercase">
           Biserica
         </legend>
@@ -310,7 +310,7 @@ export function FormularEditareMembru({
         altul. Sunt botezați care nu mai merg nicăieri și pulsiști de la noi,
         veniți de ani de zile, care încă n-au făcut pasul.
       */}
-      <fieldset className="rounded-xl border border-[#e3e7f2] p-3">
+      <fieldset className="rounded-xl border border-linie p-3">
         <legend className="px-1 text-xs font-bold text-cenusiu uppercase">
           Botez
         </legend>
@@ -350,7 +350,7 @@ export function FormularEditareMembru({
         </div>
       </fieldset>
 
-      <fieldset className="rounded-xl border border-[#e3e7f2] p-3">
+      <fieldset className="rounded-xl border border-linie p-3">
         <legend className="px-1 text-xs font-bold text-cenusiu uppercase">
           Părinți
         </legend>
@@ -363,7 +363,7 @@ export function FormularEditareMembru({
             email={initial.parinte1Email}
           />
           {/* Linia desparte cei doi părinți - altfel șase căsuțe la rând se amestecă. */}
-          <div className="border-t border-[#e3e7f2]" />
+          <div className="border-t border-linie" />
           <CampuriParinte
             numar={2}
             exemplu="ex. tata, Ionel"
@@ -472,7 +472,7 @@ function Cartonas({
   explicatie: string;
 }) {
   return (
-    <label className="flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-[#d7dced] bg-hartie px-3 py-2 has-[:checked]:border-albastru has-[:checked]:bg-albastru/10 has-[:checked]:text-albastru has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-albastru-deschis/40">
+    <label className="flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-linie-tare bg-hartie px-3 py-2 has-[:checked]:border-albastru has-[:checked]:bg-albastru/10 has-[:checked]:text-albastru has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-albastru-deschis/40">
       <input
         type="radio"
         name={camp}

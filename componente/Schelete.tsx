@@ -26,7 +26,7 @@ export function Schija({
 export function ScheletTitlu({ subtitlu = true }: { subtitlu?: boolean }) {
   return (
     <div className="mb-5 flex flex-col gap-2">
-      <Schija latime="w-40" inaltime="h-6" />
+      <Schija latime="w-44" inaltime="h-7" />
       {subtitlu && <Schija latime="w-64" inaltime="h-4" />}
     </div>
   );
@@ -68,10 +68,10 @@ export function ScheletLista({
 /** Rânduri de persoane: bulină rotundă la stânga, nume și detaliu la dreapta. */
 export function ScheletOameni({ cate = 6 }: { cate?: number }) {
   return (
-    <div className="card divide-y divide-[#eef1f7]">
+    <div className="card divide-y divide-linie">
       {Array.from({ length: cate }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 p-4">
-          <div className="schelet h-9 w-9 shrink-0 rounded-full" />
+          <div className="schelet h-10 w-10 shrink-0 rounded-full" />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <Schija latime={i % 2 ? "w-40" : "w-32"} inaltime="h-4" />
             <Schija latime="w-24" inaltime="h-3" />

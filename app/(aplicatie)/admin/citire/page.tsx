@@ -20,10 +20,10 @@ export default async function PaginaPlanCitire() {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <Link href="/admin" className="text-sm text-cenusiu">
-          ← Administrare
+        <Link href="/admin" className="inapoi">
+          Administrare
         </Link>
-        <h1 className="mt-2 text-xl font-bold">Planul de citire</h1>
+        <h1 className="titlu-pagina">Planul de citire</h1>
         <p className="text-sm text-cenusiu">
           Un singur plan, comun pentru toată lucrarea. Liderii bifează săptămânal
           cine a citit, iar avansul fiecăruia se socotește față de el.
@@ -36,7 +36,7 @@ export default async function PaginaPlanCitire() {
         </section>
       ) : (
         <section className="card p-4">
-          <h2 className="mb-1 text-sm font-bold">Planul de acum</h2>
+          <h2 className="mb-1 titlu-sectiune">Planul de acum</h2>
           <p className="text-sm">
             {plan.length} zile în plan, de la {dataCuAn(plan[0].data)} până la{" "}
             {dataCuAn(plan[plan.length - 1].data)}.
@@ -51,7 +51,7 @@ export default async function PaginaPlanCitire() {
           </p>
 
           {urmatoarele.length > 0 && (
-            <ul className="mt-3 flex flex-col divide-y divide-[#eef1f7] border-t border-[#eef1f7] text-sm">
+            <ul className="mt-3 flex flex-col divide-y divide-linie border-t border-linie text-sm">
               {urmatoarele.map((z) => (
                 <li key={z.data} className="flex justify-between gap-3 py-2">
                   <span className="text-cenusiu">
@@ -63,7 +63,7 @@ export default async function PaginaPlanCitire() {
             </ul>
           )}
 
-          <details className="mt-3 border-t border-[#eef1f7] pt-3">
+          <details className="mt-3 border-t border-linie pt-3">
             <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-albastru">
               Cărțile din plan ({carti.length})
             </summary>
@@ -83,7 +83,7 @@ export default async function PaginaPlanCitire() {
       )}
 
       <section className="card p-4">
-        <h2 className="mb-1 text-sm font-bold">
+        <h2 className="mb-1 titlu-sectiune">
           {plan.length === 0 ? "1. Ia modelul" : "Înlocuiește planul"}
         </h2>
         <p className="mb-3 text-xs text-cenusiu">
@@ -95,7 +95,7 @@ export default async function PaginaPlanCitire() {
           Descarcă modelul
         </a>
 
-        <div className="mt-4 border-t border-[#eef1f7] pt-4">
+        <div className="mt-4 border-t border-linie pt-4">
           <ImportPlanCitire existaPlan={plan.length > 0} />
         </div>
       </section>

@@ -45,10 +45,10 @@ export default async function PaginaPrezentaIntalnire({
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <Link href={inapoi} className="text-sm text-cenusiu">
-          ← Calendar
+        <Link href={inapoi} className="inapoi">
+          Calendar
         </Link>
-        <h1 className="mt-2 text-xl font-bold">{e.titlu}</h1>
+        <h1 className="titlu-pagina">{e.titlu}</h1>
         <p className="text-sm text-cenusiu">
           {e.data === azi ? "azi" : dataLunga(e.data)}
           {detalii ? ` · ${detalii}` : ""}
