@@ -301,7 +301,7 @@ rares raul rawad robert roman samuel samuil sebastian serafino seth silviu simon
 teodor tiberiu timotei tudor valentin vasile victor vlad vladimir`;
 
 const FETE = `abbigail abi abigail ada adela adina adriana agnes alesia alessia alexandra alina
-alisa amalia ana anca andreea anelisse aneta antonia ariana aurora aylin beatrice bianca camelia
+alisa amalia ana anastasia anca andreea anelisse aneta antonia ariana aurora aylin beatrice bianca camelia
 carla carmen casandra catalina cezara clara claudia corina cristina dalia damaris dana daniela
 daria debora delia denisa diana doina dorina doris elena eliana eliane elisabeta elisabeth eliza ella
 emanuela emma erika estera eva evelina fabiola flavia florina gabriela georgiana gloria hadina
