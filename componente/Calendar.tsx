@@ -86,6 +86,7 @@ export function Calendar({
           <Explicatie culoare="bg-lime" text="pe grupe mici" />
           <Explicatie culoare="bg-albastru" text="toți împreună" />
           <Explicatie culoare="bg-albastru-deschis" text="slujire" />
+          <Explicatie culoare="bg-carbune" text="doar lideri" />
         </div>
       </div>
 
@@ -196,9 +197,13 @@ function Zi({
   );
 }
 
-/** Culoarea bulinei: verde pe grupe mici, albastru toți împreună, deschis la slujiri. */
+/**
+ * Culoarea bulinei: verde pe grupe mici, albastru toți împreună, deschis la
+ * slujiri, cărbune la cele doar ale liderilor.
+ */
 function culoarea(e: ElementCalendar): string {
   if (e.fel === "slujire") return "bg-albastru-deschis";
+  if (e.doarLideri) return "bg-carbune";
   return e.peGrupeMici ? "bg-lime" : "bg-albastru";
 }
 
@@ -251,10 +256,11 @@ function RandZi({
       {/*
         La întâlnirile cu toți prezența e a întâlnirii, nu a grupelor, și o
         poate face orice lider - la ușă bifează cine e acolo. O întâlnire
-        mutată între timp pe grupe mici își păstrează bifele la vedere.
+        mutată între timp pe grupe mici sau doar pentru lideri își păstrează
+        bifele la vedere.
       */}
       {e.fel === "eveniment" &&
-        (!e.peGrupeMici || e.veniti > 0) &&
+        ((!e.peGrupeMici && !e.doarLideri) || e.veniti > 0) &&
         aVenitZiua && (
           <Link
             href={`/calendar/${e.id}/prezenta`}
@@ -303,6 +309,13 @@ function Eticheta({ element: e }: { element: ElementCalendar }) {
       </span>
     );
   }
+  if (e.doarLideri) {
+    return (
+      <span className="rounded-full bg-carbune px-2 py-0.5 text-[11px] font-semibold text-white">
+        doar lideri
+      </span>
+    );
+  }
   return e.peGrupeMici ? (
     <span className="rounded-full bg-lime/40 px-2 py-0.5 text-[11px] font-semibold text-carbune">
       pe grupe mici
@@ -324,6 +337,7 @@ function UneltiCoordonator({ element: e }: { element: ElementCalendar }) {
     locatie: e.locatie,
     detalii: e.detalii,
     peGrupeMici: e.peGrupeMici,
+    doarLideri: e.doarLideri,
   };
 
   return (

@@ -59,6 +59,10 @@ export default async function PaginaPrezentaIntalnire({
         <div className="card p-5 text-sm text-cenusiu">
           Întâlnirea n-a avut loc încă. Prezența se face în ziua ei sau după.
         </div>
+      ) : !arePrezentaPeIntalnire(e, foaie.venit.length) && e.doarLideri ? (
+        <div className="card p-5 text-sm text-cenusiu">
+          Întâlnirea e doar a liderilor, deci nu se face prezența la ea.
+        </div>
       ) : !arePrezentaPeIntalnire(e, foaie.venit.length) ? (
         <div className="card flex flex-col gap-3 p-5 text-sm text-cenusiu">
           <p>

@@ -40,11 +40,13 @@ async function intalnireaDeBifat(evenimentId: number) {
   if (e.data > dataAzi()) {
     return { eroare: "Întâlnirea n-a avut loc încă." } as const;
   }
-  if (e.peGrupeMici) {
+  if (e.peGrupeMici || e.doarLideri) {
     const veniti = await cineAVenit(evenimentId);
     if (!arePrezentaPeIntalnire(e, veniti.length)) {
       return {
-        eroare: "În seara asta se stă pe grupe mici - prezența se face pe grupe.",
+        eroare: e.doarLideri
+          ? "Întâlnirea e doar a liderilor - nu se face prezența."
+          : "În seara asta se stă pe grupe mici - prezența se face pe grupe.",
       } as const;
     }
   }

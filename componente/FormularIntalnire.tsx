@@ -18,7 +18,10 @@ export type IntalnireDeEditat = {
   locatie: string | null;
   detalii: string | null;
   peGrupeMici: boolean;
+  doarLideri: boolean;
 };
+
+type Pentru = "grupe" | "toti" | "lideri";
 
 /**
  * Formularul unei întâlniri din calendar - același și la adăugare, și la
@@ -52,7 +55,13 @@ export function FormularIntalnire({
     if (eNoua && stare.reusit) formular.current?.reset();
   }, [stare, eNoua]);
 
-  const peGrupeMici = deEditat?.peGrupeMici ?? true;
+  const pentru: Pentru = !deEditat
+    ? "grupe"
+    : deEditat.doarLideri
+      ? "lideri"
+      : deEditat.peGrupeMici
+        ? "grupe"
+        : "toti";
 
   return (
     <form ref={formular} action={actiune} className="flex flex-col gap-3">
@@ -99,23 +108,29 @@ export function FormularIntalnire({
       </div>
 
       {/*
-        Întrebarea care schimbă seara: se stă pe grupe mici sau nu? De ea
-        atârnă dacă liderii au ce prezență să facă în ziua aia.
+        Întrebarea care schimbă seara: cine vine și cum se stă? De ea atârnă
+        ce prezență e de făcut în ziua aia - pe grupe, pe întâlnire sau deloc.
       */}
       <fieldset>
-        <legend className="eticheta">Cum se stă</legend>
-        <div className="grid grid-cols-2 gap-2">
-          <AlegereGrupe
-            valoare="da"
-            implicit={peGrupeMici}
+        <legend className="eticheta">Pentru cine e</legend>
+        <div className="flex flex-col gap-2">
+          <AlegerePentru
+            valoare="grupe"
+            implicit={pentru}
             titlu="Pe grupe mici"
             explicatie="Fiecare grupă cu liderul ei"
           />
-          <AlegereGrupe
-            valoare="nu"
-            implicit={!peGrupeMici}
+          <AlegerePentru
+            valoare="toti"
+            implicit={pentru}
             titlu="Toți împreună"
             explicatie="Gamenight, seri speciale"
+          />
+          <AlegerePentru
+            valoare="lideri"
+            implicit={pentru}
+            titlu="Doar liderii"
+            explicatie="Ședință, pregătire - fără prezență"
           />
         </div>
       </fieldset>
@@ -206,25 +221,25 @@ function Repetare({ data }: { data: string }) {
   );
 }
 
-/** Unul din cele două cartonașe de ales: „pe grupe mici" / „toți împreună". */
-function AlegereGrupe({
+/** Unul din cele trei cartonașe de ales: pe grupe mici, toți împreună, doar liderii. */
+function AlegerePentru({
   valoare,
   implicit,
   titlu,
   explicatie,
 }: {
-  valoare: "da" | "nu";
-  implicit: boolean;
+  valoare: Pentru;
+  implicit: Pentru;
   titlu: string;
   explicatie: string;
 }) {
   return (
-    <label className="flex min-h-16 cursor-pointer flex-col justify-center rounded-xl border border-linie-tare bg-hartie px-3 py-2 has-[:checked]:border-albastru has-[:checked]:bg-albastru/10 has-[:checked]:text-albastru has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-albastru-deschis/40">
+    <label className="flex min-h-14 cursor-pointer flex-col justify-center rounded-xl border border-linie-tare bg-hartie px-3 py-2 has-[:checked]:border-albastru has-[:checked]:bg-albastru/10 has-[:checked]:text-albastru has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-albastru-deschis/40">
       <input
         type="radio"
-        name="peGrupeMici"
+        name="pentru"
         value={valoare}
-        defaultChecked={implicit}
+        defaultChecked={valoare === implicit}
         className="sr-only"
       />
       <span className="text-sm font-semibold">{titlu}</span>

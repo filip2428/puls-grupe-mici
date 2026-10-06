@@ -29,15 +29,16 @@ import { FARA_GRUPA } from "@/lib/util/etichete";
  * Dacă la o întâlnire se face prezența pe întâlnire.
  *
  * Doar la cele „toți împreună". În serile pe grupe mici prezența e pe grupe,
- * iar a doua listă ar spune același lucru mai prost. Excepția e întâlnirea
- * care are deja bife și a fost mutată apoi pe grupe mici: ce s-a bifat nu
- * dispare din vedere doar pentru că s-a schimbat o bifă în calendar.
+ * iar a doua listă ar spune același lucru mai prost; la cele doar ale
+ * liderilor nu vin pulsiști, deci n-are cine fi bifat. Excepția e întâlnirea
+ * care are deja bife și a fost mutată apoi: ce s-a bifat nu dispare din
+ * vedere doar pentru că s-a schimbat o alegere în calendar.
  */
 export function arePrezentaPeIntalnire(
-  eveniment: Pick<Eveniment, "peGrupeMici">,
+  eveniment: Pick<Eveniment, "peGrupeMici" | "doarLideri">,
   venitiDeja: number,
 ): boolean {
-  return !eveniment.peGrupeMici || venitiDeja > 0;
+  return (!eveniment.peGrupeMici && !eveniment.doarLideri) || venitiDeja > 0;
 }
 
 /** O întâlnire din calendar, sau null dacă nu (mai) există. */
@@ -194,7 +195,13 @@ export async function intalnirileCuTotiDin(
       ora: evenimente.ora,
     })
     .from(evenimente)
-    .where(and(eq(evenimente.data, data), eq(evenimente.peGrupeMici, false)))
+    .where(
+      and(
+        eq(evenimente.data, data),
+        eq(evenimente.peGrupeMici, false),
+        eq(evenimente.doarLideri, false),
+      ),
+    )
     .orderBy(evenimente.ora);
 
   const veniti = await venitiLaIntalniri(aleZilei.map((e) => e.id));

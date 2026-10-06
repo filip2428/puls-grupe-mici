@@ -1,0 +1,1 @@
+ALTER TABLE `evenimente` ADD `doar_lideri` integer DEFAULT false NOT NULL;

@@ -38,10 +38,9 @@ const schemaIntalnire = z
       nimic, iar „nu s-a trimis nimic" arată la fel ca „nu e pe grupe mici".
       Aici alegerea e mereu scrisă, deci nu ghicim.
     */
-    peGrupeMici: z
-      .string()
-      .optional()
-      .transform((v) => v === "da"),
+    pentru: z.enum(["grupe", "toti", "lideri"], {
+      error: "Alege pentru cine e întâlnirea.",
+    }),
     repeta: z
       .string()
       .optional()
@@ -59,7 +58,16 @@ const schemaIntalnire = z
         esteDataValida(v.repetaPanaLa) &&
         v.repetaPanaLa >= v.data),
     "Pentru o întâlnire care se repetă, alege până când ține.",
-  );
+  )
+  /*
+    Cele trei alegeri se scriu în două coloane. Una doar a liderilor nu e
+    niciodată pe grupe mici - n-are pulsiști care să se împartă.
+  */
+  .transform(({ pentru, ...v }) => ({
+    ...v,
+    peGrupeMici: pentru === "grupe",
+    doarLideri: pentru === "lideri",
+  }));
 
 /*
   `FormData.get` dă `null` când câmpul lipsește din formular - așa se întâmplă
@@ -78,7 +86,7 @@ function dinFormular(formData: FormData) {
     ora: camp(formData, "ora"),
     locatie: camp(formData, "locatie"),
     detalii: camp(formData, "detalii"),
-    peGrupeMici: camp(formData, "peGrupeMici"),
+    pentru: camp(formData, "pentru"),
     repeta: camp(formData, "repeta"),
     repetaPanaLa: camp(formData, "repetaPanaLa"),
   };

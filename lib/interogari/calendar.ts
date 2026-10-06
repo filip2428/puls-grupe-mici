@@ -22,7 +22,7 @@ import {
  *
  * Sunt două feluri de lucruri, puse laolaltă pe aceleași zile:
  *  - ÎNTÂLNIRILE, scrise de coordonator (Puls de vineri, gamenight, o seară
- *    de rugăciune). Le vede toată lumea, la fel;
+ *    de rugăciune, o ședință a liderilor). Le vede toată lumea, la fel;
  *  - SLUJIRILE deja programate, dar numai cele care îl privesc pe cel care
  *    se uită: ale grupelor lui și ale echipelor în care are pulsiști.
  *    Adminul le vede pe toate.
@@ -43,6 +43,8 @@ export type ElementCalendar = {
   detalii: string | null;
   /** Doar la întâlniri: în ziua aia se stă pe grupe mici. */
   peGrupeMici: boolean;
+  /** Doar la întâlniri: e a liderilor, fără pulsiști și fără prezență. */
+  doarLideri: boolean;
   /** Doar la slujiri: cine slujește („Grup Ralu + Laudă"). */
   cine: string | null;
   /** Doar la slujiri: prezența e deja completată. */
@@ -74,6 +76,7 @@ async function intalniriIntre(
     locatie: e.locatie,
     detalii: e.detalii,
     peGrupeMici: e.peGrupeMici,
+    doarLideri: e.doarLideri,
     cine: null,
     prezentaFacuta: false,
     veniti: veniti.get(e.id) ?? 0,
@@ -167,6 +170,7 @@ async function slujiriIntre(optiuni: {
     locatie: p.locatie,
     detalii: p.detalii,
     peGrupeMici: false,
+    doarLideri: false,
     cine:
       [...(numeGrupe.get(p.id) ?? []).sort((a, b) => a.localeCompare(b, "ro")), p.echipaNume]
         .filter(Boolean)

@@ -645,6 +645,10 @@ export const citireSaptamani = sqliteTable(
  * `peGrupeMici` spune dacă în seara aia lucrarea se împarte pe grupe mici.
  * La gamenight nu se împarte, deci n-are rost să aștepte nimeni prezența pe
  * grupe în ziua aia.
+ *
+ * `doarLideri` e pentru ce nu e al pulsiștilor deloc - o ședință, o pregătire
+ * a liderilor. Stă în același calendar, dar la ea nu se face nicio prezență,
+ * iar `peGrupeMici` e atunci mereu fals.
  */
 export const evenimente = sqliteTable(
   "evenimente",
@@ -658,6 +662,10 @@ export const evenimente = sqliteTable(
     locatie: text("locatie"),
     /** Adevărat dacă în ziua aia se stă pe grupe mici. */
     peGrupeMici: integer("pe_grupe_mici", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    /** Adevărat dacă e o întâlnire doar a liderilor, fără pulsiști. */
+    doarLideri: integer("doar_lideri", { mode: "boolean" })
       .notNull()
       .default(false),
     creatDeId: integer("creat_de_id").references(() => lideri.id, {
