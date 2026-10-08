@@ -49,7 +49,10 @@ alerte, erori, „salvat”.
 | `.link` | link de text cu înălțime de deget („Toate”, „Excel”) |
 | `.avatar` | inițialele într-un cerc de 40px (`initiale()` din `Icoane.tsx`) |
 | `.icoana-sectiune` | pătrățelul colorat cu iconița secțiunii |
-| `.bara-jos` | bara lipită jos: navigarea și barele de salvare |
+| `.bara-jos` | bara lipită jos: barele de salvare de pe foi |
+| `.sticla` | materialul de sticlă (iOS 26) pentru tot ce plutește: navigarea și insulele din antet |
+| `.antet` | antetul fără fundal, cu ceața de sus sub care trece lista |
+| `.bara-tab` | navigarea de jos: capsulă de sticlă, lentila `.bara-tab-lentila`; `data-mic` o strânge la derulare |
 | `<Icoana nume=… />` | iconițele aplicației, toate desenate cu linie, fără emoji |
 | `<TitluSectiune>` | titlul de secțiune cu iconiță și, opțional, ceva în dreapta |
 

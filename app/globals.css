@@ -327,8 +327,144 @@ select.camp {
   background-color: rgb(255 255 255 / 0.92);
   padding-bottom: env(safe-area-inset-bottom);
   backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
   box-shadow: 0 -8px 24px -18px rgb(27 31 59 / 0.25);
+}
+
+/*
+  Sticla, ca în iOS 26 („Liquid Glass"). Un singur material pentru tot ce
+  plutește deasupra conținutului: navigarea de jos și butoanele din antet.
+  Ce e dedesubt se vede prin ea, încețoșat și cu culorile puțin mai vii;
+  muchia de sus prinde lumină, iar dedesubt are o umbră moale.
+
+  Forma o dă elementul (implicit capsulă); `.sticla` dă doar materialul.
+*/
+.sticla {
+  border-radius: 9999px;
+  background-color: rgb(255 255 255 / 0.62);
+  backdrop-filter: blur(22px) saturate(1.9) brightness(1.04);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  box-shadow:
+    /* lumina de pe muchia de sus și reflexia slabă de jos */
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 -1px 0 rgb(255 255 255 / 0.35),
+    /* conturul fin, ca să nu se piardă pe fundalul alb */
+    0 0 0 0.5px rgb(27 31 59 / 0.1),
+    /* umbra moale de sub sticlă */
+    0 10px 30px -10px rgb(27 31 59 / 0.3),
+    0 2px 6px -2px rgb(27 31 59 / 0.08);
+}
+/* Unde sticla nu se poate încețoșa, devine aproape albă - textul rămâne citibil. */
+@supports not (backdrop-filter: blur(1px)) {
+  .sticla {
+    background-color: rgb(255 255 255 / 0.97);
+  }
+}
+/* Cine a cerut mai puțină transparență în setările telefonului primește sticla plină. */
+@media (prefers-reduced-transparency: reduce) {
+  .sticla {
+    background-color: var(--color-hartie);
+    backdrop-filter: none;
+  }
+}
+
+/*
+  Antetul, ca bara de sus din iOS 26: n-are fundal al lui. Sigla și butoanele
+  sunt insule de sticlă, iar lista curge pe sub ele. Ca textul de dedesubt să
+  nu se bată cu butoanele, sus e o ceață care se stinge spre jos („scroll edge
+  effect" la Apple) - pe fundalul gol al paginii nici nu se vede.
+*/
+.antet {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.antet::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -1.25rem;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-fundal) 88%, transparent) 40%,
+    color-mix(in srgb, var(--color-fundal) 0%, transparent)
+  );
+  backdrop-filter: blur(8px);
+  mask-image: linear-gradient(to bottom, black 55%, transparent);
+}
+
+/*
+  Navigarea de jos: o capsulă de sticlă care plutește, nu o bară lipită de
+  margine. Stă cât mai jos, în zona barei de acasă a iPhone-ului, dar nu sub
+  ea; pe telefoanele fără zonă sigură rămâne la 12px de margine.
+
+  Tabul deschis are în spate o „lentilă" care alunecă de la un tab la altul
+  (`.bara-tab-lentila`, mutată prin `--i` din `NavigareJos`). Curba de mișcare
+  trece puțin de țintă și revine, ca o picătură - de aici „lichid".
+
+  Când derulezi în jos, capsula se strânge (`data-mic`): etichetele dispar,
+  rămân iconițele, ca lista să aibă mai mult loc. Urci puțin și revine.
+*/
+.bara-tab {
+  position: fixed;
+  inset-inline: 0;
+  bottom: max(calc(env(safe-area-inset-bottom) - 0.625rem), 0.75rem);
+  z-index: 30;
+  padding-inline: 0.75rem;
+  pointer-events: none;
+}
+.bara-tab-capsula {
+  position: relative;
+  pointer-events: auto;
+  margin-inline: auto;
+  width: 100%;
+  max-width: 28rem;
+  padding: 0.25rem;
+  transition: width 380ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+.bara-tab-link {
+  min-height: 3.5rem;
+  transition:
+    min-height 380ms cubic-bezier(0.32, 0.72, 0, 1),
+    color 200ms,
+    transform 200ms;
+}
+.bara-tab-eticheta {
+  display: block;
+  max-height: 1rem;
+  line-height: 1rem;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    max-height 380ms cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 200ms ease-out;
+}
+.bara-tab[data-mic] .bara-tab-capsula {
+  width: min(100%, 16rem);
+}
+.bara-tab[data-mic] .bara-tab-link {
+  min-height: 2.75rem;
+}
+.bara-tab[data-mic] .bara-tab-eticheta {
+  max-height: 0;
+  opacity: 0;
+}
+.bara-tab-lentila {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  left: 0.25rem;
+  width: calc((100% - 0.5rem) / var(--n));
+  transform: translateX(calc(100% * var(--i)));
+  border-radius: 9999px;
+  background-color: rgb(43 50 141 / 0.09);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    inset 0 0 0 0.5px rgb(43 50 141 / 0.08);
+  transition:
+    transform 420ms cubic-bezier(0.34, 1.4, 0.64, 1),
+    opacity 200ms ease-out;
 }
 
 /*
@@ -391,7 +527,11 @@ button:not(:disabled):active,
   .buton,
   .card a,
   .camp,
-  summary::after {
+  summary::after,
+  .bara-tab-capsula,
+  .bara-tab-link,
+  .bara-tab-eticheta,
+  .bara-tab-lentila {
     transition: none;
   }
   .buton:active,
