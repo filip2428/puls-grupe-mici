@@ -304,7 +304,7 @@ const FETE = `abbigail abi abigail ada adela adina adriana agnes alesia alessia 
 alisa amalia ana anastasia anca andreea anelisse aneta antonia ariana aurora aylin beatrice bianca camelia
 carla carmen casandra catalina cezara clara claudia corina cristina dalia damaris dana daniela
 daria debora delia denisa diana doina dorina doris elena eliana eliane elisabeta elisabeth eliza ella
-emanuela emima emma erika estera eva evelina fabiola flavia florina gabriela georgiana gloria hadina
+emanuela emima emma erika estera eva evelina fabiola flavia florina gabriela georgiana giulia gloria hadina
 iasmina ileana ilinca ioana iulia iuliana ivona joellin julia karina larisa laura lavinia lea
 lidia ligia liliana lois loredana luiza magdalena maia mara maria mariana marta medeea melania mihaela
 miriam monica nadia natalia nicoleta noemi oana olivia otilia patricia paula petra rahela raisa

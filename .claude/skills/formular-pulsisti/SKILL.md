@@ -134,3 +134,4 @@ e deja în aplicație.
 | 24 sep. 2026 | `PULS 2026-2027 (Responses) (1).xlsx` | `(Responses) (3).xlsx` | 77 | 2 |
 | 1 oct. 2026 | `PULS 2026-2027 (Responses) (2).xlsx` | `(Responses) (1).xlsx` | 79 | 2 (frați) |
 | 8 oct. 2026 | `PULS 2026-2027 (Responses) (4).xlsx` | `(Responses) (2).xlsx` | 81 | 2 |
+| 15 oct. 2026 | `PULS 2026-2027 (Responses) (5).xlsx` | `(Responses) (4).xlsx` | 84 | 3 |
