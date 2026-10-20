@@ -41,6 +41,7 @@ export type RandPregatit = {
   bisericaNume: string | null;
   botez: Botez | null;
   botezatLa: string | null;
+  acordImagine: boolean;
   telefon: string | null;
   email: string | null;
   parinte1Nume: string | null;
@@ -160,6 +161,19 @@ function botezDinText(text: string): Botez | null {
   if (BOTEZAT.includes(curat)) return "botezat";
   if (NEBOTEZAT.includes(curat)) return "nebotezat";
   return null;
+}
+
+/**
+ * Acordul pentru poze: doar un „nu" limpede îl scoate.
+ *
+ * Aici gol nu înseamnă „nu știm", ci „da": părinții semnează acordul la
+ * înscriere, iar un tabel făcut înainte să existe coloana asta n-ar trebui să
+ * scoată toată lucrarea din poze. Cine refuză scrie „nu".
+ */
+const FARA_ACORD = ["nu", "n", "no", "false", "0", "-", "interzis", "fara acord"];
+
+function acordImagineDinText(text: string): boolean {
+  return !FARA_ACORD.includes(normalizeaza(text));
 }
 
 function sexDinText(text: string): "baiat" | "fata" | null {
@@ -342,6 +356,7 @@ export async function analizeazaFisier(
       bisericaNume: biserica.bisericaNume,
       botez,
       botezatLa,
+      acordImagine: acordImagineDinText(valoare(rand, "acordImagine")),
       telefon: valoare(rand, "telefon") || null,
       email: adresa(rand, "email"),
       parinte1Nume: valoare(rand, "parinte1Nume") || null,
@@ -409,6 +424,8 @@ export async function fisierModel(grupe: GrupaCunoscuta[]): Promise<Buffer> {
       "De unde vine: Harvest (Arad) pentru ai noștri, numele bisericii pentru ceilalți, o liniuță dacă nu ține de nicio biserică.",
     botez: "botezat sau nebotezat (merge și da / nu). Gol = nu știm încă.",
     botezatLa: "Când s-a botezat, dacă știi: 2024-05-12. Se ia doar la botezat.",
+    acordImagine:
+      "Dacă părinții au dat acordul pentru poze și filmări: da sau nu. Gol = da, fiindcă acordul se semnează la înscriere.",
     telefon: "Telefonul pulsistului.",
     email: "Adresa lui de email, pentru anunțuri. Ce nu e o adresă se lasă goală.",
     parinte1Nume: "Cum îl salvezi în agendă, ex. mama, Maria.",

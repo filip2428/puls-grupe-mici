@@ -93,6 +93,11 @@ Comentariile și numele din cod sunt în română, cu diacritice, ca în restul
 fișierului. Schimbările la convertor se fac commit (fără fișierele xlsx - au
 date personale ale unor minori și nu intră niciodată în git).
 
+**Acordul pentru poze** intră în coloana „Acord imagine" (`da` / `nu`), din
+întrebarea cu postările / materialele regizate. Cine a răspuns „nu" are și o
+notă la „De verificat" - spune-i utilizatorului pe nume cine sunt, fiindcă pe
+aceia echipa trebuie să-i ocolească în materiale.
+
 **Biserica e a părinților, nu a copilului** (cerut de utilizator pe 22 sep.
 2026): copiii nu sunt botezați, deci contează dacă familia e membră undeva.
 Convertorul ia biserica unui părinte membru; „/" sau două biserici deodată

@@ -181,6 +181,26 @@ const BISERICI: { potriviri: string[]; nume: string; nota?: string }[] = [
 ];
 
 /**
+ * Răspunsul la întrebarea cu pozele -> „da" / „nu".
+ *
+ * Google scrie acolo toată varianta bifată, nu un „da" curat: „NU, nu sunt de
+ * acord. Echipa va evita includerea copilului în materialele regizate." De
+ * aceea ne uităm doar cu ce începe răspunsul.
+ *
+ * Gol înseamnă „da": întrebarea e obligatorie în formular, iar la cei înscriși
+ * înainte ca ea să existe acordul a fost semnat pe hârtie, la înscriere.
+ */
+function acordDinText(brut: string): { valoare: "da" | "nu"; nota?: string } {
+  const curat = normalizeaza(brut);
+  if (!curat || curat.startsWith("da")) return { valoare: "da" };
+  if (curat.startsWith("nu")) return { valoare: "nu" };
+  return {
+    valoare: "da",
+    nota: `La întrebarea cu pozele a răspuns „${brut.replace(/\s+/g, " ").trim()}" - nu mă prind dacă e da sau nu, deci l-am trecut cu acord. Verifică.`,
+  };
+}
+
+/**
  * Două nume care seamănă prea mult ca să fie două nume adevărate.
  *
  * „Leucuta" și „Leucuția", „Ardeu" și „Ardej" - o literă în plus sau alta în
@@ -440,6 +460,13 @@ const INTREBARI = {
   email: ["email a adolescent", "email al adolescent", "emailul adolescent"],
   biserica: ["biserica din care face parte"],
   frecventa: ["frecventeaza"],
+  /*
+    Acordul pentru poze. În formularul vechi întrebarea era „Îmi asum că
+    adolescentul va apărea în postările de grup", în V2 „Îmi dau acordul [...]
+    în materialele regizate" - de-aia ne agățăm de „postăril" / „materialele",
+    nu de toată propoziția.
+  */
+  acordImagine: ["postaril", "materialele regizate"],
 } as const;
 
 type CheieIntrebare = keyof typeof INTREBARI;
@@ -526,6 +553,8 @@ type RandIesire = {
   parinte2Telefon: string | null;
   parinte2Email: string | null;
   frecventa: string;
+  /** „da" / „nu" - acordul părinților pentru poze, așa cum îl cere importul. */
+  acordImagine: "da" | "nu";
   note: string[];
 };
 
@@ -665,6 +694,12 @@ async function main() {
     const email = emailCurat(text(rand, "email"));
     if (email.nota) note.push(email.nota);
 
+    const acord = acordDinText(text(rand, "acordImagine"));
+    if (acord.nota) note.push(acord.nota);
+    if (acord.valoare === "nu") {
+      note.push("Părinții NU dau acordul pentru poze și filmări - nu intră în materiale.");
+    }
+
     /*
       Un părinte intră doar dacă are nume. Al doilea bloc din formular e des
       lăsat pe jumătate - un prenume și nimic altceva - iar un „părinte" fără
@@ -796,6 +831,7 @@ async function main() {
       parinte2Telefon: contacte[1]?.telefon ?? null,
       parinte2Email: contacte[1]?.email ?? null,
       frecventa: text(rand, "frecventa"),
+      acordImagine: acord.valoare,
       note,
     });
   }
@@ -957,6 +993,7 @@ function scriePulsisti(registru: ExcelJS.Workbook, randuri: RandIesire[]) {
       biserica: r.biserica,
       botez: "",
       botezatLa: "",
+      acordImagine: r.acordImagine,
       telefon: r.telefon ?? "",
       email: r.email ?? "",
       parinte1Nume: r.parinte1Nume ?? "",

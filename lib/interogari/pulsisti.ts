@@ -48,6 +48,7 @@ export type PulsistDinLista = {
   bisericaNume: string | null;
   botez: Botez | null;
   botezatLa: string | null;
+  acordImagine: boolean;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
   parinte1Email: string | null;
@@ -154,6 +155,7 @@ export async function cautaPulsisti(
       bisericaNume,
       botez: m.botez,
       botezatLa: m.botezatLa,
+      acordImagine: m.acordImagine,
       parinte1Nume: m.parinte1Nume,
       parinte1Telefon: m.parinte1Telefon,
       parinte1Email: m.parinte1Email,

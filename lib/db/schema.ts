@@ -219,6 +219,18 @@ export const membri = sqliteTable(
      */
     botezatLa: text("botezat_la"),
     /**
+     * Dacă părinții au dat acordul ca el să apară în poze și în filmări.
+     *
+     * Se întreabă în formularul de înscriere, iar aproape toți răspund „da" -
+     * de-aia e adevărat din start. Ce ne trebuie de fapt e lista scurtă a
+     * celor pentru care răspunsul e „nu": pe aceia echipa îi ocolește când
+     * face materiale, iar o greșeală aici nu se mai poate lua înapoi după ce
+     * poza a plecat pe Instagram.
+     */
+    acordImagine: integer("acord_imagine", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    /**
      * Datele părinților, pentru contact rapid.
      *
      * Email-ul stă lângă telefon pentru că la părinți e de multe ori singura

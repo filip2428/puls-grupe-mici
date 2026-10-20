@@ -96,6 +96,12 @@ export async function GET(cerere: Request) {
         latime: 14,
         format: "data",
       },
+      {
+        antet: "Acord imagine",
+        cheie: "acordImagine",
+        latime: 14,
+        ton: TON.acordImagine,
+      },
       { antet: "Telefon", cheie: "telefon", latime: 14 },
       { antet: "Email", cheie: "email", latime: 26 },
       {

@@ -151,6 +151,14 @@ const schemaMembru = z.object({
     .optional()
     .transform((v) => (v ? v : null))
     .refine((v) => v === null || esteDataValida(v), "Data botezului nu e validă."),
+  /*
+    Bifa pentru poze. Caseta nebifată nu trimite nimic, iar lipsa ei e chiar
+    răspunsul „nu" - singurul loc unde o căsuță goală înseamnă ceva.
+  */
+  acordImagine: z
+    .string()
+    .optional()
+    .transform((v) => v === "da"),
   /* Biserica scrisă pe loc, când nu era în listă. Are prioritate. */
   bisericaNouaNume: textOptional(80),
   bisericaNouaLocalitate: textOptional(60),
@@ -195,6 +203,7 @@ export async function salveazaMembru(
     bisericaId: formData.get("bisericaId"),
     botez: formData.get("botez") ?? undefined,
     botezatLa: formData.get("botezatLa"),
+    acordImagine: formData.get("acordImagine") ?? undefined,
     bisericaNouaNume: formData.get("bisericaNouaNume"),
     bisericaNouaLocalitate: formData.get("bisericaNouaLocalitate"),
     bisericaNouaDenominatiune: formData.get("bisericaNouaDenominatiune"),

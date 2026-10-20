@@ -270,4 +270,12 @@ export const TON = {
   activ(valoare: unknown): Ton | null {
     return valoare === "nu" ? "stins" : null;
   },
+
+  /**
+   * Acordul pentru poze: „da" e cazul obișnuit, deci rămâne liniștit. Se
+   * colorează doar refuzul, fiindcă ăla e singurul care schimbă ce faci.
+   */
+  acordImagine(valoare: unknown): Ton | null {
+    return valoare === "nu" ? "slab" : null;
+  },
 } as const;

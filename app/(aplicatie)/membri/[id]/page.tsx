@@ -6,6 +6,7 @@ import {
   FormularNota,
 } from "@/componente/MembruFormulare";
 import { InsignaBiserica } from "@/componente/InsignaBiserica";
+import { InsignaAcordImagine } from "@/componente/InsignaAcordImagine";
 import { InsignaBotez } from "@/componente/InsignaBotez";
 import {
   mutaMembruDinFormular,
@@ -221,6 +222,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
             bisericaNume={date.bisericaNume}
           />
           <InsignaBotez botez={m.botez} />
+          <InsignaAcordImagine acord={m.acordImagine} />
         </h1>
         <p className="text-sm text-cenusiu">
           {detalii.join(" · ")}
@@ -882,6 +884,7 @@ export default async function PaginaMembru({ params }: PageProps<"/membri/[id]">
                 bisericaId: m.bisericaId,
                 botez: m.botez,
                 botezatLa: m.botezatLa,
+                acordImagine: m.acordImagine,
                 parinte1Nume: m.parinte1Nume,
                 parinte1Telefon: m.parinte1Telefon,
                 parinte1Email: m.parinte1Email,

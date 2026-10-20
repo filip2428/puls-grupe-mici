@@ -1,0 +1,1 @@
+ALTER TABLE `membri` ADD `acord_imagine` integer DEFAULT true NOT NULL;

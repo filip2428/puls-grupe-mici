@@ -109,6 +109,17 @@ export function etichetaBotez(botez: Botez | null): string {
   return "botez ?";
 }
 
+/**
+ * Acordul părinților pentru poze și filmări.
+ *
+ * Îl scriem doar când lipsește: „da" e răspunsul aproape tuturor, iar un
+ * „poate apărea în poze" scris la fiecare pulsist ar face tocmai ca cei trei
+ * la care scrie altceva să nu mai sară în ochi.
+ */
+export function etichetaAcordImagine(acord: boolean): string {
+  return acord ? "" : "fără acord de imagine";
+}
+
 /** Varianta lungă, pentru Excel: „altă biserică: Betel". */
 export function bisericaPeLarg(
   biserica: Biserica | null,

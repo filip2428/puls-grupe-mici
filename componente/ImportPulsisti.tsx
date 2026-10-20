@@ -100,6 +100,16 @@ export function ImportPulsisti() {
                             musafir
                           </span>
                         )}
+                        {/*
+                          Refuzul la poze se vede încă aici, înainte de scris:
+                          e singurul lucru din fișier pe care nu-l mai poți
+                          lua înapoi dacă îl afli după ce a plecat o poză.
+                        */}
+                        {!r.acordImagine && (
+                          <span className="ml-2 rounded-full bg-red-50 px-1.5 py-0.5 text-[11px] font-semibold text-red-800">
+                            fără acord de imagine
+                          </span>
+                        )}
                       </td>
                       <td className="py-2 pr-3 text-cenusiu">
                         {r.grupaNume ?? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import {
   adaugaNota,
@@ -68,6 +68,7 @@ export type DateMembru = {
   bisericaId: number | null;
   botez: Botez | null;
   botezatLa: string | null;
+  acordImagine: boolean;
   parinte1Nume: string | null;
   parinte1Telefon: string | null;
   parinte1Email: string | null;
@@ -91,6 +92,7 @@ export function FormularEditareMembru({
     salveazaMembru.bind(null, membruId),
     {},
   );
+  const [acordImagine, setAcordImagine] = useState(initial.acordImagine);
 
   return (
     <form action={actiune} className="flex flex-col gap-3">
@@ -348,6 +350,40 @@ export function FormularEditareMembru({
             golește singură. Cu ea se pot număra botezurile dintr-un an.
           </p>
         </div>
+      </fieldset>
+
+      {/*
+        Acordul pentru poze e o bifă, nu cartonașe: răspunsul e „da" la
+        aproape toți, iar ce ne trebuie e să se vadă din prima când cineva l-a
+        scos. De-aia caseta se colorează abia când e scoasă bifa.
+      */}
+      <fieldset className="rounded-xl border border-linie p-3">
+        <legend className="px-1 text-xs font-bold text-cenusiu uppercase">
+          Poze și filmări
+        </legend>
+        <label
+          className={`flex items-start gap-2 rounded-xl p-2 text-sm ${
+            acordImagine ? "" : "bg-red-50"
+          }`}
+        >
+          <input
+            type="checkbox"
+            name="acordImagine"
+            value="da"
+            checked={acordImagine}
+            onChange={(e) => setAcordImagine(e.target.checked)}
+            className="mt-0.5 size-5 shrink-0 accent-albastru"
+          />
+          <span>
+            Părinții au dat acordul ca el să apară în pozele și în filmările
+            lucrării.
+            {!acordImagine && (
+              <strong className="block font-semibold text-red-800">
+                Fără acord: echipa îl ocolește când face materiale.
+              </strong>
+            )}
+          </span>
+        </label>
       </fieldset>
 
       <fieldset className="rounded-xl border border-linie p-3">

@@ -32,6 +32,12 @@ export const COLOANE = [
     obligatoriu: false,
     exemplu: "2024-05-12",
   },
+  {
+    cheie: "acordImagine",
+    titlu: "Acord imagine",
+    obligatoriu: false,
+    exemplu: "da",
+  },
   { cheie: "telefon", titlu: "Telefon", obligatoriu: false, exemplu: "0722000111" },
   { cheie: "email", titlu: "Email", obligatoriu: false, exemplu: "andrei@exemplu.ro" },
   { cheie: "parinte1Nume", titlu: "Părinte 1", obligatoriu: false, exemplu: "Maria Popa" },

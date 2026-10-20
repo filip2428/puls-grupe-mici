@@ -91,6 +91,8 @@ export type RandPulsist = {
   biserica: string;
   botez: string;
   botezatLa: string | null;
+  /** „da" / „nu" - acordul părinților pentru poze și filmări. */
+  acordImagine: string;
   telefon: string | null;
   email: string | null;
   dataNasterii: string | null;
@@ -133,6 +135,7 @@ export async function randuriPulsisti(
       bisericaNume: biserici.nume,
       botez: membri.botez,
       botezatLa: membri.botezatLa,
+      acordImagine: membri.acordImagine,
       parinte1Nume: membri.parinte1Nume,
       parinte1Telefon: membri.parinte1Telefon,
       parinte1Email: membri.parinte1Email,
@@ -211,6 +214,7 @@ export async function randuriPulsisti(
       biserica: bisericaPeLarg(m.biserica, m.bisericaNume),
       botez: m.botez ? etichetaBotez(m.botez) : "",
       botezatLa: m.botezatLa,
+      acordImagine: m.acordImagine ? "da" : "nu",
       telefon: m.telefon,
       email: m.email,
       dataNasterii: m.dataNasterii,

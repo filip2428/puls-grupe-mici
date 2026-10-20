@@ -55,6 +55,7 @@ export async function GET(cerere: Request) {
     biserica: bisericaPeLarg(a.biserica, a.bisericaNume),
     botez: a.botez ? etichetaBotez(a.botez) : "",
     botezatLa: a.botezatLa,
+    acordImagine: a.acordImagine ? "da" : "nu",
     varsta: a.varsta,
     dataNasterii: a.dataNasterii,
     telefon: a.telefon,
@@ -89,6 +90,12 @@ export async function GET(cerere: Request) {
         cheie: "botezatLa",
         latime: 14,
         format: "data",
+      },
+      {
+        antet: "Acord imagine",
+        cheie: "acordImagine",
+        latime: 14,
+        ton: TON.acordImagine,
       },
       { antet: "Vârstă", cheie: "varsta", latime: 8 },
       {

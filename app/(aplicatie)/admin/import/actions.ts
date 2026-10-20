@@ -75,6 +75,7 @@ const schemaRand = z.object({
     .string()
     .nullable()
     .refine((v) => v === null || esteDataValida(v), "Dată invalidă."),
+  acordImagine: z.boolean(),
   telefon: z.string().max(30).nullable(),
   email: z.string().max(120).nullable(),
   parinte1Nume: z.string().max(80).nullable(),
@@ -150,6 +151,7 @@ export async function importa(
       bisericaId: r.bisericaNume ? (idBiserici.get(r.bisericaNume) ?? null) : null,
       botez: r.botez,
       botezatLa: r.botezatLa,
+      acordImagine: r.acordImagine,
       parinte1Nume: r.parinte1Nume,
       parinte1Telefon: r.parinte1Telefon,
       parinte1Email: r.parinte1Email,
