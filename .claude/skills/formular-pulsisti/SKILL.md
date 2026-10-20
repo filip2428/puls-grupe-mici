@@ -1,6 +1,6 @@
 ---
 name: formular-pulsisti
-description: Transformă exportul Google Forms al formularului de înscriere Puls („PULS 2026-2027 (Responses).xlsx" și variantele (1), (2)...) în fișierul Excel de import al pulsiștilor, doar cu răspunsurile noi. Folosește-l când utilizatorul atașează sau pomenește un export nou al formularului, spune „am mai primit răspunsuri", „vezi care sunt noi", „fă-mi excelul cu pulsiștii / pentru import", sau cere să adaptezi exportul pentru aplicație.
+description: Transformă exportul Google Forms al formularului de înscriere Puls („PULS 2026-2027 (Responses).xlsx", „PULS 2026-2027 V2 (Responses).xlsx" și variantele (1), (2)...) în fișierul Excel de import al pulsiștilor, doar cu răspunsurile noi. Folosește-l când utilizatorul atașează sau pomenește un export nou al formularului, spune „am mai primit răspunsuri", „vezi care sunt noi", „fă-mi excelul cu pulsiștii / pentru import", sau cere să adaptezi exportul pentru aplicație.
 ---
 
 # Exportul formularului → Excel de import
@@ -31,6 +31,13 @@ PULS 2026-2027 (Responses) (2).xlsx   ← cel mai nou
 - **Vechi** = exportul prelucrat data trecută - de obicei cel imediat dinainte.
   Tabelul cu exporturile deja prelucrate e la finalul fișierului ăstuia; adaugă
   un rând în el de fiecare dată.
+
+Din 20 oct. 2026 răspunsurile vin în **formular nou, „V2"** („PULS 2026-2027 V2
+(Responses).xlsx"), cu aceleași întrebări - doar acordul pentru poze e
+reformulat și nu mai are coloanele de evidență ale utilizatorului. V2 numără
+rândurile de la capăt, deci dă-i lui `--fata-de` ultimul export al formularului
+vechi (`(Responses) (5).xlsx`, 84 de rânduri): așa sunt săriți cei care se
+înscriseseră deja acolo.
 
 Numărul din nume nu spune care e cel mai nou: după ce utilizatorul șterge
 exporturile vechi, Windows refolosește numerele libere, așa că un „(1)"
@@ -135,3 +142,4 @@ e deja în aplicație.
 | 1 oct. 2026 | `PULS 2026-2027 (Responses) (2).xlsx` | `(Responses) (1).xlsx` | 79 | 2 (frați) |
 | 8 oct. 2026 | `PULS 2026-2027 (Responses) (4).xlsx` | `(Responses) (2).xlsx` | 81 | 2 |
 | 15 oct. 2026 | `PULS 2026-2027 (Responses) (5).xlsx` | `(Responses) (4).xlsx` | 84 | 3 |
+| 20 oct. 2026 | `PULS 2026-2027 V2 (Responses).xlsx` (formular nou) | `(Responses) (5).xlsx` | 1 | 1 |

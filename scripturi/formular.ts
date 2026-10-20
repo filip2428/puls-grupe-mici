@@ -180,6 +180,35 @@ const BISERICI: { potriviri: string[]; nume: string; nota?: string }[] = [
   { potriviri: ["ekklesia", "ekklessia", "eklessia", "eklesia", "ecclesia"], nume: "Ekklesia" },
 ];
 
+/**
+ * Două nume care seamănă prea mult ca să fie două nume adevărate.
+ *
+ * „Leucuta" și „Leucuția", „Ardeu" și „Ardej" - o literă în plus sau alta în
+ * loc. Numele scurte le lăsăm în pace: la trei litere, o literă schimbată
+ * poate fi chiar alt nume.
+ */
+function aproapeLaFel(unul: string, altul: string): boolean {
+  const a = normalizeaza(unul);
+  const b = normalizeaza(altul);
+  if (a.length < 4 || b.length < 4 || a === b) return false;
+  if (Math.abs(a.length - b.length) > 2) return false;
+
+  // Distanța Levenshtein, pe două rânduri - numele au câteva litere, nu mii.
+  let rand = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const urmator = [i];
+    for (let j = 1; j <= b.length; j++) {
+      urmator[j] = Math.min(
+        rand[j] + 1,
+        urmator[j - 1] + 1,
+        rand[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    }
+    rand = urmator;
+  }
+  return rand[b.length] <= 2;
+}
+
 /** Cuvintele prin care cineva spune, într-un formular, „nu ține de nicio biserică". */
 const FARA_BISERICA = ["-", "--", "fara", "fara biserica", "niciuna", "nicio", "nu", "n/a"];
 
@@ -705,6 +734,50 @@ async function main() {
       note.push(
         "Telefonul pulsistului e același cu al unui părinte - probabil n-are telefon al lui.",
       );
+    }
+
+    /*
+      O familie cu un singur email îl scrie în toate cele trei căsuțe. Adresa e
+      bună, dar anunțul care pleacă „la pulsist" ajunge tot la părinți, deci e
+      bine de știut înainte, nu după.
+    */
+    const adrese = [email.adresa, ...contacte.map((c) => c.email)].filter(
+      (a): a is string => a !== null,
+    );
+    if (adrese.length > 1 && new Set(adrese).size === 1) {
+      note.push(
+        `Toată familia are același email (${adrese[0]}) - nu are fiecare adresa lui. Verifică.`,
+      );
+    } else if (email.adresa && contacte.some((c) => c.email === email.adresa)) {
+      note.push("Emailul pulsistului e același cu al unui părinte - probabil n-are email al lui.");
+    }
+
+    /*
+      „Leucuta" la copil și la tată, „Leucuția" la mamă - una din ele e scrisă
+      greșit. Nu ne atingem de numele de familie care chiar diferă (mama cu alt
+      nume e ceva obișnuit), doar de cele care seamănă prea mult ca să fie două
+      nume adevărate.
+    */
+    const feluri = new Map<string, { nume: string; ai: string[] }>();
+    for (const { cui, deFamilie } of [
+      { cui: "pulsistul", deFamilie: nume.split(" ").at(-1) ?? "" },
+      ...contacte.map((c) => ({ cui: c.numeGol, deFamilie: c.numeGol.split(" ").at(-1) ?? "" })),
+    ]) {
+      if (!deFamilie) continue;
+      const fel = feluri.get(normalizeaza(deFamilie)) ?? { nume: deFamilie, ai: [] };
+      fel.ai.push(cui);
+      feluri.set(normalizeaza(deFamilie), fel);
+    }
+    const scrieri = [...feluri.values()];
+    for (let i = 0; i < scrieri.length; i++) {
+      for (let j = i + 1; j < scrieri.length; j++) {
+        const a = scrieri[i];
+        const b = scrieri[j];
+        if (!aproapeLaFel(a.nume, b.nume)) continue;
+        note.push(
+          `Numele de familie e scris în două feluri: „${a.nume}" (${a.ai.join(", ")}) și „${b.nume}" (${b.ai.join(", ")}). Alege o formă.`,
+        );
+      }
     }
 
     randuri.push({
