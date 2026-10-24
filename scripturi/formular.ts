@@ -212,8 +212,12 @@ function aproapeLaFel(unul: string, altul: string): boolean {
   const b = normalizeaza(altul);
   if (a.length < 4 || b.length < 4 || a === b) return false;
   if (Math.abs(a.length - b.length) > 2) return false;
+  return distanta(a, b) <= 2;
+}
 
-  // Distanța Levenshtein, pe două rânduri - numele au câteva litere, nu mii.
+/** Câte litere trebuie schimbate ca un cuvânt să devină celălalt (Levenshtein). */
+function distanta(a: string, b: string): number {
+  // Pe două rânduri - cuvintele au câteva litere, nu mii.
   let rand = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i++) {
     const urmator = [i];
@@ -226,7 +230,7 @@ function aproapeLaFel(unul: string, altul: string): boolean {
     }
     rand = urmator;
   }
-  return rand[b.length] <= 2;
+  return rand[b.length];
 }
 
 /** Cuvintele prin care cineva spune, într-un formular, „nu ține de nicio biserică". */
@@ -255,6 +259,18 @@ function bisericaCurata(brut: string): { nume: string; nota?: string } {
     return {
       nume: "-",
       nota: `A scris „${scris}" - o denominațiune, nu o biserică anume, deci l-am trecut fără biserică. Dacă totuși ține de o parohie și e implicat acolo, scrie-o pe fișa lui.`,
+    };
+  }
+
+  /*
+    „In viitor Harvest" - o biserică la care omul abia vrea să ajungă. Deci
+    acum nu e membru nicăieri, oricât de limpede e unde se duce; biserica se
+    scrie pe fișă când mutarea s-a făcut.
+  */
+  if (/\b(in viitor|pe viitor|urmeaza|urmeaza sa|vom|o sa|intentionez)\b/.test(curat)) {
+    return {
+      nume: "-",
+      nota: `A scris „${scris}" - deci încă nu e membru acolo; l-am trecut fără biserică. Când mutarea se face, scrie biserica pe fișa lui.`,
     };
   }
 
@@ -321,7 +337,17 @@ function bisericaFamiliei(
 
   const altele = [...new Set(membri.map((b) => b.nume))];
   if (altele.length > 1) {
-    note.push(`Părinții sunt în biserici diferite (${altele.join(", ")}) - am luat-o pe prima.`);
+    /*
+      „Vrtical Graz" lângă „Vertical Graz" nu sunt două biserici, e una scrisă
+      de două ori, din care o dată greșit. Spus așa, se repară; spus ca
+      „biserici diferite", îl trimite să caute o despărțire care nu există.
+    */
+    const laFel = altele.length === 2 && aproapeLaFel(altele[0], altele[1]);
+    note.push(
+      laFel
+        ? `Părinții au scris aceeași biserică în două feluri („${altele[0]}" și „${altele[1]}") - unul e scris greșit. Am luat-o pe prima.`
+        : `Părinții sunt în biserici diferite (${altele.join(", ")}) - am luat-o pe prima.`,
+    );
   }
   if (copil.nume && copil.nume !== aleasa.nume) {
     const deLa = aleasa.nume === "-" ? "fără biserică" : aleasa.nume;
@@ -341,25 +367,25 @@ function bisericaFamiliei(
  * decât o presupunere trecută ca fapt.
  */
 const BAIETI = `abel adrian albert alex alexandru alin amos andrei anton aurel beniamin bogdan
-caleb calin catalin ciprian claudiu constantin cosmin cristi cristian damian dan daniel darius david
+caleb calin catalin ciprian claudiu constantin cosmin costi cristi cristian damian dan daniel darius david
 denis dorel dorin dragos eduard edward elias emanuel emil eric eusebiu ezra fabian filip flavius florin
 gabriel george gheorghe horia iacob ianis ilie ioan ioas ion ionut iosif iosua isaac iulian iustin
 jeremy jhonatan jonathan kevin liviu luca lucas marcel marcu marcus marian marius mark matei mateo matias
 mihai mircea moise natan natanael nelu nicolae noe oliver ovidiu patrick paul pavel petru radu
-rares raul rawad robert roman samuel samuil sebastian serafino seth silviu simon sorin stefan
+rares raul rawad robert roman samuel samuil sebastian sem serafino seth silviu simon sorin stefan
 teodor tiberiu timotei tudor valentin vasile victor vlad vladimir`;
 
 const FETE = `abbigail abi abigail ada adela adina adriana agnes alesia alessia alexandra alina
 alisa amalia ana anastasia anca andreea anelisse aneta antonia ariana aurora aylin beatrice bianca camelia
 carla carmen casandra catalina cezara clara claudia corina cristina dalia damaris dana daniela
 daria debora delia denisa diana doina dorina doris elena eliana eliane elisabeta elisabeth eliza ella
-emanuela emima emma erika estera eva evelina fabiola flavia florina gabriela georgiana giulia gloria hadina
-iasmina ileana ilinca ioana iulia iuliana ivona joellin julia karina larisa laura lavinia lea
+emanuela emima emma erika estera eva evelina fabiola felicia flavia florina gabriela georgiana giulia gloria hadina
+iasmina iemima ileana ilinca ioana iulia iuliana ivona joellin julia karina larisa laura lavinia lea
 lidia ligia liliana lois loredana luiza magdalena maia mara maria mariana marta medeea melania mihaela
 miriam monica nadia natalia nicoleta noemi oana olivia otilia patricia paula petra rahela raisa
 rafaela raluca rania rebeca rebecca roberta ruth salma samira sara sarah sefora sidonia silvia simona
 sofia sonia sophia sophie stefania tabita teodora tiana timea valentina vanessa veronica
-victoria viorica violeta`;
+victoria viorica violeta vivienne`;
 
 const DUPA_PRENUME = new Map<string, "băiat" | "fată">([
   ...BAIETI.split(/\s+/).map((n) => [n, "băiat"] as const),
@@ -370,6 +396,25 @@ function sexDinPrenume(prenume: string): "băiat" | "fată" | null {
   for (const bucata of normalizeaza(prenume).split(/[\s-]+/)) {
     const gasit = DUPA_PRENUME.get(bucata);
     if (gasit) return gasit;
+  }
+  return null;
+}
+
+/**
+ * Prenumele știut care seamănă cel mai mult cu unul pe care nu-l cunoaștem.
+ *
+ * „Crudu Loan" e „Ioan" scris cu L mic în loc de I mare - aceeași literă pe
+ * ecran, altă literă în tabel. Nu reparăm numele nimănui singuri: îl punem
+ * la „De verificat" și hotărăște omul.
+ */
+function prenumeApropiat(prenume: string): string | null {
+  for (const bucata of normalizeaza(prenume).split(/[\s-]+/)) {
+    if (bucata.length < 4 || DUPA_PRENUME.has(bucata)) continue;
+    for (const stiut of DUPA_PRENUME.keys()) {
+      if (Math.abs(stiut.length - bucata.length) <= 1 && distanta(bucata, stiut) === 1) {
+        return numeFrumos(stiut);
+      }
+    }
   }
   return null;
 }
@@ -677,7 +722,14 @@ async function main() {
     }
 
     const sex = sexDinPrenume(prenume);
-    if (!sex) note.push("Nu-mi dau seama dacă e băiat sau fată - completează coloana Sex.");
+    if (!sex) {
+      const seamana = prenumeApropiat(prenume);
+      note.push(
+        seamana
+          ? `Nu-mi dau seama dacă e băiat sau fată - „${prenume.trim()}" nu e un prenume știut, dar seamănă cu „${seamana}". Verifică-l și completează coloana Sex.`
+          : "Nu-mi dau seama dacă e băiat sau fată - completează coloana Sex.",
+      );
+    }
 
     const biserica = bisericaFamiliei(
       text(rand, "biserica"),
@@ -722,8 +774,19 @@ async function main() {
       const emailP = emailCurat(textDinCelula(rand.getCell(bloc.email).value));
       if (emailP.nota) note.push(`Părinte: ${emailP.nota}`);
 
-      // Și la părinți căsuțele se completează uneori invers („Todor Lidia").
-      const parinteInversat = !sexDinPrenume(prenumeP) && sexDinPrenume(numeP) !== null;
+      /*
+        Și la părinți căsuțele se completează uneori invers („Todor Lidia").
+        Numele de familie al copilului e arbitrul: „Ion" și „Matei" sunt și
+        prenume, dar când copilul se numește așa, în căsuța de nume e numele
+        de familie - oricât de mult ar semăna cu un prenume.
+      */
+      const familiaCopilului = normalizeaza(nume.split(" ").at(-1) ?? "");
+      const parinteInversat =
+        normalizeaza(numeP) === familiaCopilului
+          ? false
+          : normalizeaza(prenumeP) === familiaCopilului
+            ? true
+            : !sexDinPrenume(prenumeP) && sexDinPrenume(numeP) !== null;
       const numeIntreg = (parinteInversat ? `${numeP} ${prenumeP}` : `${prenumeP} ${numeP}`)
         .replace(/\s+/g, " ")
         .trim();
@@ -750,6 +813,17 @@ async function main() {
       }
       if (!telefonP.numar && !emailP.adresa) {
         note.push(`${numeIntreg} n-are nici telefon, nici email în formular.`);
+      }
+
+      /*
+        „Hriscu Sem" la mamă, pe fișa lui Sem Hriscu: la rubrica părintelui a
+        fost scris din nou numele copilului. Telefonul rămâne - e al familiei,
+        și e bun - dar numele trebuie cerut.
+      */
+      if (normalizeaza(numeIntreg) === normalizeaza(nume)) {
+        note.push(
+          `La părinte e scris numele copilului („${numeIntreg}") - cere numele părintelui.`,
+        );
       }
 
       contacte.push({

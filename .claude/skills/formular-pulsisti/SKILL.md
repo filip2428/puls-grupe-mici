@@ -32,7 +32,11 @@ PULS 2026-2027 (Responses) (2).xlsx   ← cel mai nou
   Tabelul cu exporturile deja prelucrate e la finalul fișierului ăstuia; adaugă
   un rând în el de fiecare dată.
 
-Din 20 oct. 2026 răspunsurile vin în **formular nou, „V2"** („PULS 2026-2027 V2
+Atenție: **amândouă formularele primesc răspunsuri** - pe 24 oct. formularul
+vechi avea 9 răspunsuri noi, iar V2 unul. Uită-te la data fiecărui export, nu
+presupune că cel vechi s-a oprit.
+
+Din 20 oct. 2026 răspunsurile vin și în **formular nou, „V2"** („PULS 2026-2027 V2
 (Responses).xlsx"), cu aceleași întrebări - doar acordul pentru poze e
 reformulat și nu mai are coloanele de evidență ale utilizatorului. V2 numără
 rândurile de la capăt, deci dă-i lui `--fata-de` ultimul export al formularului
@@ -148,3 +152,4 @@ e deja în aplicație.
 | 8 oct. 2026 | `PULS 2026-2027 (Responses) (4).xlsx` | `(Responses) (2).xlsx` | 81 | 2 |
 | 15 oct. 2026 | `PULS 2026-2027 (Responses) (5).xlsx` | `(Responses) (4).xlsx` | 84 | 3 |
 | 20 oct. 2026 | `PULS 2026-2027 V2 (Responses).xlsx` (formular nou) | `(Responses) (5).xlsx` | 1 | 1 |
+| 24 oct. 2026 | `PULS 2026-2027 (Responses) (6).xlsx` (tot formularul vechi) | `(Responses) (5).xlsx` | 94 | 9 |
