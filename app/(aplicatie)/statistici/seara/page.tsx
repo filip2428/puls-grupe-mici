@@ -134,31 +134,78 @@ export default async function PaginaSeara({
       ) : (
         <>
           {s.grupe.length > 0 && (
-            <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Caseta valoare={String(s.total.prezenti)} eticheta="prezenți" />
-              <Caseta
-                valoare={s.total.procent !== null ? `${s.total.procent}%` : "-"}
-                eticheta="din membri"
-              />
-              <Caseta
-                valoare={String(s.total.auAnuntat)}
-                eticheta="au anunțat"
-              />
-              <Caseta valoare={String(s.total.absenti)} eticheta="absenți" />
+            /*
+              Două cifre, spuse separat: câți oameni au fost în seara aia
+              (cu musafiri cu tot) și cum au venit membrii grupelor - procentul
+              rămâne doar pe membri, ca în restul statisticilor.
+            */
+            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="card p-4">
+                <h2 className="titlu-sectiune">Prezența totală</h2>
+                <div className="mt-1 text-3xl font-bold text-albastru tabular-nums">
+                  {s.total.prezenti + s.total.musafiri}
+                </div>
+                <p className="text-xs text-cenusiu">
+                  {s.total.prezenti}{" "}
+                  {s.total.prezenti === 1 ? "membru" : "membri"} și{" "}
+                  {s.total.musafiri}{" "}
+                  {s.total.musafiri === 1 ? "musafir" : "musafiri"}
+                </p>
+              </div>
+              <div className="card p-4">
+                <h2 className="titlu-sectiune">Prezența la grupele mici</h2>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-albastru tabular-nums">
+                    {s.total.procent !== null ? `${s.total.procent}%` : "-"}
+                  </span>
+                  <span className="text-sm text-cenusiu tabular-nums">
+                    {s.total.prezenti} din{" "}
+                    {s.total.prezenti + s.total.auAnuntat + s.total.absenti}{" "}
+                    membri
+                  </span>
+                </div>
+                <p className="text-xs text-cenusiu">
+                  {s.total.auAnuntat} au anunțat · {s.total.absenti}{" "}
+                  {s.total.absenti === 1 ? "absent" : "absenți"} · fără
+                  musafiri
+                </p>
+              </div>
             </section>
-          )}
-
-          {s.total.musafiri > 0 && (
-            <p className="-mt-1 text-center text-xs text-cenusiu">
-              Plus {s.total.musafiri}{" "}
-              {s.total.musafiri === 1 ? "musafir" : "musafiri"} la grupe, care
-              nu intră la procent.
-            </p>
           )}
 
           {s.grupe.map((g) => (
             <CardGrupa key={g.grupaId} g={g} data={data} />
           ))}
+
+          {s.total.musafiri > 0 && (
+            <section className="card p-4">
+              <h2 className="titlu-sectiune">
+                Musafiri ({s.total.musafiri})
+              </h2>
+              <p className="mb-2 text-xs text-cenusiu">
+                Cine a trecut pragul în seara asta, și la ce grupă.
+              </p>
+              <ul className="flex flex-col divide-y divide-linie">
+                {s.grupe.flatMap((g) =>
+                  g.musafiri.map((o) => (
+                    <li key={`${g.grupaId}-${o.membruId}`} className="py-2">
+                      <Link
+                        href={`/membri/${o.membruId}`}
+                        className="flex items-baseline justify-between gap-3"
+                      >
+                        <span className="truncate text-sm font-medium">
+                          {o.nume}
+                        </span>
+                        <span className="shrink-0 text-xs text-cenusiu">
+                          {g.nume}
+                        </span>
+                      </Link>
+                    </li>
+                  )),
+                )}
+              </ul>
+            </section>
+          )}
 
           {s.faraPrezenta.length > 0 && (
             <section className="rounded-2xl border border-red-100 bg-red-50/50 p-4">
@@ -251,15 +298,6 @@ function Sageata({
   );
 }
 
-function Caseta({ valoare, eticheta }: { valoare: string; eticheta: string }) {
-  return (
-    <div className="card p-3 text-center">
-      <div className="text-2xl font-bold text-albastru">{valoare}</div>
-      <div className="text-xs text-cenusiu">{eticheta}</div>
-    </div>
-  );
-}
-
 /**
  * O grupă din seara aleasă. Cifrele se văd din prima; numele, la o apăsare -
  * altfel, cu zece grupe, pagina ar fi o listă lungă de oameni.
@@ -274,10 +312,11 @@ function CardGrupa({ g, data }: { g: GrupaInSeara; data: string }) {
           <span className="min-w-0">
             <span className="block truncate font-semibold">{g.nume}</span>
             <span className="block truncate text-xs text-cenusiu">
-              {g.prezenti.length} din {membri}
-              {g.auAnuntat.length > 0 && ` · ${g.auAnuntat.length} au anunțat`}
+              {g.prezenti.length + g.musafiri.length} în total ·{" "}
+              {g.prezenti.length} din {membri} membri
               {g.musafiri.length > 0 &&
-                ` · +${g.musafiri.length} ${g.musafiri.length === 1 ? "musafir" : "musafiri"}`}
+                ` · ${g.musafiri.length} ${g.musafiri.length === 1 ? "musafir" : "musafiri"}`}
+              {g.auAnuntat.length > 0 && ` · ${g.auAnuntat.length} au anunțat`}
               {g.subiect ? ` · ${g.subiect}` : ""}
             </span>
           </span>
