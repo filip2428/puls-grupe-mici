@@ -5,16 +5,19 @@ import { CULORI_STARE, PRAG_PUTIN_IN_URMA } from "@/lib/citire";
 import { raportCitire } from "@/lib/interogari/citire";
 import { grupeAccesibile } from "@/lib/interogari/acces";
 import { statisticiPerioada } from "@/lib/interogari/perioada";
+import { zileleCuPrezenta } from "@/lib/interogari/seara";
 import {
   statisticiCuToti,
   type StatisticiCuToti,
 } from "@/lib/interogari/prezenta-eveniment";
 import {
+  ZILE_SAPTAMANA,
   anulBisericesc,
   dataAzi,
   dataScurta,
   esteDataValida,
   perioadaLizibila,
+  ziSaptamanii,
 } from "@/lib/util/date";
 import { CampData } from "@/componente/CampData";
 
@@ -47,10 +50,11 @@ export default async function PaginaStatistici({
       ? undefined
       : grupele.map((g) => g.id);
 
-  const [s, citire, cuToti] = await Promise.all([
+  const [s, citire, cuToti, seri] = await Promise.all([
     statisticiPerioada({ deLa, panaLa, grupaIds }),
     raportCitire(grupaIds),
     statisticiCuToti({ deLa, panaLa, grupaIds }),
+    zileleCuPrezenta(azi, esteAdmin ? undefined : grupele.map((g) => g.id)),
   ]);
   const parametri = new URLSearchParams({ deLa, panaLa });
   if (grupaAleasa) parametri.set("grupa", String(grupaAleasa));
@@ -67,6 +71,36 @@ export default async function PaginaStatistici({
           .
         </p>
       </div>
+
+      {/*
+        O seară anume, fără să mai potrivești perioada de la o zi la aceeași
+        zi: ultimele seri cu prezență, la o apăsare.
+      */}
+      {seri.length > 0 && (
+        <section className="card flex flex-col gap-2 p-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="titlu-sectiune">Prezența pe o seară</h2>
+            <Link
+              href="/statistici/seara"
+              className="shrink-0 text-xs font-semibold text-albastru"
+            >
+              toate serile
+            </Link>
+          </div>
+          <ul className="flex flex-wrap gap-2">
+            {seri.slice(0, 4).map((z) => (
+              <li key={z}>
+                <Link
+                  href={`/statistici/seara?data=${z}`}
+                  className="inline-flex min-h-9 items-center rounded-full bg-fundal px-3 text-xs font-semibold text-cenusiu"
+                >
+                  {ZILE_SAPTAMANA[ziSaptamanii(z)]}, {dataScurta(z)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* Perioada */}
       <form action="/statistici" className="card flex flex-col gap-3 p-4">
